@@ -61,8 +61,11 @@ app.get('/', function(request, response){
 
 
 app.get('/sm_signup', function(request, response){
-  console.log("signup.ejs파일 읽어옴");
-  response.render('sm_signup.ejs');
+  var context = {idExistence : idExistence};
+  request.app.render('sm_signup.ejs', context, function(err,html){
+    if(err){throw err;}
+    response.end(html);
+  });
 });
 
 app.post('/sm_signup', function(request, response){
@@ -70,25 +73,29 @@ app.post('/sm_signup', function(request, response){
   client.query('INSERT INTO Login (login_name, login_id, login_password, login_email, login_phone) VALUES (?,?,?,?,?)', [body.name, body.id, body.pw, body.email+"@sm.ac.kr", body.phone], function(){
     response.redirect('/');
   });
-  console.log(("회원가입 완료"));
 });
 
 
 app.get('/checkId', function(request, response){
   var id = request.query.id;
-  var context = {userId : id};
 
-  checkUserId(id, function(err, rows){
-    if(err){throw err;}
+  readData(id, function(){
+    var context = {userId : id, idExistence : idExistence};
+    request.app.render('sm_signup.ejs', context, function(err,html){
+      if(err){throw err;}
+      response.end(html);
+      console.log("아이디 확인");
+      console.log(idExistence);
+    });
   });
-
-  request.app.render('checkId', context, function(err,html){
-    if(err){throw err;}
-    response.end(html);
-  });
-  console.log("checkId파일 읽어옴");
 });
 
+var readData = function(id, callback){
+  checkUserId(id, function(err, rows){
+    if(err){throw err;}
+    callback();
+  });
+};
 
 app.get('/sm_addItems', function(request, response){
   fs.readFile('sm_addItems.html', 'utf8', function(error, data){

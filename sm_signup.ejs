@@ -7,6 +7,15 @@
         <title>SooksMarket</title>
         <script src="checkId.js"></script>
         <script language="JavaScript">
+        var idExistence = <%= idExistence %>;
+
+        if(idExistence == 1){
+          alert("해당 아이디는 이미 사용중입니다.\n다른 아이디를 입력하세요.");
+        }
+        else if(idExistence == 0){
+          alert("사용 가능한 아이디입니다.");
+        }
+
         function checkId(){
           var idText = document.getElementById("id");
           if(idText.value==""){
