@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, user-scalable=yes" />
+  <title>sm_addItems</title>
+  <link rel="stylesheet" href="/css/addItems.css" />
+  <link rel="stylesheet" href="/css/header.css" />
+
+  <script>
+  var flag = 0;
+  var counter = 1;
+
+  function getCmaFileInfo(obj,stype) {
+    var fileObj;
+
+    if(obj == "[object HTMLInputElement]"){
+      fileObj = obj.value
+    }else{
+      fileObj = document.getElementById(obj).value;
+    }
+    if (fileObj != ""){
+      flag = 1;
+    }
+    else{
+      flag = 0;
+    }
+ }
+
+  function AddFileUpload()
+  {
+    if (counter == 1){
+      var div = document.createElement('DIV');
+      div.innerHTML = '<input id="file' + counter + '" name = "photo" type="file" style="margin-top:1%; width:90%" accept="image/*" capture="photo" onchange="getCmaFileInfo(this,name)";/>' +
+         '<input class="delete" id="delete' + counter + '" type="button" ' + 'value="X" onclick = "RemoveFileUpload(this)" style="width:10%; background-color:white; color: #ffcc00;border: 2px solid #ffcc00; border-radius:5px;"/>';
+      document.getElementById("FileUploadContainer").appendChild(div);
+      counter++;
+    }
+
+    if((counter<=3) && (flag == 1)){
+      var div = document.createElement('DIV');
+      div.innerHTML = '<input id="file' + counter + '" name = "photo" type="file" style="margin-top:1%; width:90%" accept="image/*"  capture="photo"  onchange="getCmaFileInfo(this,name)";/>' +
+           '<input class="delete" id="delete' + counter + '" type="button" ' + 'value="X" onclick = "RemoveFileUpload(this)" style="width:10%; background-color:white; color: #ffcc00;border: 2px solid #ffcc00; border-radius:5px;"/>';
+      document.getElementById("FileUploadContainer").appendChild(div);
+      counter++;
+      flag = 0;
+    }
+  }
+
+  function RemoveFileUpload(div)
+  {
+    document.getElementById("FileUploadContainer").removeChild(div.parentNode);
+    counter--;
+  }
+
+  function submitCheck(){
+
+  }
+
+  </script>
+
+
+</head>
+
+<body class="body">
+  <div class="headTop" >
+
+    <div class="navigation"></div>
+
+    <div class="head_main">
+      <div class = "title_img" style="text-align:right;margin-left:15%;"><img src="/img/snow.gif" width="35"/></div>
+      <div class = "title">회원 가입</div>
+      <div class = "title_img"><img src="/img/snow.gif" width="35"/></div>
+    </div>
+
+    <div class="others"></div>
+  </div>
+
+
+  <div class="main_body">
+  <form class="ProductInfo" id="form" method = "post"  enctype="multipart/form-data">
+    <table style="margin: 0 auto;">
+
+      <tr>
+        <td width="30%">팔고자 하는 물건</td>
+        <td width="70%"><input class="text" id="target" type="text" placeholder="내용을 입력해주세요." name="name"></td>
+      </tr>
+
+      <tr>
+        <td>가격</td>
+        <td><input  type="text" placeholder="내용을 입력해주세요." name="price"></td>
+      </tr>
+
+      <tr>
+        <td>카테고리</td>
+        <td>
+          <select id="catagory" name="category">
+            <option>옵션1</option>
+            <option>옵션2</option>
+            <option>옵션3</option>
+            <option>옵션4</option>
+            <option>옵션5</option>
+          </select>
+        </td>
+      </tr>
+
+      <tr>
+        <td>사진</td>
+        <td>
+          <input id="picture" type="button" value="불러오기" onclick = "AddFileUpload()"/>
+          <div id = "FileUploadContainer">
+            <!--FileUpload Controls will be added here -->
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td>희망 거래 방법</td>
+        <td>
+          <div style="color:black;">
+            <input name="way" type="checkbox" value="직거래"/>직거래
+            <input name="way" type="checkbox" value="사물함거래"/>사물함거래
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td>상세내용</td>
+        <td>
+          <div>
+            <div>
+              <textarea name="detail" rows=10 cols=30 style="resize: none;"></textarea>
+            </div>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2">
+          <div class="btn" align="center">
+            <span><input type="submit" value="등록하기" class="button submit" onclick="submitCheck();"/></span>
+            <span><input type="reset" value="취소하기" class="button cancel"/></span>
+          </div>
+        </td>
+      </tr>
+
+    </table>
+  </form>
+</div>
+</body>
+
+
+<footer>
+  <div class="footer_top">
+
+  </div>
+  <address class="footer_address">
+    연락처 : 010-3333-3333<br>
+    숙명여대 컴퓨터과학, 2016 졸업작품 KOREA
+  </address>
+
+</footer>
+
+</html>
