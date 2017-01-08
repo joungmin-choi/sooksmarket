@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>숙명인 인증</title>
+    <script>
+    var authenticationCode = <%= userCode %>;
+    alert("해당 숙명 웹메일로 인증번호가 전송되었습니다.\n웹메일에서 받으신 인증번호를 밑에 적어주세요.");
+
+    function authenticate(){
+      var codeText = document.getElementById("code");
+      if(codeText.value==""){
+        alert("인증번호를 입력해주세요!");
+      }
+      else{
+        if(codeText.value == authenticationCode){
+          alert("인증되었습니다!");
+          window.close();
+          opener.checkingSookmyung = 1;
+          opener.form.phone.focus();
+        }
+        else{
+          alert("인증번호가 다릅니다.\n다시 입력하세요.");
+        }
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <h4>숙명인 인증</h4><br/>
+    인증번호 :
+    <input type="text" name="code" id ="code" size=10 />
+    <input type="button" value="인증하기" onclick="authenticate();" />
+  </body>
+</html>

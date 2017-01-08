@@ -7,7 +7,8 @@
         <title>SooksMarket</title>
         <script language="JavaScript">
         var idExistence = <%= idExistence %>;
-        var checking = 0;
+        var checkingId = 0;
+        var checkingSookmyung = 0;
 
         function checkId(){
           var idText = document.getElementById("id");
@@ -17,6 +18,17 @@
           }
           else{
             var str = "/checkId/?id="+idText.value;
+            window.open(str,"","width=400 height=150");
+          }
+        }
+
+        function authenticate(){
+          var emailText = document.getElementById("email");
+          if(emailText.value==""){
+            alert("숙명 이메일 아이디를 입력해주세요.");
+          }
+          else{
+            var str = "/authenticateSookmyung/?email="+emailText.value+"@sm.ac.kr";
             window.open(str,"","width=400 height=150");
           }
         }
@@ -54,8 +66,12 @@
             alert("비밀번호 중복확인 실패!\n다시 입력하세요!");
             return false;
           }
-          else if(checking==0){
+          else if(checkingId==0){
             alert("아이디 중복체크 해주세요!");
+            return false;
+          }
+          else if(checkingSookmyung==0){
+            alert("숙명인 인증 해주세요!");
             return false;
           }
           else {
@@ -119,15 +135,7 @@
           <tr>
 
             <td class="input">
-              <input type="button" value="인증번호 요청" />
-            </td>
-          </tr>
-
-          <tr>
-            <td class="text">인증번호 </td>
-            <td class="input">
-              <input type="text" name="authentication" size=6 />
-              <input type="button" value="인증하기" />
+              <input type="button" value="인증번호 요청" onClick="authenticate();" />
             </td>
           </tr>
 

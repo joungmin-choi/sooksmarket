@@ -7,13 +7,14 @@
     if(idExistence == 1){
       alert("해당 아이디는 이미 사용중입니다.\n다른 아이디를 입력하세요.");
       window.close();
-      opener.form.name.focus();
       opener.form.id.value="";
+      opener.form.id.focus();
     }
     else{
       alert("사용 가능한 아이디입니다.");
       window.close();
-      opener.checking = 1;
+      opener.checkingId = 1;
+      opener.form.pw.focus();
     }
     </script>
   </head>

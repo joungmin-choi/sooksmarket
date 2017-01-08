@@ -7,6 +7,8 @@ var cookieParser = require('cookie-parser');
 var expressSession = require('express-session');
 var passport = require('passport');
 var flash = require('connect-flash');
+var nodemailer = require('nodemailer');
+var smtpTransport = require("nodemailer-smtp-transport");
 
 //DB 설정//
 var client = mysql.createConnection({
@@ -86,6 +88,48 @@ var readData = function(id, callback){
     callback();
   });
 };
+
+var smtpTransport = nodemailer.createTransport(smtpTransport({
+  host : "smtp.gmail.com",
+  secureConnection : false,
+  port : 587,
+  auth : {
+    user : "miniymay101",
+    pass : "sb028390"
+  }
+}));
+
+var sendCode = function(authenticationCode, email, callback){
+  var mailOptions = {
+    from: '숙스마켓 <miniymay101@gmail.com>',
+    to : email,
+    subject: '숙스마켓 인증번호',
+    text: '인증 번호 : '+authenticationCode
+  };
+
+  smtpTransport.sendMail(mailOptions, function(error, response){
+    if(error){
+      console.log(error);
+    }else{
+      console.log("Message sent : " + response.message);
+    }
+    smtpTransport.close();
+    callback();
+  });
+};
+
+app.get('/authenticateSookmyung', function(request, response){
+  var email = request.query.email;
+  var authenticationCode = Math.floor(Math.random()*1000000) + 100000;
+  console.log(authenticationCode);
+  sendCode(authenticationCode, email, function(){
+    var context = {userCode : authenticationCode};
+    request.app.render('authenticateSookmyung.ejs', context, function(err,html){
+      if(err){throw err;}
+      response.end(html);
+    });
+  });
+});
 
 app.post('/sm_signup', function(request, response){
   var body = request.body;
