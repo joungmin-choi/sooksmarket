@@ -5,27 +5,19 @@
         <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
         <link rel="stylesheet" href="/css/signup.css" />
         <title>SooksMarket</title>
-        <script src="checkId.js"></script>
         <script language="JavaScript">
         var idExistence = <%= idExistence %>;
-
-        //if(idExistence != -1){
-          if(idExistence == 1){
-            alert("해당 아이디는 이미 사용중입니다.\n다른 아이디를 입력하세요.");
-          }
-          else if(idExistence == 0){
-            alert("사용 가능한 아이디입니다.");
-          }
-    //    }
+        var checking = 0;
 
         function checkId(){
           var idText = document.getElementById("id");
+          var nameText = document.getElementById("name");
           if(idText.value==""){
             alert("입력된 아이디가 없습니다.");
           }
           else{
-            var str = '/sm_signup/?id='+idText.value+'';
-            location.href=str;
+            var str = "/checkId/?id="+idText.value;
+            window.open(str,"","width=400 height=150");
           }
         }
 
@@ -60,6 +52,10 @@
           }
           else if (pwText.value != pwCheckText.value) {
             alert("비밀번호 중복확인 실패!\n다시 입력하세요!");
+            return false;
+          }
+          else if(checking==0){
+            alert("아이디 중복체크 해주세요!");
             return false;
           }
           else {
