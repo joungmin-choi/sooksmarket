@@ -98,11 +98,8 @@ app.get('/auth/logout', function(req, res) {
 app.get('/sm_main', function(req, res){
   if (req.user && req.user.displayName) {
   res.render('sm_main.ejs');
-  // fs.readFile('sm_main.html', 'utf8', function(error, data){
-  //   response.send(data);
-  // });
 } else {
-  res.render('index.ejs')
+  res.render('index.ejs');
 }
 });
 
@@ -296,11 +293,11 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response){
   var type = new Array();
   var outputPath = new Array();
 
-  if(!(length > 0) && (request.files.file.size == 0)){  // 파일 0개
+  if(!(length > 0) && (request.files.file.size === 0)){  // 파일 0개
     outputPath[0] = ""; outputPath[1] = ""; outputPath[2] = "";
     fs.unlink(request.files.file.path, function(err) { });
   }
-  else if(!(length > 0) && (request.files.file.size != 0)){  // 파일 1개
+  else if(!(length > 0) && (request.files.file.size !== 0)){  // 파일 1개
     name[0] = imageFile.name;
     path[0] = imageFile.path;
     type[0] = imageFile.type;
@@ -326,7 +323,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response){
           fs.rename(path[i], outputPath[i], function(err) {});
       }
     }
-    for(var i=length; i<3; i++){
+    for( i=length; i<3; i++){
       request.files.file[i] = ""; outputPath[i] = "";
     }
   }
@@ -353,22 +350,4 @@ app.get('/t_request', function(request, response){
   fs.readFile('t_request.html', 'utf8', function(error, data){
     response.send(data);
   });
-});
-
-app.get('/auth/login', function(req, res) {
-    var output = `
-  <h1>Login</h1>
-  <form action="/auth/login" method="post">
-    <p>
-      <input type="text" name="username" placeholder="username">
-    </p>
-    <p>
-      <input type="password" name="password" placeholder="password">
-    </p>
-    <p>
-      <input type="submit">
-    </p>
-  </form>
-  `;
-    res.send(output);
 });
