@@ -70,10 +70,10 @@
             alert("아이디 중복체크 해주세요!");
             return false;
           }
-          else if(checkingSookmyung==0){
+          /*else if(checkingSookmyung==0){
             alert("숙명인 인증 해주세요!");
             return false;
-          }
+          }*/
           else {
             alert("회원가입 완료!");
             form.submit();
@@ -110,7 +110,7 @@
           <tr>
             <td class="text">아이디 :</td>
             <td class="input">
-              <input type="text" id="id" name="id" size=10 style="width : 50%;" />
+              <input type="text" id="id" name="username" size=10 style="width : 50%;" />
               <input type="button" value="중복확인" onClick="checkId();" style="width : 40%;"/>
             </td>
           </tr>
@@ -130,7 +130,6 @@
             <td class="input" style="font-size : 65%;">
               <input type="text" name="email" id="email" size=10 style=" width : 60%;"/>@sm.ac.kr
             </td>
-          </tr>
 
           <tr>
 
@@ -151,6 +150,13 @@
               (※'-'없이 숫자만 입력해주세요!)
             </td>
           </tr>
+
+          <tr>
+            <td class="text" rowspan="2">별명 :</td>
+            <td class="input" style="font-size : 65%;">
+              <input type="text" name="displayName" id="allias" size=10 style=" width : 60%;"/>
+            </td>
+        </tr>
 
           <tr class="button">
             <td class="text" colspan="2"><input type ="submit" value="가입하기"/>

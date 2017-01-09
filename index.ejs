@@ -15,28 +15,29 @@
 
         <div class="image"><img src="/img/index.gif" width="80" /></div>
 
+        <form action="/index" method="post">
         <div class="login">
         <table class ="table">
           <tr>
             <td class="snowImg"><img src="/img/snowflake.png" width="20" /></td>
             <td class="idpwcolumn">ID : </td>
-            <td class="input"><input type="text" name="id" size="15"/></td>
+            <td class="input"><input type="text" name="username" size="15"/></td>
           </tr>
 
           <tr>
             <td class="snowImg"><img src="/img/snowflake.png" width="20" /></td>
             <td class="idpwcolumn">PW : </td>
-            <td class="input"><input type="text" name="pw" size="15"/></td>
+            <td class="input"><input type="text" name="password" size="15"/></td>
           </tr>
         </table>
       </div>
 
       <div class="button">
-        <input type="button" value="로그인" name="loginBtn" onclick="location.href='/sm_addItems'" />
+        <input type="submit" value="로그인" name="loginBtn" />
         <input type="button" value="회원가입" onclick="location.href='/sm_signup'" />
-        <input type="button" value="testing" onclick="location.href='/sm_main'" />
         <input type="button" value="testing_re" onclick="location.href='/sm_request'" />
       </div>
+    </form>
       </section>
     </body>
 

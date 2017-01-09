@@ -1,0 +1,39 @@
+{
+  "name": "sooksmarket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "emailtest.js",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.3",
+    "ejs": "^2.5.5",
+    "express": "^4.14.0",
+    "express-mysql-session": "^1.2.0",
+    "express-session": "^1.14.2",
+    "mysql": "^2.12.0",
+    "nodemailer": "^2.7.0",
+    "nodemailer-smtp-transport": "^2.7.2",
+    "npm": "^3.10.9",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
+    "pbkdf2-password": "^1.2.1",
+    "session": "^0.1.0",
+    "session-file-store": "^1.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miniymay/sooksmarket.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/miniymay/sooksmarket/issues"
+  },
+  "homepage": "https://github.com/miniymay/sooksmarket#readme"
+}
