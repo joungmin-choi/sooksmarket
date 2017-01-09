@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <meta charset="utf-8">
@@ -39,11 +39,22 @@
 -->
 
     <script type="text/javascript">
-        $(function () {
-            $('#datetimepicker1').datetimepicker({
-              viewMode : 'years'
-            });
-        });
+    $(function () {
+       $('#datetimepicker1').datetimepicker({
+         viewMode : 'days'
+       });
+   });
+
+   function getDate(){
+     var dateText = document.getElementById("dateText");
+     if(dateText.value != ""){
+       dateText.value="";
+       $('#datetimepicker1').datetimepicker({
+         viewMode : 'days'
+       });
+     }
+   }
+
     </script>
 
 
@@ -107,34 +118,18 @@
         <!-- /.container -->
     </nav>
 
-
-
-
-
-
     <!-- 바디 달력 창 -->
     <div class="container">
         <h1><strong> 구매 신청 </strong></h1>
         <hr>
 
         <form id="eventFrom" method="post" class="form-horizontal">
-<!--
-            <div class="form-group">
-                <label class="col-xs-3 control-label text-center">날짜 : </label>
-                <div class="col-xs-7">
-                    <div class="input-group date">
-                        <input type="text" class="form-control">
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-remove"></i></span>
-                    </div>
-                </div>
-            </div>
--->
+          <button type="submit" class="btn btn-default" style="margin-bottom: 3%;">거래날짜 추가</button>
             <div class="form-group">
               <label class="col-xs-3 control-label text-center">날짜 : </label>
               <div class="col-xs-7">
-                <div class='input-group date' id='datetimepicker1'>
-                    <input type='text' class="form-control" />
+                <div class='input-group date' id='datetimepicker1' onclick="getDate();">
+                    <input type='text' class="form-control" id="dateText" />
                     <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
                     </span>
@@ -144,7 +139,7 @@
             </div>
 
             <div class="form-group">
-                <label class="col-xs-3 control-label text-center">장소 : </label>
+                <label class="col-xs-3 control-label text-center">방법 : </label>
                 <div class="col-xs-5">
                     <input type="text" class="form-control" name="name" />
                 </div>
