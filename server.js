@@ -63,15 +63,13 @@ var idExistence = -1;
 var checkUserId = function(id, callback){
 
   var exec = client.query('select username from users where username='+mysql.escape(id), function(err, rows){
-    console.log('실행대상 SQL :' + exec.sql);
+    //console.log('실행대상 SQL :' + exec.sql);
 
     if(rows.length > 0){
-      console.log('아이디 [%s]가 일치하는 사용자 찾음',id);
       idExistence = 1;
       callback(null, rows);
     }else{
       idExistence = 0;
-      console.log("일치하는 사용자 찾지 못함.");
       callback(null, null);
     }
   });
@@ -131,7 +129,7 @@ function(username, password, done) {
           return done(null,false);
           //redirect('/')
       }
-      console.log(user);
+      console.log("User Part : "+user);
             return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash) {
 
                 if (hash === user.password) {
@@ -244,6 +242,7 @@ app.post('/sm_signup', function(req, res){
         login_email : req.body.email+'@sm.ac.kr',
         login_phone : req.body.phone
     };
+
     //users.push(user);
     var sql = 'INSERT INTO users SET ?';
     client.query(sql, user, function(err, result) {

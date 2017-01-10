@@ -26,88 +26,95 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.44/js/bootstrap-datetimepicker.min.js"></script>
 
     <script type="text/javascript">
-    var j=1;
-    $(function () {
-       $('#datepicker0').datetimepicker({
-         viewMode : 'days',
-         format : 'YYYY/MM/DD'
-       });
-       $('#timepicker0').datetimepicker({
-         format : 'LT'
-       });
-   });
+        var j = 1;
+        $(function() {
+            $('#datepicker0').datetimepicker({
+                viewMode: 'days',
+                format: 'YYYY/MM/DD'
+            });
+            $('#timepicker0').datetimepicker({
+                format: 'LT'
+            });
+        });
 
-   function setDate(){
-     var dateText = document.getElementById("dateText");
-     if(dateText.value != ""){
-       dateText.value="";
-       $('#datepicker0').datetimepicker({
-         viewMode : 'days'
-       });
-     }
-   }
+        function setDate() {
+            var dateText = document.getElementById("dateText");
+            if (dateText.value != "") {
+                dateText.value = "";
+            }
+        }
 
-   document.getElementById("timepicker1").onclick = function(){
-     $(timepicker1).onclick
-   };
+        function setTime() {
+            var i = 0;
+            var timeText = new Array();
+            var timepicker = new Array();
+            for (i = 0; i < j; i++) {
+                timeText[i] = document.getElementById("timeText" + i);
+                timepicker[i] = "#timepicker" + i;
+            }
+            for (i = 0; i < j; i++) {
+                $(timepicker[i]).datetimepicker({
+                    format: 'LT'
+                });
+            }
+        }
 
-   function setTime(){
-    var i = 0;
-    var timeText = new Array();
-    var timepicker = new Array();
-    for(i=0; i<j;i++){
-      timeText[i] = document.getElementById("timeText" + i);
-      timepicker[i] = '#timepicker'+i+'';
-    }
-    for(i=0;i<j;i++){
-      $(timepicker[i]).datetimepicker({
-        format : 'LT'
-      });
-    }
-   }
+        function writeTradePlace() {
+            var way = document.getElementsByName("way");
+            var placeText = new Array();
+            var directText = document.getElementById("directText");
 
-   function showTime(){
-     var way = document.getElementsByName("way");
-     var placeText = new Array();
-     var directText = document.getElementById("directText");
+            if (way[0].checked == true) {
+                directText.style.border = "1px solid grey";
+                directText.style.margin = "2%";
+                placeText[0] = "장소 : <input type='checkbox' value='school' name='place' /> 교내";
+                placeText[1] = " <input type='checkbox' value='outside' name='place' /> 교외";
+                placeText[2] = "<br/><input type='text' name='detailPlace' placeholder='자세한 위치를 작성해주세요.' style='width:99%;'/><br/><br/>";
 
-     if(way[0].checked == true){
-       directText.style.border = "1px solid grey";
-       directText.style.margin = "2%";
-       placeText[0] = "장소 : <input type='checkbox' value='school' name='place' /> 교내";
-       placeText[1] = " <input type='checkbox' value='outside' name='place' /> 교외";
-       placeText[2] = "<br/><input type='text' name='detailPlace' placeholder='자세한 위치를 작성해주세요.' style='width:99%;'/><br/><br/>";
+                for (var i = 0; i < placeText.length; i++)
+                    directText.innerHTML += placeText[i];
+            } else if (way[0].checked == false) {
+                directText.style.border = "0px";
+                directText.innerHTML = "";
+            }
+        }
 
-       for(var i=0; i<placeText.length;i++)
-       directText.innerHTML += placeText[i];
-     }
-     else if(way[0].checked == false){
-       directText.style.border = "0px";
-       directText.innerHTML = "";
-     }
-   }
+        function showPlusBtn() {
+            var directPlusBtn = document.getElementById("plusBtn");
+            directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
+        }
 
-   function showPlusBtn(){
-     var directPlusBtn = document.getElementById("plusBtn");
-     directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
-   }
+        function addTime() {
+            var directPlusBtn = document.getElementById("plusBtn");
+            var timeDiv1 = document.getElementById("timeDiv1");
+            var timeDiv2 = document.getElementById("timeDiv2");
+            var timeDiv3 = document.getElementById("timeDiv3");
+            var timeDiv4 = document.getElementById("timeDiv4");
+            var divStr = new Array();
+            var str = "";
 
-   function addTime(){
-     var timeDiv = document.getElementById("timeDiv");
-     var divStr = new Array();
+            divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:40%;'>";
+            divStr[1] = "<div class='input-group date' id='timepicker" + j + "' onclick='setTime();' style='width: 99%;' >";
+            divStr[2] = "<input type='text' class='form-control' id='timeText" + j + "' />";
+            divStr[3] = "<span class='input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span></div></div>";
+            divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' >삭제</button></span>";
 
-     var str="";
-     divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:40%;'>";
-     divStr[1] = "<div class='input-group date' id='timepicker"+j+"' onclick='setTime();' style='width: 99%;' >";
-     divStr[2] = "<input type='text' class='form-control' id='timeText"+j+"' />";
-     divStr[3] = "<span class='input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span></div></div><br/><br/>";
+            for (var i = 0; i < divStr.length; i++) {
+                str += divStr[i];
+            }
 
-     for(var i=0; i<divStr.length;i++)
-      str+= divStr[i];
-
-      timeDiv.innerHTML += str;
-      j++;
-   }
+            if (j == 1) {
+                timeDiv1.innerHTML += str;
+            } else if (j == 2) {
+                timeDiv2.innerHTML += str;
+            } else if (j == 3) {
+                timeDiv3.innerHTML += str;
+            } else {
+                timeDiv4.innerHTML += str;
+                directPlusBtn.innerHTML = "";
+            }
+            j++;
+        }
 
 
     </script>
@@ -137,17 +144,17 @@
                     <li>
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown"> sooks market <b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                          <li><a href="sm_tradeInfo.html">전체</a></li>
-                          <li><a href="#">가방</a></li>
-                          <li><a href="#">음식</a></li>
+                            <li><a href="sm_tradeInfo.html">전체</a></li>
+                            <li><a href="#">가방</a></li>
+                            <li><a href="#">음식</a></li>
                         </ul>
                     </li>
                     <li>
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">mypage <b class="caret"></b></a>
                         <ul class="dropdown-menu">
-                          <li><a href="sm_mypage.html">내 정보</a></li>
-                          <li><a href="sm_changeInfo.html">회원정보수정</a></li>
-                          <li><a href="sm_tradeInfo.html">나의거래내역</a></li>
+                            <li><a href="sm_mypage.html">내 정보</a></li>
+                            <li><a href="sm_changeInfo.html">회원정보수정</a></li>
+                            <li><a href="sm_tradeInfo.html">나의거래내역</a></li>
                         </ul>
                     </li>
                     <li>
@@ -169,44 +176,49 @@
         <hr>
 
         <form id="eventFrom" method="post" class="form-horizontal">
-          <button type="submit" class="btn btn-primary" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
+            <button type="submit" class="btn btn-primary" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
             <div class="form-group">
-              <label class="col-xs-3 control-label text-center">● 날짜 : </label>
-              <div class="col-xs-7">
-                <div class='input-group date' id='datepicker0' onclick="setDate();">
-                    <input type='text' class="form-control" id="dateText" />
-                    <span class="input-group-addon">
+                <label class="col-xs-3 control-label text-center">● 날짜 : </label>
+                <div class="col-xs-7">
+                    <div class='input-group date' id='datepicker0' onclick="setDate();">
+                        <input type='text' class="form-control" id="dateText" />
+                        <span class="input-group-addon">
                         <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
+                        </span>
+                    </div>
                 </div>
-              </div>
             </div>
 
             <div class="form-group" style="margin-left:7%;">
-              <label class="col-xs-3 control-label text-center" >- 시간 : </label>
-              <div class="col-xs-7" style="width:40%;">
-                <div class='input-group date' id='timepicker0' onclick='setTime();' style="width: 99%;" >
-                    <input type='text' class="form-control" id="timeText0" />
-                    <span class="input-group-addon" onclick="showPlusBtn();">
+                <label class="col-xs-3 control-label text-center">- 시간 : </label>
+                <div class="col-xs-7" style="width:40%;">
+                    <div class='input-group date' id='timepicker0' onclick='setTime();' style="width: 99%;">
+                        <input type='text' class="form-control" id="timeText0" />
+                        <span class="input-group-addon" onclick="showPlusBtn();">
                         <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
+                        </span>
+                    </div>
                 </div>
-              </div>
-              <span id="plusBtn"></span>
+                <span id="plusBtn"></span>
             </div>
 
-            <div class="form-group" id="timeDiv" style="margin-left:7%; ">
-            </div>
+            <div class="form-group" id="timeDiv1" style="margin-left:7%; "></div>
+
+            <div class="form-group" id="timeDiv2" style="margin-left:7%; "></div>
+
+            <div class="form-group" id="timeDiv3" style="margin-left:7%; "></div>
+
+            <div class="form-group" id="timeDiv4" style="margin-left:7%; "></div>
 
             <!--전체 페이지 완성되면, 해당 방법 받아와서 그 방법만 보이게 해야함!-->
             <div class="form-group" style="margin-left:7%;">
                 <label class="col-xs-3 control-label text-center">- 방법 : </label>
                 <div class="col-xs-5" style="width: 60%;">
-                  <input type="checkbox" value="직거래" name="way" onclick="showTime();" />직거래
-                  <br/>
-                  <div class="col-xs-5" style="width: 95%;" id="directText"></div>
-                  <br/>
-                  <input type="checkbox" value="사물함거래" name="way"/>사물함거래
+                    <input type="checkbox" value="직거래" name="way" onclick="writeTradePlace();" />직거래
+                    <br/>
+                    <div class="col-xs-5" style="width: 95%;" id="directText"></div>
+                    <br/>
+                    <input type="checkbox" value="사물함거래" name="way" />사물함거래
                 </div>
             </div>
 
@@ -227,4 +239,5 @@
 </body>
 <!-- Footer -->
 <% include ./sm_footer %>
+
 </html>
