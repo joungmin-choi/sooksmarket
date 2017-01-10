@@ -16,6 +16,8 @@ var multipart = require('connect-multiparty');
 var smtpTransport = require("nodemailer-smtp-transport");
 
 var multipartMiddleware = multipart();
+var loginId = "";
+
 //DB 설정//
 var client = mysql.createConnection({
   host : '203.153.144.75',
@@ -106,6 +108,8 @@ passport.serializeUser(function(user, done) {
 
 passport.deserializeUser(function(id, done) {
     console.log('deserializeUser', id);
+    loginId=id;
+    console.log(loginId);
     var sql='SELECT * FROM users WHERE authId=?';
     client.query(sql,[id],function(err,results){
       if(err){
