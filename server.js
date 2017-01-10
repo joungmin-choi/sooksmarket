@@ -61,8 +61,6 @@ app.listen(80, function(){
 var idExistence = -1;
 
 var checkUserId = function(id, callback){
-  var column = ['login_id'];
-  var tablename = 'Login';
 
   var exec = client.query('select username from users where username='+mysql.escape(id), function(err, rows){
     console.log('실행대상 SQL :' + exec.sql);
@@ -341,8 +339,10 @@ app.get('/sm_itemDetail', function(request, response){
 });
 
 app.get('/sm_request', function(request, response){
-  fs.readFile('sm_request.html', 'utf8', function(error, data){
-    response.send(data);
+  var context = {};
+  request.app.render('sm_request.ejs', context, function(err,html){
+    if(err){throw err;}
+    response.end(html);
   });
 });
 
