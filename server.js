@@ -128,16 +128,13 @@ function(username, password, done) {
   var pwd = password;
   var sql = 'SELECT * FROM users WHERE authId=?';
   client.query(sql, ['local:' + uname], function(err, results) {
-    console.log(results);
     var user = results[0];
     if (user===undefined) {
         console.log(err);
         return done(null,false);
         //redirect('/')
     }
-    console.log(user);
       return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash) {
-
           if (hash === user.password) {
               console.log('LocalStrategy', user);
                done(null, user);

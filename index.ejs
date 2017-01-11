@@ -1,11 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-        <link rel="stylesheet" href="/css/index.css" />
-
-        <title>SooksMarket</title>
+        <% include ./sm_head %>
         <script>
         $(document).ready(function(){
           if(<%= `${loginon}` %> === 0){
@@ -15,39 +11,38 @@
         </script>
     </head>
 
-    <body class="body">
-        <section>
-          <div class="title">
-          <h3 class = "title_h3">Sook's<br/>Market</h3>
+    <body>
+      <div class="container">
+        <div class="row text-center">
+          <h3>Sook's<br/>Market</h3>
         </div>
-
-        <div class="image"><img src="/img/index.gif" width="80" /></div>
-
-        <form action="/index" method="post">
-        <div class="login">
-        <table class ="table">
-          <tr>
-            <td class="snowImg"><img src="/img/snowflake.png" width="20" /></td>
-            <td class="idpwcolumn">ID : </td>
-            <td class="input"><input type="text" name="username" size="15"/></td>
-          </tr>
-
-          <tr>
-            <td class="snowImg"><img src="/img/snowflake.png" width="20" /></td>
-            <td class="idpwcolumn">PW : </td>
-            <td class="input"><input type="text" name="password" size="15"/></td>
-          </tr>
-        </table>
+        <div class="row text-center">
+          <img src="/img/index.gif" width="80" />
+        </div>
+        <form action="/index" method="post" class="form-horizontal">
+          <div class="form-group">
+            <label for="" class="col-sm-3 control-label">ID :</label>
+            <div class="col-sm-5">
+              <input type="text" class="form-control" name="name" id="target" placeholder="아이디를 입력해주세요.">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="" class="col-sm-3 control-label">PW :</label>
+            <div class="col-sm-5">
+              <input type="text" class="form-control"  name="password" id="target" placeholder="아이디를 입력해주세요.">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="text-center">
+              <input type="submit" value="로그인" class="btn btn-primary" name="loginBtn" />
+              <input type="button" value="회원가입" class="btn btn-primary" onclick="location.href='/sm_signup'" />
+              <input type="button" value="testing_re" class="btn btn-primary" onclick="location.href='/sm_request'" />
+              <input type="button" value="구매" class="btn btn-primary" onclick="location.href='/sm_addItems'" />
+            </div>
+          </div>
+        </form>
       </div>
 
-      <div class="button">
-        <input type="submit" value="로그인" name="loginBtn" />
-        <input type="button" value="회원가입" onclick="location.href='/sm_signup'" />
-        <input type="button" value="testing_re" onclick="location.href='/sm_request'" />
-        <input type="button" value="구매" onclick="location.href='/sm_addItems'" />
-      </div>
-    </form>
-      </section>
     </body>
 
 </html>

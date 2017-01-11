@@ -39,6 +39,7 @@
           var phoneText = document.getElementById("phone");
           var pwCheckText = document.getElementById("pwCheck");
           var form = document.getElementById("form");
+          var allias = document.getElementById("allias");
 
           if(nameText.value==""){
             alert("이름을 입력하세요.");
@@ -68,10 +69,14 @@
             alert("아이디 중복체크 해주세요!");
             return false;
           }
-          // else if(checkingSookmyung==0){
-          //   alert("숙명인 인증 해주세요!");
-          //   return false;
-          // }
+          else if(checkingSookmyung==0){
+            alert("숙명인 인증 해주세요!");
+            return false;
+          }
+          else if(allias.value == ""){
+            alert("닉네임을 정래주세요!");
+            return false;
+          }
           else {
             alert("회원가입 완료!");
             form.submit();
