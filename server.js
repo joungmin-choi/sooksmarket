@@ -80,14 +80,52 @@ var checkUserId = function(id, callback){
 
 
 app.get('/', function(req, res){
-  if (req.user && req.user.displayName) {
-  res.render('sm_main',{loginon:1});
-} else {
-  res.render('index',{loginon:0});
-}
+//   if (req.user && req.user.displayName) {
+//   res.render('/sm_main', );
+// } else {
+//   res.render('index',{loginon:0});
+// }
   // console.log("index.ejs 요청됨");
   // response.render('index.ejs');
+  var flag = req.user && req.user.displayName;
+  var main_name = []; var main_id = []; var main_detail = []; var main_photo = [];
+  var pk_id = [];
+
+  if(flag != 0){
+    async.series([
+      // 1st
+      function(callback){
+        client.query('SELECT * FROM ProductInfo', function(err, result) {
+      //console.log(result);
+      for(var i in result) {
+        var object = result[i];
+        main_name.push(object.product_name);
+        main_id.push(object.product_seller);
+        main_detail.push(object.product_detail);
+        main_photo.push(object.photo1);
+        pk_id.push(object.product_id);
+        //console.log(pk_id);
+      }
+      callback(null);
+      });
+
+      }
+    ],
+    // callback (final)
+    function(err){
+      res.render('sm_main.ejs', {loginon:1, name: main_name, id: main_id, detail: main_detail, photo: main_photo, PK: pk_id});
+    });
+  }
+  else{
+    res.render('index.ejs');
+  }
+
 });
+
+app.get('/sm_enter_main',function(req,res){
+  res.render('sm_enter_main');
+});
+
 
 
 ////--
@@ -131,7 +169,7 @@ app.get('/sm_main', function(req, res){
     ],
     // callback (final)
     function(err){
-      res.render('sm_main.ejs', {name: main_name, id: main_id, detail: main_detail, photo: main_photo, PK: pk_id});
+      res.render('sm_main.ejs', {loginon:1, name: main_name, id: main_id, detail: main_detail, photo: main_photo, PK: pk_id});
     });
   }
   else{
@@ -390,7 +428,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response){
       console.log(productId);
     }
   });
-
+console.log(outputPath);
   var time = getTimeStamp();
   client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, body.detail, productId, loginId[1], time], function(){
     response.redirect('/');

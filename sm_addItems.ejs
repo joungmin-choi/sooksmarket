@@ -61,7 +61,7 @@
       </div>
       <!-- (2-2) -->
       <div class="col-md-9">
-        <form action='/sm_changeInfo' class="form-horizontal" role="form" id="form" name="form" method = "post"  enctype="multipart/form-data" onsubmit="return submitCheck()" >
+        <form action='/sm_addItems' class="form-horizontal" role="form" id="form" name="form" method = "post"  enctype="multipart/form-data" onsubmit="return submitCheck()" >
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">팔고자 하는 물건 :</label>
             <div class="col-sm-5">
@@ -101,10 +101,10 @@
             <label for="" class="col-sm-3 control-label">희망거래방법 :</label>
             <div class="col-sm-5">
               <label class="checkbox-inline">
-                <input name="way" type="checkbox" value="직거래"> 1
+                <input name="way" type="checkbox" value="직거래"> 직거래
               </label>
               <label class="checkbox-inline">
-                <input name="way" type="checkbox" value="사물함거래"> 2
+                <input name="way" type="checkbox" value="사물함거래"> 사물함거래
               </label>
             </div>
           </div>
@@ -116,8 +116,8 @@
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
             <div class="text-center">
-              <input type="submit" value="등록하기" class="btn btn-primary">
-              <input type="reset" value="취소하기" class="btn btn-danger" onclick="location.href='/sm_main'">
+              <input type="submit" value="등록하기" class="btn btn-primary"onclick="location.href='/sm_addItems'" >
+              <input type="reset" value="취소하기" class="btn btn-danger" >
             </div>
           </div>
 
