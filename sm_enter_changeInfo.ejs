@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <% include ./sm_head %>
+    <script language="JavaScript">
+      function submitCheck(){
+        var pwText = document.getElementById("pw");
+        if(pwText.value==""){
+          alert("비밀번호를 입력하세요.");
+          return false;
+        }
+      }
+    </script>
+</head>
+
+<body>
+    <!-- 네이게이션 상단 부분 -->
+    <% include ./sm_top_navigator %>
+    <!-- 사이즈바 부분 -->
+
+
+    <div class="container">
+      <!--1-->
+      <p class="lead"><strong>Shop Name</strong></p>
+      <!--2-->
+      <div class="row">
+            <!-- (2-1) -->
+            <div class="col-md-3">
+              <% include ./sm_sidebar %>
+            </div>
+            <!-- (2-2) -->
+            <div class="col-md-9">
+              <form action='/sm_enter_changeInfo' class="form-horizontal" role="form" method='post' onsubmit="return submitCheck()" >
+
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">PASSWORD :</label>
+                  <div class="col-sm-5">
+                    <input type="password" class="form-control" name="password" id="pw" placeholder="현재 비밀번호를 입력해주세요 :)">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <div class="text-center">
+                    <input type="submit" value="확인" class="btn btn-primary">
+                    <input type="reset" value="취소" class="btn btn-danger" onclick="location.href='/sm_main'">
+                  </div>
+                </div>
+
+              </form>
+            </div>
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+        <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+
+    <% include ./sm_footer %>
+</html>

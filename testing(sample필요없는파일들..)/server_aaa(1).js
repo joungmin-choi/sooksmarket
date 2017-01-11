@@ -1,22 +1,24 @@
+
 var fs = require('fs');
 var ejs = require('ejs');
 var mysql = require('mysql');
 var express = require('express');
 var session = require('express-session');
 var MySQLStore = require('express-mysql-session')(session);
+var bkfd2Password = require("pbkdf2-password");
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
-var bkfd2Password = require("pbkdf2-password");
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
-var hasher = bkfd2Password();
 var flash = require('connect-flash');
 var nodemailer = require('nodemailer');
 var multipart = require('connect-multiparty');
 var smtpTransport = require("nodemailer-smtp-transport");
-var multipartMiddleware = multipart();
-var loginId = "";
 
+
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+
+
+var multipartMiddleware = multipart();
 //DB 설정//
 var client = mysql.createConnection({
   host : '203.153.144.75',
@@ -29,6 +31,7 @@ client.connect();
 
 //express 서버객체 생성//
 var app = express();
+
 
 //뷰 엔진 설정//
 app.set('views', __dirname);
@@ -58,19 +61,24 @@ app.listen(80, function(){
   console.log('server running at http://127.0.0.1:80');
 });
 
+var loginId = "";
 //아이디 중복체크 함수
 var idExistence = -1;
 
 var checkUserId = function(id, callback){
+  var column = ['login_id'];
+  var tablename = 'Login';
 
   var exec = client.query('select username from users where username='+mysql.escape(id), function(err, rows){
-    //console.log('실행대상 SQL :' + exec.sql);
+    console.log('실행대상 SQL :' + exec.sql);
 
     if(rows.length > 0){
+      console.log('아이디 [%s]가 일치하는 사용자 찾음',id);
       idExistence = 1;
       callback(null, rows);
     }else{
       idExistence = 0;
+      console.log("일치하는 사용자 찾지 못함.");
       callback(null, null);
     }
   });
@@ -79,26 +87,27 @@ var checkUserId = function(id, callback){
 
 app.get('/', function(req, res){
   if (req.user && req.user.displayName) {
-  res.render('sm_main',{loginon:1});
+  res.render('sm_main.ejs');
 } else {
-  res.render('index',{loginon:0});
+  res.render('index.ejs');
 }
   // console.log("index.ejs 요청됨");
   // response.render('index.ejs');
 });
 
 
+
 ////--
-app.get('/sm_logout', function(req, res) {
+app.get('/auth/logout', function(req, res) {
     req.logout();
     req.session.save(function() {
-        res.render('index',{loginon:0});
+        res.redirect('/sm_main');
     });
 });
 
 app.get('/sm_main', function(req, res){
   if (req.user && req.user.displayName) {
-  res.render('sm_main',{loginon:1});
+  res.render('sm_main.ejs');
 } else {
   res.render('index.ejs');
 }
@@ -135,9 +144,12 @@ function(username, password, done) {
         return done(null,false);
         //redirect('/')
     }
-    console.log(user);
+    console.log('사용자 : ',user);
+    console.log('입력한 아이디',pwd)
       return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash) {
-
+          console.log('salt :',user.salt);
+          console.log('password :',user.password);
+          console.log('hash :',hash);
           if (hash === user.password) {
               console.log('LocalStrategy', user);
                done(null, user);
@@ -243,8 +255,9 @@ app.post('/sm_signup', function(req, res){
         login_email : req.body.email+'@sm.ac.kr',
         login_phone : req.body.phone
     };
-
-    //users.push(user);
+    console.log('salt :',user.salt);
+    console.log('password :',user.password);
+    console.log('hash :',hash);
     var sql = 'INSERT INTO users SET ?';
     client.query(sql, user, function(err, result) {
         if (err) {
@@ -263,8 +276,10 @@ app.post('/sm_signup', function(req, res){
 
 
 app.get('/sm_addItems', function(request, response){
-  response.render('sm_addItems');
+  fs.readFile('sm_addItems.html', 'utf8', function(error, data){
+    response.send(data);
   });
+});
 
 app.post('/sm_addItems', multipartMiddleware, function(request, response){
   var body = request.body;
@@ -332,10 +347,8 @@ app.get('/sm_itemDetail', function(request, response){
 });
 
 app.get('/sm_request', function(request, response){
-  var context = {};
-  request.app.render('sm_request.ejs', context, function(err,html){
-    if(err){throw err;}
-    response.end(html);
+  fs.readFile('sm_request.html', 'utf8', function(error, data){
+    response.send(data);
   });
 });
 
@@ -354,6 +367,7 @@ app.get('/sm_changeInfo', function(req, res){
 
 app.get('/test', function(req, res){
   //var str = loginId.split(":");
+  console.log(loginId[1]);
   var sql = 'SELECT * FROM users WHERE username=?';
   client.query(sql,str[1],function(err, rows, fields){
     res.render('test',{rows:rows});
@@ -362,7 +376,7 @@ app.get('/test', function(req, res){
 });
 
 app.post('/sm_changeInfo',function(req,res){
-
+  console.log('sm_changeInfo 접근중');
   return hasher({password:req.body.password}, function(err, pass, salt, hash) {
 
         var password = hash;
@@ -385,20 +399,28 @@ app.get('/sm_enter_changeInfo',function(req,res){
   res.render('sm_enter_changeInfo.ejs');
 })
 
-app.post('/sm_enter_changeInfo',function(req,res){
-  var sql = 'SELECT * FROM users WHERE username=?';
-  client.query(sql, [loginId[1]], function(err, results) {
-    var user = results[0];
-    if (user===undefined) {
-        res.redirect('sm_main')
-        //redirect('/')
-    }
-      return hasher({password:req.body.password, salt:user.salt}, function(err, pass, salt, hash) {
-          if (hash === user.password) {
-              res.redirect('/sm_changeInfo');
-          } else {
-             res.redirect('/sm_enter_changeInfo');
-          }
-      });
-      });
-});
+// app.post('/sm_enter_changeInfo',function(req,res){
+//   console.log('sm_enter_changeInfo 접근중');
+//   console.log(loginId);
+//   var sql = 'SELECT * FROM users WHERE username=?';
+//   client.query(sql, [loginId[1]], function(err, results) {
+//     console.log('1');
+//     console.log(results);
+//     console.log('2');
+//     var user = results[0];
+//     if (user===undefined) {
+//         res.redirect('sm_main')
+//         //redirect('/')
+//     }
+//     console.log("user값 받아왔습니다");
+//       return hasher({password:req.body.password, salt:user.salt}, function(err, pass, salt, hash) {
+//         console.log("해쉬함수집입");
+//           if (hash === user.password) {
+//               res.redirect('/sm_main');
+//           } else {
+//              console.log('/sm_main');
+//              res.redirect('/sm_enter_changeInfo');
+//           }
+//       });
+//       });
+// });

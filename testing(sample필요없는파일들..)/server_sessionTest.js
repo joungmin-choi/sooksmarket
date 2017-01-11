@@ -14,6 +14,7 @@ var flash = require('connect-flash');
 var nodemailer = require('nodemailer');
 var multipart = require('connect-multiparty');
 var smtpTransport = require("nodemailer-smtp-transport");
+
 var multipartMiddleware = multipart();
 var loginId = "";
 
@@ -62,104 +63,105 @@ app.listen(80, function(){
 var idExistence = -1;
 
 var checkUserId = function(id, callback){
+  var column = ['login_id'];
+  var tablename = 'Login';
 
   var exec = client.query('select username from users where username='+mysql.escape(id), function(err, rows){
-    //console.log('실행대상 SQL :' + exec.sql);
+    console.log('실행대상 SQL :' + exec.sql);
 
     if(rows.length > 0){
+      console.log('아이디 [%s]가 일치하는 사용자 찾음',id);
       idExistence = 1;
       callback(null, rows);
     }else{
       idExistence = 0;
+      console.log("일치하는 사용자 찾지 못함.");
       callback(null, null);
     }
   });
 };
 
 
-app.get('/', function(req, res){
-  if (req.user && req.user.displayName) {
-  res.render('sm_main',{loginon:1});
-} else {
-  res.render('index',{loginon:0});
-}
-  // console.log("index.ejs 요청됨");
-  // response.render('index.ejs');
+app.get('/', function(request, response){
+  console.log("index.ejs 요청됨");
+  response.render('index.ejs');
 });
 
 
+
 ////--
-app.get('/sm_logout', function(req, res) {
+app.get('/auth/logout', function(req, res) {
     req.logout();
     req.session.save(function() {
-        res.render('index',{loginon:0});
+        res.redirect('/sm_main');
     });
 });
 
 app.get('/sm_main', function(req, res){
   if (req.user && req.user.displayName) {
-  res.render('sm_main',{loginon:1});
+  res.render('sm_main.ejs');
 } else {
   res.render('index.ejs');
 }
 });
 
 passport.serializeUser(function(user, done) {
-  console.log('serializeUser', user);
-  done(null, user.authId);
+    console.log('4 serializeUser', user);
+    done(null, user.authId);
 });
 
 passport.deserializeUser(function(id, done) {
-  console.log('deserializeUser', id);
-  loginId=id.split(":");
-  var sql='SELECT * FROM users WHERE authId=?';
-  client.query(sql,[id],function(err,results){
-    if(err){
-      console.log(err);
-      done(null,false);
-    } else{
-      done(null,results[0]);
-    }
-  });
+    console.log('5 deserializeUser', id);
+
+    var sql='SELECT * FROM users WHERE authId=?';
+    client.query(sql,[id],function(err,results){
+      if(err){
+        console.log(err);
+        done(null,false);
+      } else{
+        done(null,results[0]);
+      }
+    });
 });
+
 passport.use(new LocalStrategy(
 function(username, password, done) {
-  var uname = username;
-  var pwd = password;
-  var sql = 'SELECT * FROM users WHERE authId=?';
-  client.query(sql, ['local:' + uname], function(err, results) {
-    console.log(results);
-    var user = results[0];
-    if (user===undefined) {
-        console.log(err);
-        return done(null,false);
-        //redirect('/')
+    var uname = username;
+    var pwd = password;
+    var sql = 'SELECT * FROM users WHERE authId=?';
+    client.query(sql, ['local:' + uname], function(err, results) {
+      console.log('1',results);
+      var user = results[0];
+      if (user===undefined) {
+          console.log(err);
+          return done(null,false);
+          //redirect('/')
+      }
+      console.log('2',user);
+        return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash) {
+
+            if (hash === user.password) {
+                console.log('3 LocalStrategy', user);
+                 done(null, user);
+            } else {
+              console.log('err');
+                 done(null, false);
+            }
+        });
+        });
     }
-    console.log(user);
-      return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash) {
+    ));
 
-          if (hash === user.password) {
-              console.log('LocalStrategy', user);
-               done(null, user);
-          } else {
-            console.log('err');
-               done(null, false);
-          }
-      });
-      });
-  }
-  ));
-
-app.post(
-    '/index',
-    passport.authenticate(
-        'local', {
-            successRedirect: '/sm_main',
-            failureRedirect: '/',
-            failureFlash: false
-        }
-    )
-);
+    app.post(
+        '/index',
+        passport.authenticate(
+            'local', {
+                successRedirect: '/sm_main',
+                failureRedirect: '/',
+                failureFlash: false
+            }
+        )
+    );
 
 
 app.get('/sm_signup', function(request, response){
@@ -232,6 +234,11 @@ app.get('/authenticateSookmyung', function(request, response){
 });
 
 app.post('/sm_signup', function(req, res){
+  // var body = request.body;
+  // client.query('INSERT INTO Login (login_name, login_id, login_password, login_email, login_phone) VALUES (?,?,?,?,?)', [body.name, body.id, body.pw, body.email+"@sm.ac.kr", body.phone], function(){
+  //   response.redirect('/');
+  // });
+  console.log(req.body.password);
   return hasher({password:req.body.password}, function(err, pass, salt, hash) {
     var user = {
         authId: 'local:' + req.body.username,
@@ -243,7 +250,6 @@ app.post('/sm_signup', function(req, res){
         login_email : req.body.email+'@sm.ac.kr',
         login_phone : req.body.phone
     };
-
     //users.push(user);
     var sql = 'INSERT INTO users SET ?';
     client.query(sql, user, function(err, result) {
@@ -258,13 +264,20 @@ app.post('/sm_signup', function(req, res){
             // });
         }
     });
-});
+    // req.login(user, function(err){
+    //   req.session.save(function(){
+    //     res.redirect('/welcome');
+    //   });
+    // });
 });
 
+});
 
 app.get('/sm_addItems', function(request, response){
-  response.render('sm_addItems');
+  fs.readFile('sm_addItems.html', 'utf8', function(error, data){
+    response.send(data);
   });
+});
 
 app.post('/sm_addItems', multipartMiddleware, function(request, response){
   var body = request.body;
@@ -332,10 +345,8 @@ app.get('/sm_itemDetail', function(request, response){
 });
 
 app.get('/sm_request', function(request, response){
-  var context = {};
-  request.app.render('sm_request.ejs', context, function(err,html){
-    if(err){throw err;}
-    response.end(html);
+  fs.readFile('sm_request.html', 'utf8', function(error, data){
+    response.send(data);
   });
 });
 
@@ -346,59 +357,16 @@ app.get('/t_request', function(request, response){
 });
 
 app.get('/sm_changeInfo', function(req, res){
-  var sql = 'SELECT * FROM users  WHERE username=?';
-  client.query(sql,loginId[1],function(err, rows, fields){
+  var sql = 'SELECT * FROM users';
+  client.query(sql,function(err, rows, fields){
     res.render('sm_changeInfo', {rows:rows});
   });
 });
 
 app.get('/test', function(req, res){
-  //var str = loginId.split(":");
-  var sql = 'SELECT * FROM users WHERE username=?';
-  client.query(sql,str[1],function(err, rows, fields){
+  var sql = 'SELECT id,username FROM users';
+  client.query(sql,function(err, rows, fields){
     res.render('test',{rows:rows});
     //res.send(`${rows[3].username}`);
   });
-});
-
-app.post('/sm_changeInfo',function(req,res){
-
-  return hasher({password:req.body.password}, function(err, pass, salt, hash) {
-
-        var password = hash;
-        var salts = salt;
-        var login_phone = req.body.phone;
-
-    //users.push(user);
-    var sql = 'UPDATE users SET password=?, salt=?, login_phone=? WHERE username=?';
-    client.query(sql, [password,salts,login_phone,loginId[1]], function(err, rows, fields) {
-        if(err){
-          console.log(err);
-        } else {
-          res.redirect('/');
-        }
-    });
-});
-
-})
-app.get('/sm_enter_changeInfo',function(req,res){
-  res.render('sm_enter_changeInfo.ejs');
-})
-
-app.post('/sm_enter_changeInfo',function(req,res){
-  var sql = 'SELECT * FROM users WHERE username=?';
-  client.query(sql, [loginId[1]], function(err, results) {
-    var user = results[0];
-    if (user===undefined) {
-        res.redirect('sm_main')
-        //redirect('/')
-    }
-      return hasher({password:req.body.password, salt:user.salt}, function(err, pass, salt, hash) {
-          if (hash === user.password) {
-              res.redirect('/sm_changeInfo');
-          } else {
-             res.redirect('/sm_enter_changeInfo');
-          }
-      });
-      });
 });
