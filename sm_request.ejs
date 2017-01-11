@@ -27,6 +27,9 @@
 
     <script type="text/javascript">
         var j = 1;
+        var erasedOne = 0;
+        var temp = 0;
+        var timeNum = 0;
         $(function() {
             $('#datepicker0').datetimepicker({
                 viewMode: 'days',
@@ -81,7 +84,12 @@
 
         function showPlusBtn() {
             var directPlusBtn = document.getElementById("plusBtn");
-            directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
+            if (j <= 4) {
+                directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
+            }
+            else{
+              directPlusBtn.innerHTML = "";
+            }
         }
 
         function addTime() {
@@ -97,26 +105,85 @@
             divStr[1] = "<div class='input-group date' id='timepicker" + j + "' onclick='setTime();' style='width: 99%;' >";
             divStr[2] = "<input type='text' class='form-control' id='timeText" + j + "' />";
             divStr[3] = "<span class='input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span></div></div>";
-            divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' >삭제</button></span>";
+            divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' onclick='deleteTime(" + j + ");'>삭제</button></span>";
 
             for (var i = 0; i < divStr.length; i++) {
                 str += divStr[i];
             }
 
-            if (j == 1) {
-                timeDiv1.innerHTML += str;
-            } else if (j == 2) {
-                timeDiv2.innerHTML += str;
-            } else if (j == 3) {
-                timeDiv3.innerHTML += str;
+            if (erasedOne == 0) {
+                if (j == 1) {
+                    timeDiv1.innerHTML += str;
+                } else if (j == 2) {
+                    timeDiv2.innerHTML += str;
+                } else if (j == 3) {
+                    timeDiv3.innerHTML += str;
+                } else if (j == 4) {
+                    timeDiv4.innerHTML += str;
+                    directPlusBtn.innerHTML = "";
+                }
+                j++;
             } else {
-                timeDiv4.innerHTML += str;
-                directPlusBtn.innerHTML = "";
+                temp = j;
+                j = erasedOne;
+                switch (erasedOne) {
+                    case 1:
+                        timeDiv1.innerHTML += str;
+                        j = temp;
+                        erasedOne = 0;
+                        break;
+                    case 2:
+                        timeDiv2.innerHTML += str;
+                        j = temp;
+                        erasedOne = 0;
+                        break;
+                    case 3:
+                        timeDiv3.innerHTML += str;
+                        j = temp;
+                        erasedOne = 0;
+                        break;
+                    case 4:
+                        timeDiv4.innerHTML += str;
+                        j = temp;
+                        erasedOne = 0;
+                        break;
+                }
+                if (j == 5) {
+                    directPlusBtn.innerHTML = "";
+                }
             }
-            j++;
         }
 
+        function deleteTime(j) {
+            var directPlusBtn = document.getElementById("plusBtn");
+            switch (j) {
+                case 1:
+                    var timeDiv1 = document.getElementById("timeDiv1");
+                    timeDiv1.innerHTML = "";
+                    erasedOne = 1;
+                    directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
+                    break;
+                case 2:
+                    var timeDiv2 = document.getElementById("timeDiv2");
+                    timeDiv2.innerHTML = "";
+                    erasedOne = 2;
+                    directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
+                    break;
+                case 3:
+                    var timeDiv3 = document.getElementById("timeDiv3");
+                    timeDiv3.innerHTML = "";
+                    erasedOne = 3;
+                    directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
+                    break;
+                case 4:
+                    var timeDiv4 = document.getElementById("timeDiv4");
+                    timeDiv4.innerHTML = "";
+                    erasedOne = 4;
+                    directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
+                    break;
 
+            }
+        }
     </script>
 
 </head>
