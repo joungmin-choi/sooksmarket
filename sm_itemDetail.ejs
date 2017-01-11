@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% include ./sm_head %>
+  <style>
+  .checkbox-inline{
+    cursor:context-menu;
+  }
+  input[type="checkbox"][disabled]{
+    cursor:context-menu;
+  }
+  </style>
+</head>
+
+  <body>
+    <!-- Navigation -->
+    <% include ./sm_top_navigator %>
+
+    <!-- Page Content -->
+    <div class="container">
+      <!-- Introduction Row -->
+
+      <!-- Team Members Row -->
+      <div class="row">
+        <!-- 0-->
+        <div class="col-lg-12">
+          <h2 class="page-header">..</h2>
+        </div>
+        <!-- 1-->
+        <div class="thumbnail">
+          <% for (i=0; i< photo.length; i++){
+            if (photo[i] != ""){ %>
+              <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" />
+            <% }
+          } %>
+
+          <table class="table table-hover">
+            <tbody class="text-center">
+              <tr>
+                <td>등록일 : </td>
+                <td><%= date %></td>
+              </tr>
+              <tr>
+                <td>팔고자 하는 물건 : </td>
+                <td><%= name %></td>
+              </tr>
+              <tr>
+                <td>사용자 ID : </td>
+                <td><%= seller %></td>
+              </tr>
+              <tr>
+                <td>가격 : </td>
+                <td><%= price %></td>
+              </tr>
+              <tr>
+                <td>희망 거래 방법 : </td>
+                <td>
+                  <% if(way == 1){ %>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>사물함거래</label>
+                  <% }else if (way == 2){ %>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>직거래</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
+                  <% }else { %>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
+                  <% } %>
+
+                </td>
+                </tr>
+                <tr>
+                  <td>상세내용 : </td>
+                  <td><textarea class="form-control col-sm-5" rows="5" style="cursor:context-menu; background-color:white; resize: none;" disabled><%= detail %></textarea></td>
+                </tr>
+              </tbody>
+            </table>
+            <button type="button" class="btn btn-default">스크랩</button>
+            <button type="button" class="btn btn-primary">구매하기</button>
+
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="well">
+          <h4>Leave a Comment:</h4>
+          <form role="form">
+            <div class="form-group">
+              <textarea class="form-control" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+
+        <!-- Comment -->
+        <div class="media">
+          <a class="pull-left" href="#">
+            <img class="media-object" src="http://placehold.it/64x64" alt="">
+          </a>
+          <div class="media-body">
+            <h4 class="media-heading">Start Bootstrap
+              <small>August 25, 2014 at 9:30 PM</small>
+            </h4>
+            Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
+          </div>
+        </div>
+
+        <!-- Comment -->
+        <div class="media">
+          <a class="pull-left" href="#">
+            <img class="media-object" src="http://placehold.it/64x64" alt="">
+          </a>
+          <div class="media-body">
+            <h4 class="media-heading">Start Bootstrap
+              <small>August 25, 2014 at 9:30 PM</small>
+            </h4>Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
+          </div>
+        </div>
+
+
+
+        <!-- Footer -->
+        <% include ./sm_footer %>
+
+      </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>

@@ -14,6 +14,8 @@ var flash = require('connect-flash');
 var nodemailer = require('nodemailer');
 var multipart = require('connect-multiparty');
 var smtpTransport = require("nodemailer-smtp-transport");
+var async = require('async');
+
 var multipartMiddleware = multipart();
 var loginId = "";
 
@@ -97,11 +99,45 @@ app.get('/sm_logout', function(req, res) {
 });
 
 app.get('/sm_main', function(req, res){
-  if (req.user && req.user.displayName) {
-  res.render('sm_main',{loginon:1});
-} else {
-  res.render('index.ejs');
-}
+//   if (req.user && req.user.displayName) {
+//   res.render('sm_main',{loginon:1});
+// } else {
+//   res.render('index.ejs');
+// }
+
+  var flag = req.user && req.user.displayName;
+  var main_name = []; var main_id = []; var main_detail = []; var main_photo = [];
+  var pk_id = [];
+
+  if(flag != 0){
+    async.series([
+      // 1st
+      function(callback){
+        client.query('SELECT * FROM ProductInfo', function(err, result) {
+      //console.log(result);
+      for(var i in result) {
+        var object = result[i];
+        main_name.push(object.product_name);
+        main_id.push(object.product_seller);
+        main_detail.push(object.product_detail);
+        main_photo.push(object.photo1);
+        pk_id.push(object.product_id);
+        //console.log(pk_id);
+      }
+      callback(null);
+      });
+
+      }
+    ],
+    // callback (final)
+    function(err){
+      res.render('sm_main.ejs', {name: main_name, id: main_id, detail: main_detail, photo: main_photo, PK: pk_id});
+    });
+  }
+  else{
+    res.render('index.ejs');
+  }
+
 });
 
 passport.serializeUser(function(user, done) {
@@ -258,6 +294,33 @@ app.post('/sm_signup', function(req, res){
 });
 });
 
+function getTimeStamp() {
+  var d = new Date();
+
+  var string =
+    leadingZeros(d.getFullYear(), 4) + '-' +
+    leadingZeros(d.getMonth() + 1, 2) + '-' +
+    leadingZeros(d.getDate(), 2) + ' ' +
+
+    leadingZeros(d.getHours(), 2) + ':' +
+    leadingZeros(d.getMinutes(), 2) + ':' +
+    leadingZeros(d.getSeconds(), 2);
+
+  return string;
+}
+
+
+function leadingZeros(n, digits) {
+  var zero = '';
+  n = n.toString();
+
+  if (n.length < digits) {
+    for (i = 0; i < digits - n.length; i++)
+      zero += '0';
+  }
+  return zero + n;
+}
+
 
 app.get('/sm_addItems', function(request, response){
   response.render('sm_addItems');
@@ -315,17 +378,52 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response){
       request.files.file[i] = ""; outputPath[i] = "";
     }
   }
-  client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail) VALUES (?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, body.detail], function(){
+
+  var productId;
+  client.query('SELECT * FROM ProductInfo', function(err, result) {
+    var length = result.length;
+    if(length === 0){console.log("b");
+      productId = 1;
+    }
+    else{
+      productId = (result[length-1].product_id) + 1;
+      console.log(productId);
+    }
+  });
+
+  var time = getTimeStamp();
+  client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, body.detail, productId, loginId[1], time], function(){
     response.redirect('/');
   });
 });
 
+app.get('/sm_itemDetail/:id', function(request, response){
+  var detail_name, detail_price, detail_way, detail_detail, detail_seller, detail_date;
+  var detail_photo = [];
+  var detail_id = request.params.id;   //console.log(request.params.id);  // 1
 
+  async.series([
+    // 1st
+    function(callback){
+      client.query('SELECT * FROM ProductInfo WHERE product_id=?', [detail_id], function(err, result) {
+        //console.log(result);
+        var object = result[0];
+        detail_name = object.product_name; detail_price = object.product_price; detail_way = object.product_way;
+        detail_detail = object.product_detail; detail_seller = object.product_seller; detail_date = object.product_date;
+        detail_photo.push(object.photo1); detail_photo.push(object.photo2); detail_photo.push(object.photo3);
 
-app.get('/sm_itemDetail', function(request, response){
-  fs.readFile('sm_itemDetail.html', 'utf8', function(error, data){
-    response.send(data);
+        callback(null);
+      });
+    }
+  ],
+  // callback (final)
+  function(err){
+    response.render('sm_itemDetail.ejs', {name: detail_name, price: detail_price, way: detail_way, detail: detail_detail, seller: detail_seller, date: detail_date, photo: detail_photo});
   });
+});
+
+app.post('/sm_itemDetail', function(request, response){
+  response.redirect('/');
 });
 
 app.get('/sm_request', function(request, response){
