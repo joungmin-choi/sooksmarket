@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>메인페이지입니다</title>
+    <title>구매신청</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/bootstrap-3.3.2-dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,8 +27,13 @@
 
     <script type="text/javascript">
         var j = 1;
-        var erasedOne = 0;
+        var erasedOne = new Array();
+        var deletionCount = 0;
+        var timeCount = 0;
         var temp = 0;
+
+        erasedOne[0] = erasedOne[1] = erasedOne[2] = erasedOne[3] = erasedOne[4] = 0;
+
         $(function() {
             $('#datepicker0').datetimepicker({
                 viewMode: 'days',
@@ -105,7 +110,7 @@
 
         function showPlusBtn() {
             var directPlusBtn = document.getElementById("plusBtn");
-            if (j <= 4) {
+            if (timeCount <= 4) {
                 directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
             } else {
                 directPlusBtn.innerHTML = "";
@@ -114,12 +119,15 @@
 
         function addTime() {
             var directPlusBtn = document.getElementById("plusBtn");
-            var timeDiv1 = document.getElementById("timeDiv1");
-            var timeDiv2 = document.getElementById("timeDiv2");
-            var timeDiv3 = document.getElementById("timeDiv3");
-            var timeDiv4 = document.getElementById("timeDiv4");
+            var timeDiv = new Array();
             var divStr = new Array();
             var str = "";
+
+            timeDiv[0] = "";
+            timeDiv[1] = document.getElementById("timeDiv1");
+            timeDiv[2] = document.getElementById("timeDiv2");
+            timeDiv[3] = document.getElementById("timeDiv3");
+            timeDiv[4] = document.getElementById("timeDiv4");
 
             divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:40%;'>";
             divStr[1] = "<div class='input-group date' id='timepicker" + j + "' onclick='setTime(" + j + ");' style='width: 99%;' >";
@@ -131,80 +139,85 @@
                 str += divStr[i];
             }
 
-            if (erasedOne == 0) {
-                if (j == 1) {
-                    timeDiv1.innerHTML += str;
-                } else if (j == 2) {
-                    timeDiv2.innerHTML += str;
-                } else if (j == 3) {
-                    timeDiv3.innerHTML += str;
-                } else if (j == 4) {
-                    timeDiv4.innerHTML += str;
-                    directPlusBtn.innerHTML = "";
-                }
-                j++;
-            } else {
-                temp = j;
-                j = erasedOne;
-                alert(erasedOne);
-                switch (erasedOne) {
+            if (erasedOne[0] == 0) {
+                switch (j) {
                     case 1:
-                        timeDiv1.innerHTML += str;
-                        j = temp;
-                        erasedOne = 0;
+                        timeDiv[1].innerHTML += str;
                         break;
                     case 2:
-                        timeDiv2.innerHTML += str;
-                        j = temp;
-                        erasedOne = 0;
+                        timeDiv[2].innerHTML += str;
                         break;
                     case 3:
-                        timeDiv3.innerHTML += str;
-                        j = temp;
-                        erasedOne = 0;
+                        timeDiv[3].innerHTML += str;
                         break;
                     case 4:
-                        timeDiv4.innerHTML += str;
-                        j = temp;
-                        erasedOne = 0;
+                        timeDiv[4].innerHTML += str;
+                        directPlusBtn.innerHTML = "";
                         break;
                 }
-                if (j == 5) {
-                    directPlusBtn.innerHTML = "";
+                j++;
+                timeCount++;
+            }
+
+            for (var t = 1; t < erasedOne.length; t++) {
+                if (erasedOne[t] == 1) {
+                    temp = j;
+                    j=t;
+                    str = "";
+
+                    divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:40%;'>";
+                    divStr[1] = "<div class='input-group date' id='timepicker" + j + "' onclick='setTime(" + j + ");' style='width: 99%;' >";
+                    divStr[2] = "<input type='text' class='form-control' id='timeText" + j + "' />";
+                    divStr[3] = "<span class='input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span></div></div>";
+                    divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' onclick='deleteTime(" + j + ");'>삭제</button></span>";
+
+                    for (var i = 0; i < divStr.length; i++) {
+                        str += divStr[i];
+                    }
+
+                    timeDiv[t].innerHTML += str;
+                    erasedOne[t] = 0;
+                    deletionCount--;
+                    timeCount++;
+                    j = temp;
+                    break;
                 }
+            }
+
+            if(deletionCount == 0){
+              erasedOne[0] = 0;
+            }
+
+            if (timeCount == 4) {
+                directPlusBtn.innerHTML = "";
             }
         }
 
         function deleteTime(j) {
-          alert(j);
             var directPlusBtn = document.getElementById("plusBtn");
             switch (j) {
                 case 1:
                     var timeDiv1 = document.getElementById("timeDiv1");
                     timeDiv1.innerHTML = "";
-                    erasedOne = 1;
-                    directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
                     break;
                 case 2:
                     var timeDiv2 = document.getElementById("timeDiv2");
                     timeDiv2.innerHTML = "";
-                    erasedOne = 2;
-                    directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
                     break;
                 case 3:
                     var timeDiv3 = document.getElementById("timeDiv3");
                     timeDiv3.innerHTML = "";
-                    erasedOne = 3;
-                    directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
                     break;
                 case 4:
                     var timeDiv4 = document.getElementById("timeDiv4");
                     timeDiv4.innerHTML = "";
-                    erasedOne = 4;
-                    directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
                     break;
-
             }
+            directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
+            deletionCount++;
+            timeCount--;
+            erasedOne[0] = 1;
+            erasedOne[j] = 1;
         }
     </script>
 
@@ -320,7 +333,7 @@
             <div class="form-group">
                 <div class="col-xs-5 col-xs-offset-3" style="width:60%;">
                     <button type="submit" class="btn btn-default">거래신청</button>
-                    <button type="button" class="btn btn-default" > 취소</button>
+                    <button type="button" class="btn btn-default"> 취소</button>
                 </div>
             </div>
         </form>
