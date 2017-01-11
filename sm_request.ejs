@@ -26,202 +26,181 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.44/js/bootstrap-datetimepicker.min.js"></script>
 
     <script type="text/javascript">
-        var j = 1;
-        var erasedOne = new Array();
-        var deletionCount = 0;
-        var timeCount = 0;
+        var j = new Array(3);
+        var erasedOne = new Array(3);
+        var deletionCount = new Array(3);
+        var timeAdditionCount = new Array(3);
         var temp = 0;
+        var dayAdditionCount = 0;
 
-        erasedOne[0] = erasedOne[1] = erasedOne[2] = erasedOne[3] = erasedOne[4] = 0;
+        for (var i = 0; i < timeAdditionCount.length; i++) {
+            timeAdditionCount[i] = 0;
+            deletionCount[i] = 0;
+            j[i] = 1;
+        }
+
+        for (var i = 0; i < erasedOne.length; i++) {
+            erasedOne[i] = new Array();
+        }
+
+        for (var i = 0; i < erasedOne.length; i++) {
+            for (var t = 0; t < 5; t++) {
+                erasedOne[i][t] = 0;
+            }
+        }
 
         $(function() {
             $('#datepicker0').datetimepicker({
                 viewMode: 'days',
                 format: 'YYYY/MM/DD'
             });
-            $('#timepicker0').datetimepicker({
+            $('#timepicker00').datetimepicker({
                 format: 'LT'
             });
         });
 
         function setDate() {
-            var dateText = document.getElementById("dateText");
-            if (dateText.value != "") {
-                dateText.value = "";
+            var dateText = new Array();
+            dateText[0] = document.getElementById("dateText0");
+            if (dateText[0].value != "") {
+                dateText[0].value = "";
             }
         }
 
-        function setTime(timeNum) {
-            var i = 0;
-            var timeText = new Array();
-            var timepicker = new Array();
-            for (i = 0; i < j; i++) {
-                timeText[i] = document.getElementById("timeText" + i);
-                timepicker[i] = "#timepicker" + i;
-            }
-            if (timeText[timeNum].value != "") {
-                timeText[timeNum].value = "";
-            }
-            for (i = 0; i < j; i++) {
-                $(timepicker[i]).datetimepicker({
-                    format: 'LT'
-                });
-            }
-        }
-
-        function writeTradePlace() {
-            var way = document.getElementsByName("way");
-            var placeText = new Array();
-            var directText = document.getElementById("directText");
-
-            if (way[0].checked == true) {
-                directText.style.margin = "2%";
-                placeText[0] = "- 장소 : <input type='checkbox' value='school' name='place' /> 교내";
-                placeText[1] = " <input type='checkbox' value='outside' name='place' /> 교외";
-                placeText[2] = "<br/><textarea class='form-control' rows='3' name='directDetailPlace' placeholder='ex) 블루베리 카페 앞'></textarea><br/>";
-
-                for (var i = 0; i < placeText.length; i++)
-                    directText.innerHTML += placeText[i];
-            } else if (way[0].checked == false) {
-                directText.innerHTML = "";
-            }
-        }
-
-        function writeLockerPlace() {
-            var way = document.getElementsByName("way");
-            var placeText = new Array();
-            var lockerText = document.getElementById("lockerText");
-
-            if (way[1].checked == true) {
-                lockerText.style.margin = "2%";
-                placeText[0] = "- 사물함 위치 : <br/>";
-                placeText[1] = "<textarea class='form-control' rows='3' name='lockerDetailPlace' placeholder='ex) 명신관 4층 413호 옆 회색사물함'></textarea><br/>";
-                placeText[2] = "- 사물함 번호 : ";
-                placeText[3] = "<input type='text' class='form-control' name='lockerNum' placeholder='123번' style='width:31%; display:inline;'/><br/><br/>";
-                placeText[4] = "- 비밀번호 : ";
-                placeText[5] = "<input type='text' class='form-control' name='lockerPw' placeholder='1234' style='width:31%; display:inline;'/><br/><br/>";
-                for (var i = 0; i < placeText.length; i++)
-                    lockerText.innerHTML += placeText[i];
-            } else if (way[1].checked == false) {
-                lockerText.innerHTML = "";
+        function showPlusBtn(dayNum) {
+            var i;
+            var PlusBtn = new Array();
+            for (i = 0; i <= dayNum; i++) {
+                PlusBtn[i] = document.getElementById("plusBtn" + i);
             }
 
-        }
-
-        function showPlusBtn() {
-            var directPlusBtn = document.getElementById("plusBtn");
-            if (timeCount < 4) {
-                directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
+            if (timeAdditionCount[dayNum] < 4) {
+                PlusBtn[dayNum].innerHTML = "<img src='/img/plus.png' onclick='addTime(" + dayNum + ");' />";
             } else {
-                directPlusBtn.innerHTML = "";
+                PlusBtn[dayNum].innerHTML = "";
             }
         }
 
-        function addTime() {
-            var directPlusBtn = document.getElementById("plusBtn");
+        function addTime(dayNum) {
+            var i = 0;
+            var t = 0;
+            var PlusBtn = new Array();
             var timeDiv = new Array();
             var divStr = new Array();
             var str = "";
 
-            timeDiv[0] = "";
-            timeDiv[1] = document.getElementById("timeDiv1");
-            timeDiv[2] = document.getElementById("timeDiv2");
-            timeDiv[3] = document.getElementById("timeDiv3");
-            timeDiv[4] = document.getElementById("timeDiv4");
+            for (i = 0; i <= dayAdditionCount; i++) {
+                PlusBtn[i] = document.getElementById("plusBtn" + i);
+            }
+
+            for (i = 0; i <= dayAdditionCount; i++) {
+                timeDiv[i] = new Array();
+            }
+
+            for (i = 0; i <= dayAdditionCount; i++) {
+                timeDiv[i][0] = "";
+                for (t = 1; t < 5; t++) {
+                    timeDiv[i][t] = document.getElementById("timeDiv" + i + "" + t);
+                }
+            }
 
             divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:40%;'>";
-            divStr[1] = "<div class='input-group date' id='timepicker" + j + "' onclick='setTime(" + j + ");' style='width: 99%;' >";
-            divStr[2] = "<input type='text' class='form-control' id='timeText" + j + "' />";
+            divStr[1] = "<div class='input-group date' id='timepicker" + dayNum + "" + j[dayNum] + "' onclick='resetTime(" + dayNum + "," + j[dayNum] + ");' style='width: 99%;' >";
+            divStr[2] = "<input type='text' class='form-control' id='timeText" + dayNum + "" + j[dayNum] + "' />";
             divStr[3] = "<span class='input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span></div></div>";
-            divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' onclick='deleteTime(" + j + ");'>삭제</button></span>";
+            divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' onclick='deleteTime(" + dayNum + "," + j[dayNum] + ");'>삭제</button></span>";
 
-            for (var i = 0; i < divStr.length; i++) {
+            for (i = 0; i < divStr.length; i++) {
                 str += divStr[i];
             }
 
-            if (erasedOne[0] == 0) {
-                switch (j) {
-                    case 1:
-                        timeDiv[1].innerHTML += str;
-                        break;
-                    case 2:
-                        timeDiv[2].innerHTML += str;
-                        break;
-                    case 3:
-                        timeDiv[3].innerHTML += str;
-                        break;
-                    case 4:
-                        timeDiv[4].innerHTML += str;
-                        directPlusBtn.innerHTML = "";
-                        break;
+            if (erasedOne[dayNum][0] == 0) {
+                timeDiv[dayNum][j[dayNum]].innerHTML = str;
+                if (j[dayNum] == 4) {
+                    PlusBtn[dayNum].innerHTML = "";
                 }
-                j++;
-                timeCount++;
+                j[dayNum]++;
+                timeAdditionCount[dayNum]++;
             }
 
-            for (var t = 1; t < erasedOne.length; t++) {
-                if (erasedOne[t] == 1) {
-                    temp = j;
-                    j=t;
+            for (t = 1; t < 5; t++) {
+                if (erasedOne[dayNum][t] == 1) {
+                    temp = j[dayNum];
+                    j[dayNum] = t;
                     str = "";
 
                     divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:40%;'>";
-                    divStr[1] = "<div class='input-group date' id='timepicker" + j + "' onclick='setTime(" + j + ");' style='width: 99%;' >";
-                    divStr[2] = "<input type='text' class='form-control' id='timeText" + j + "' />";
+                    divStr[1] = "<div class='input-group date' id='timepicker" + dayNum + "" + j[dayNum] + "' onclick='setTime(" + dayNum + "," + j[dayNum] + ");' style='width: 99%;' >";
+                    divStr[2] = "<input type='text' class='form-control' id='timeText" + dayNum + "" + j[dayNum] + "' />";
                     divStr[3] = "<span class='input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span></div></div>";
-                    divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' onclick='deleteTime(" + j + ");'>삭제</button></span>";
+                    divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' onclick='deleteTime(" + dayNum + "," + j[dayNum] + ");'>삭제</button></span>";
 
-                    for (var i = 0; i < divStr.length; i++) {
+                    for (i = 0; i < divStr.length; i++) {
                         str += divStr[i];
                     }
 
-                    timeDiv[t].innerHTML += str;
-                    erasedOne[t] = 0;
-                    deletionCount--;
-                    timeCount++;
-                    j = temp;
+                    timeDiv[dayNum][t].innerHTML += str;
+                    erasedOne[dayNum][t] = 0;
+                    deletionCount[dayNum]--;
+                    timeAdditionCount[dayNum]++;
+                    j[dayNum] = temp;
                     break;
                 }
             }
 
-            if(deletionCount == 0){
-              erasedOne[0] = 0;
+            if (deletionCount[dayNum] == 0) {
+                erasedOne[dayNum][0] = 0;
             }
 
-            if (timeCount == 4) {
-                directPlusBtn.innerHTML = "";
+            if (timeAdditionCount[dayNum] == 4) {
+                PlusBtn[dayNum].innerHTML = "";
             }
         }
 
-        function deleteTime(j) {
-            var directPlusBtn = document.getElementById("plusBtn");
-            switch (j) {
-                case 1:
-                    var timeDiv1 = document.getElementById("timeDiv1");
-                    timeDiv1.innerHTML = "";
-                    break;
-                case 2:
-                    var timeDiv2 = document.getElementById("timeDiv2");
-                    timeDiv2.innerHTML = "";
-                    break;
-                case 3:
-                    var timeDiv3 = document.getElementById("timeDiv3");
-                    timeDiv3.innerHTML = "";
-                    break;
-                case 4:
-                    var timeDiv4 = document.getElementById("timeDiv4");
-                    timeDiv4.innerHTML = "";
-                    break;
+        function resetTime(dayNum, timeNum) {
+            var i = 0;
+            var t = 0;
+            var timeText = new Array();
+            var timepicker = new Array();
+
+            for (i = 0; i <= dayAdditionCount; i++) {
+                timeText[i] = new Array(); //2차원 배열 선언
+                timepicker[i] = new Array();
             }
-            directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
-            deletionCount++;
-            timeCount--;
-            erasedOne[0] = 1;
-            erasedOne[j] = 1;
+
+            for (t = 0; t <= dayAdditionCount; t++) {
+                for (i = 0; i < j[dayAdditionCount]; i++) {
+                    timeText[t][i] = document.getElementById("timeText" + t + "" + i);
+                    timepicker[t][i] = "#timepicker" + t + "" + i;
+                }
+            }
+
+            if (timeText[dayNum][timeNum].value != "") {
+                timeText[dayNum][timeNum].value = "";
+            }
+
+            for (t = 0; t <= dayAdditionCount; t++) {
+                for (i = 0; i < j[dayAdditionCount]; i++) {
+                    $(timepicker[t][i]).datetimepicker({
+                        format: 'LT'
+                    });
+                }
+            }
         }
 
-        function addDay(){
-          
+        function deleteTime(dayNum, j) {
+            var PlusBtn = document.getElementById("plusBtn" + dayNum);
+            var timeDiv = new Array(3);
+            for (var i = 0; i < timeDiv.length; i++) {
+                timeDiv[i] = new Array();
+            }
+            timeDiv[dayNum][j] = document.getElementById("timeDiv" + dayNum + "" + j);
+            timeDiv[dayNum][j].innerHTML = "";
+            PlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime("+dayNum+");' />";
+            deletionCount[dayNum]++;
+            timeAdditionCount[dayNum]--;
+            erasedOne[dayNum][0] = 1;
+            erasedOne[dayNum][j] = 1;
         }
     </script>
 
@@ -229,79 +208,78 @@
 
 <body>
     <% include ./sm_top_navigator %>
+        <!-- 바디 달력 창 -->
+        <div class="container">
+            <h1><strong> 구매 신청 </strong></h1>
+            <small>거래가 가능한 시간을 작성해 주세요.</small>
+            <hr>
 
-    <!-- 바디 달력 창 -->
-    <div class="container">
-        <h1><strong> 구매 신청 </strong></h1>
-        <small>거래가 가능한 시간을 작성해 주세요.</small>
+            <form id="eventFrom" method="post" class="form-horizontal">
+                <button type="button" class="btn btn-primary" id="dayAddBtn" onclick="addDay();" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
+
+                <hr/>
+                <div class="form-group">
+                    <label class="col-xs-3 control-label text-center">● 날짜 : </label>
+                    <div class="col-xs-7">
+                        <div class='input-group date' id='datepicker0' onclick="setDate(0);">
+                            <input type='text' class="form-control" id="dateText0" />
+                            <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-left:7%;">
+                    <label class="col-xs-3 control-label text-center">- 시간 : </label>
+                    <div class="col-xs-7" style="width:40%;">
+                        <div class='input-group date' id='timepicker00' onclick='resetTime(0,0);' style="width: 99%;">
+                            <input type='text' class="form-control" id="timeText00" />
+                            <span class="input-group-addon" onclick="showPlusBtn(0);">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <span id="plusBtn0"></span>
+                </div>
+
+                <div class="form-group" id="timeDiv01" style="margin-left:7%; "></div>
+
+                <div class="form-group" id="timeDiv02" style="margin-left:7%; "></div>
+
+                <div class="form-group" id="timeDiv03" style="margin-left:7%; "></div>
+
+                <div class="form-group" id="timeDiv04" style="margin-left:7%; "></div>
+
+                <!--전체 페이지 완성되면, 해당 방법 받아와서 그 방법만 보이게 해야함!-->
+                <div class="form-group" style="margin-left:7%;">
+                    <label class="col-xs-3 control-label text-center">- 방법 : </label>
+                    <div class="col-xs-5" style="width: 60%; display:block;">
+                        <input type="checkbox" value="직거래" name="way" onclick="writeTradePlace();" />직거래
+                        <br/>
+                        <div class="col-xs-5" style="width: 95%;" id="directText"></div>
+                        <br/>
+                        <input type="checkbox" value="사물함거래" name="way" onclick="writeLockerPlace();" />사물함 거래
+                        <br/>
+                        <div class="col-xs-5" style="width: 95%;" id="lockerText"></div>
+                        <br/>
+                    </div>
+                </div>
+                <hr/>
+
+                <div class="form-group">
+                    <div class="col-xs-5 col-xs-offset-3" style="width:60%;">
+                        <button type="submit" class="btn btn-default">거래신청</button>
+                        <button type="button" class="btn btn-default"> 취소</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+
         <hr>
-
-        <form id="eventFrom" method="post" class="form-horizontal">
-            <button type="button" class="btn btn-primary" id="dayAddBtn" onclick="addDay();" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
-
-            <hr/>
-            <div class="form-group">
-                <label class="col-xs-3 control-label text-center">● 날짜 : </label>
-                <div class="col-xs-7">
-                    <div class='input-group date' id='datepicker0' onclick="setDate();">
-                        <input type='text' class="form-control" id="dateText" />
-                        <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-left:7%;">
-                <label class="col-xs-3 control-label text-center">- 시간 : </label>
-                <div class="col-xs-7" style="width:40%;">
-                    <div class='input-group date' id='timepicker0' onclick='setTime(0);' style="width: 99%;">
-                        <input type='text' class="form-control" id="timeText0" />
-                        <span class="input-group-addon" onclick="showPlusBtn();">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                    </div>
-                </div>
-                <span id="plusBtn"></span>
-            </div>
-
-            <div class="form-group" id="timeDiv1" style="margin-left:7%; "></div>
-
-            <div class="form-group" id="timeDiv2" style="margin-left:7%; "></div>
-
-            <div class="form-group" id="timeDiv3" style="margin-left:7%; "></div>
-
-            <div class="form-group" id="timeDiv4" style="margin-left:7%; "></div>
-
-            <!--전체 페이지 완성되면, 해당 방법 받아와서 그 방법만 보이게 해야함!-->
-            <div class="form-group" style="margin-left:7%;">
-                <label class="col-xs-3 control-label text-center">- 방법 : </label>
-                <div class="col-xs-5" style="width: 60%; display:block;">
-                    <input type="checkbox" value="직거래" name="way" onclick="writeTradePlace();" />직거래
-                    <br/>
-                    <div class="col-xs-5" style="width: 95%;" id="directText"></div>
-                    <br/>
-                    <input type="checkbox" value="사물함거래" name="way" onclick="writeLockerPlace();" />사물함 거래
-                    <br/>
-                    <div class="col-xs-5" style="width: 95%;" id="lockerText"></div>
-                    <br/>
-                </div>
-            </div>
-            <hr/>
-
-            <div class="form-group">
-                <div class="col-xs-5 col-xs-offset-3" style="width:60%;">
-                    <button type="submit" class="btn btn-default">거래신청</button>
-                    <button type="button" class="btn btn-default"> 취소</button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-
-    <hr>
-    <!-- 바디 달력 버튼 -->
-    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+        <!-- 바디 달력 버튼 -->
+        <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 </body>
 <!-- Footer -->
 <% include ./sm_footer %>
