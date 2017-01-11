@@ -42,8 +42,6 @@
     <div class="container">
         <!-- Introduction Row -->
 
-
-
         <!-- Team Members Row -->
         <div class="row">
             <!-- 0-->
@@ -51,39 +49,31 @@
                 <h2 class="page-header">현재 등록된 제품</h2>
             </div>
             <!-- 1-->
-            <div class="col-lg-4 col-sm-6 text-center">
-              <div class="thumbnail">
-                <a href="sm_itemDetail.html">
-                <img class="img-circle img-responsive img-center" src="/img/snow.gif" alt="">
-              </a>
-                <h3>눈송이 인형
-                    <small>전세진</small>
-                </h3>
-                <p>깨끗해요</p>
-            </div>
-            </div>
-            <div class="col-lg-4 col-sm-6 text-center">
-              <div class="thumbnail">
-                <a href="#">
-                <img class="img-circle img-responsive img-center" src="/img/snow.gif" alt="">
-              </a>
-                <h3>John Smith
-                    <small>Job Title</small>
-                </h3>
-                <p>What does this team member to? Keep it short! This is also a great spot for social links!</p>
-            </div>
-            </div>
-            <div class="col-lg-4 col-sm-6 text-center">
-              <div class="thumbnail">
-                <a href="#">
-                <img class="img-circle img-responsive img-center" src="/img/snow.gif" alt="">
-              </a>
-                <h3>John Smith
-                    <small>Job Title</small>
-                </h3>
-                <p>What does this team member to? Keep it short! This is also a great spot for social links!</p>
-            </div>
-            </div>
+            <% for (i=0; i< name.length; i++){
+              if(((i+1) % 2) == 0){ %>
+                <br/>
+              <% } %>
+
+              <div class="col-lg-4 col-sm-6 text-center">
+                <div class="thumbnail">
+                  <a href="/sm_itemDetail/<%= PK[i] %>">
+                    <% if(photo[i] != ""){ %>
+                        <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" />
+                    <% } else{ %>
+                        <img class="img-responsive img-center" src="./사진없음.png" alt="x" />
+
+                    <% }%>
+                  </a>
+                  <h3 id="name" name="name"><%= name[i] %>
+                      <small><%= id[i] %></small>
+                  </h3>
+                  <p><%= detail[i] %></p>
+                </div>
+              </div>
+            <% } %>
+
+
+
         </div>
 
 
