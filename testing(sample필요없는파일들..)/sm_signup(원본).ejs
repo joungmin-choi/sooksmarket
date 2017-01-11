@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+        <link rel="stylesheet" href="/css/signup.css" />
+        <title>SooksMarket</title>
+        <script language="JavaScript">
+        var idExistence = <%= idExistence %>;
+        var checkingId = 0;
+        var checkingSookmyung = 0;
+
+        function checkId(){
+          var idText = document.getElementById("id");
+          var nameText = document.getElementById("name");
+          if(idText.value==""){
+            alert("입력된 아이디가 없습니다.");
+          }
+          else{
+            var str = "/checkId/?id="+idText.value;
+            window.open(str,"","width=400 height=150");
+          }
+        }
+
+        function authenticate(){
+          var emailText = document.getElementById("email");
+          if(emailText.value==""){
+            alert("숙명 이메일 아이디를 입력해주세요.");
+          }
+          else{
+            var str = "/authenticateSookmyung/?email="+emailText.value+"@sm.ac.kr";
+            window.open(str,"","width=400 height=150");
+          }
+        }
+
+        function submitCheck(){
+          var idText = document.getElementById("id");
+          var nameText = document.getElementById("name");
+          var pwText = document.getElementById("pw");
+          var emailText = document.getElementById("email");
+          var phoneText = document.getElementById("phone");
+          var pwCheckText = document.getElementById("pwCheck");
+          var form = document.getElementById("form");
+
+          if(nameText.value==""){
+            alert("이름을 입력하세요.");
+            return false;
+          }
+          else if(idText.value==""){
+            alert("아이디를 입력하세요.");
+            return false;
+          }
+          else if(pwText.value==""){
+            alert("비밀번호를 입력하세요.");
+            return false;
+          }
+          else if(emailText.value==""){
+            alert("이메일을 입력하세요.");
+            return false;
+          }
+          else if(phoneText.value==""){
+            alert("전화번호를 입력하세요.");
+            return false;
+          }
+          else if (pwText.value != pwCheckText.value) {
+            alert("비밀번호 중복확인 실패!\n다시 입력하세요!");
+            return false;
+          }
+          else if(checkingId==0){
+            alert("아이디 중복체크 해주세요!");
+            return false;
+          }
+          // else if(checkingSookmyung==0){
+          //   alert("숙명인 인증 해주세요!");
+          //   return false;
+          // }
+          else {
+            alert("회원가입 완료!");
+            form.submit();
+            return true;
+          }
+        }
+
+        </script>
+    </head>
+
+    <body class="body">
+      <div class="headTop" >
+
+        <div class="navigation"></div>
+
+        <div class="head_main">
+          <div class = "title_img" style="text-align:right;margin-left:15%;"><img src="/img/snow.gif" width="35"/></div>
+          <div class = "title">회원 가입</div>
+          <div class = "title_img"><img src="/img/snow.gif" width="35"/></div>
+        </div>
+
+        <div class="others"></div>
+      </div>
+
+
+      <div class ="main_body">
+        <form method="post" onsubmit="return submitCheck()" id="form">
+        <table>
+          <tr>
+            <td class="text">이름 :</td>
+            <td class="input"><input type="text" name="name" size=15 id="name" /></td>
+          </tr>
+
+          <tr>
+            <td class="text">아이디 :</td>
+            <td class="input">
+              <input type="text" id="id" name="username" size=10 style="width : 50%;" />
+              <input type="button" value="중복확인" onClick="checkId();" style="width : 40%;"/>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="text">비밀번호 :</td>
+            <td class="input"><input type="password" name="password" size=15 id="pw"/></td>
+          </tr>
+
+          <tr>
+            <td class="text" style="padding-left :1%;">비밀번호 확인 :</td>
+            <td class="input"><input type="password" name="pwcheck" size=15 id="pwCheck" /></td>
+          </tr>
+
+          <tr>
+            <td class="text" rowspan="2">이메일 :</td>
+            <td class="input" style="font-size : 65%;">
+              <input type="text" name="email" id="email" size=10 style=" width : 60%;"/>@sm.ac.kr
+            </td>
+
+          <tr>
+
+            <td class="input">
+              <input type="button" value="인증번호 요청" onClick="authenticate();" />
+            </td>
+          </tr>
+
+          <tr>
+            <td class="text">전화번호 : </td>
+            <td class="input">
+              <input type="text" name="phone" id="phone" size=6 />
+            </td>
+          </tr>
+
+          <tr>
+            <td class="text" colspan="2" style="font-size:80%; font-color : grey;">
+              (※'-'없이 숫자만 입력해주세요!)
+            </td>
+          </tr>
+
+          <tr>
+            <td class="text" rowspan="2">별명 :</td>
+            <td class="input" style="font-size : 65%;">
+              <input type="text" name="displayName" id="allias" size=10 style=" width : 60%;"/>
+            </td>
+        </tr>
+
+          <tr class="button">
+            <td class="text" colspan="2">
+              <input type ="submit" value="가입하기"/>
+              <input type ="reset" value="취소" onclick="location.href='/'"/>
+            </td>
+          </tr>
+        </table>
+      </form>
+      </div>
+    </body>
+
+
+<footer>
+  <div class="footer_top">
+
+  </div>
+  <address class="footer_address">
+    연락처 : 010-3333-3333<br>
+    숙명여대 컴퓨터과학, 2016 졸업작품 KOREA
+  </address>
+
+</footer>
+
+</html>

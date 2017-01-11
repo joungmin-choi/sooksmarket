@@ -1,10 +1,8 @@
+
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-        <link rel="stylesheet" href="/css/signup.css" />
-        <title>SooksMarket</title>
+        <% include ./sm_head %>
         <script language="JavaScript">
         var idExistence = <%= idExistence %>;
         var checkingId = 0;
@@ -70,10 +68,10 @@
             alert("아이디 중복체크 해주세요!");
             return false;
           }
-          else if(checkingSookmyung==0){
-            alert("숙명인 인증 해주세요!");
-            return false;
-          }
+          // else if(checkingSookmyung==0){
+          //   alert("숙명인 인증 해주세요!");
+          //   return false;
+          // }
           else {
             alert("회원가입 완료!");
             form.submit();
@@ -85,98 +83,86 @@
     </head>
 
     <body class="body">
-      <div class="headTop" >
+      <% include ./sm_top_navigator %>
 
-        <div class="navigation"></div>
+      <div class="container">
+        <p class="lead"><strong>Shop Name</strong></p>
 
-        <div class="head_main">
-          <div class = "title_img" style="text-align:right;margin-left:15%;"><img src="/img/snow.gif" width="35"/></div>
-          <div class = "title">회원 가입</div>
-          <div class = "title_img"><img src="/img/snow.gif" width="35"/></div>
-        </div>
+          <div class="row">
+            <div class="col-md-11">
+              <form class="form-horizontal" role="form" id="form" name="form" method = "post"  onsubmit="return submitCheck()" >
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">이름 :</label>
+                  <div class="col-sm-5">
+                    <input type="text" class="form-control" name="name" id="name"  placeholder="이름을 입력해주세요.">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">아이디 :</label>
+                  <div class="col-sm-5">
+                    <input type="text" class="form-control" name="username" id="id"  placeholder="아이디를 입력해주세요.">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label"></label>
+                  <div class="col-sm-5">
+                    <input type="" class="col-sm-4 btn btn-primary"  onClick="checkId();"  value="중복확인">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">비밀번호 :</label>
+                  <div class="col-sm-5">
+                    <input type="password" class="form-control" name="password" id="pw"  placeholder="비밀번호를 입력해주세요.">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">비밀번호 확인 :</label>
+                  <div class="col-sm-5">
+                    <input type="password" class="form-control" name="pwcheck" id="pwCheck"  placeholder="비밀번호를 입력해주세요.">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">이메일 :</label>
+                  <div class="col-sm-5">
+                    <input type="text" class="form-control" name="email" id="email"  placeholder="이메일를 입력해주세요.">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label"></label>
+                  <div class="col-sm-5">
+                    <input type="button" class="btn btn-primary" value="인증번호 요청" onClick="authenticate();">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">전화번호 :</label>
+                  <div class="col-sm-5">
+                    <input type="text" class="form-control" name="phone" id="phone"  placeholder="전화번호를 입력해주세요.">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-9 control-label">(※'-'없이 숫자만 입력해주세요!)</label>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">별명 :</label>
+                  <div class="col-sm-5">
+                    <input type="text" class="form-control" name="displayName" id="allias"  placeholder="사용할 닉네임를 입력해주세요.">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <div class="text-center">
+                    <input type="submit" value="가입하기" class="btn btn-primary">
+                    <input type="reset" value="취소하기" class="btn btn-danger"  onclick="location.href='/'">
+                  </div>
+                </div>
+              </form>
+            </div>
 
-        <div class="others"></div>
+
+          </div>
       </div>
 
-
-      <div class ="main_body">
-        <form method="post" onsubmit="return submitCheck()" id="form">
-        <table>
-          <tr>
-            <td class="text">이름 :</td>
-            <td class="input"><input type="text" name="name" size=15 id="name" /></td>
-          </tr>
-
-          <tr>
-            <td class="text">아이디 :</td>
-            <td class="input">
-              <input type="text" id="id" name="username" size=10 style="width : 50%;" />
-              <input type="button" value="중복확인" onClick="checkId();" style="width : 40%;"/>
-            </td>
-          </tr>
-
-          <tr>
-            <td class="text">비밀번호 :</td>
-            <td class="input"><input type="password" name="pw" size=15 id="pw"/></td>
-          </tr>
-
-          <tr>
-            <td class="text" style="padding-left :1%;">비밀번호 확인 :</td>
-            <td class="input"><input type="password" name="pwcheck" size=15 id="pwCheck" /></td>
-          </tr>
-
-          <tr>
-            <td class="text" rowspan="2">이메일 :</td>
-            <td class="input" style="font-size : 65%;">
-              <input type="text" name="email" id="email" size=10 style=" width : 60%;"/>@sm.ac.kr
-            </td>
-
-          <tr>
-
-            <td class="input">
-              <input type="button" value="인증번호 요청" onClick="authenticate();" />
-            </td>
-          </tr>
-
-          <tr>
-            <td class="text">전화번호 : </td>
-            <td class="input">
-              <input type="text" name="phone" id="phone" size=6 />
-            </td>
-          </tr>
-
-          <tr>
-            <td class="text" colspan="2" style="font-size:80%; font-color : grey;">
-              (※'-'없이 숫자만 입력해주세요!)
-            </td>
-          </tr>
-
-          <tr>
-            <td class="text" rowspan="2">별명 :</td>
-            <td class="input" style="font-size : 65%;">
-              <input type="text" name="displayName" id="allias" size=10 style=" width : 60%;"/>
-            </td>
-        </tr>
-
-          <tr class="button">
-            <td class="text" colspan="2"><input type ="submit" value="가입하기"/>
-            <input type ="reset" value="취소" onclick="location.href='/'"/></td>
-          </tr>
-        </table>
-      </form>
-      </div>
     </body>
 
-
-<footer>
-  <div class="footer_top">
-
-  </div>
-  <address class="footer_address">
-    연락처 : 010-3333-3333<br>
-    숙명여대 컴퓨터과학, 2016 졸업작품 KOREA
-  </address>
-
-</footer>
+    <% include ./sm_footer %>
 
 </html>
