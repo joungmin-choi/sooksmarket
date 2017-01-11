@@ -110,7 +110,7 @@
 
         function showPlusBtn() {
             var directPlusBtn = document.getElementById("plusBtn");
-            if (timeCount <= 4) {
+            if (timeCount < 4) {
                 directPlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime();' />";
             } else {
                 directPlusBtn.innerHTML = "";
@@ -219,58 +219,16 @@
             erasedOne[0] = 1;
             erasedOne[j] = 1;
         }
+
+        function addDay(){
+          
+        }
     </script>
 
 </head>
 
 <body>
-    <!-- 네비게이터 윗 부분 -->
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-        <div class="container">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="sm_main.html"><img src="/img/snow.gif" href="#" alt="logo"></a>
-            </div>
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    <li>
-                        <a href="#">About</a>
-                    </li>
-                    <li>
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown"> sooks market <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="sm_tradeInfo.html">전체</a></li>
-                            <li><a href="#">가방</a></li>
-                            <li><a href="#">음식</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">mypage <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="sm_mypage.html">내 정보</a></li>
-                            <li><a href="sm_changeInfo.html">회원정보수정</a></li>
-                            <li><a href="sm_tradeInfo.html">나의거래내역</a></li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="sm_complain.html">개발자건의하기</a>
-                    </li>
-                    <li>
-                        <a href="sm_signup.html">회원가입</a>
-                    </li>
-                </ul>
-            </div>
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container -->
-    </nav>
+    <% include ./sm_top_navigator %>
 
     <!-- 바디 달력 창 -->
     <div class="container">
@@ -279,7 +237,8 @@
         <hr>
 
         <form id="eventFrom" method="post" class="form-horizontal">
-            <button type="button" class="btn btn-primary" onclick="addDay();" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
+            <button type="button" class="btn btn-primary" id="dayAddBtn" onclick="addDay();" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
+
             <hr/>
             <div class="form-group">
                 <label class="col-xs-3 control-label text-center">● 날짜 : </label>
