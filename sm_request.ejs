@@ -32,6 +32,7 @@
         var timeAdditionCount = new Array(3);
         var temp = 0;
         var dayAdditionCount = 0;
+        var dayDeletionCount = 0;
 
         for (var i = 0; i < timeAdditionCount.length; i++) {
             timeAdditionCount[i] = 0;
@@ -145,7 +146,7 @@
                     str = "";
 
                     divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:40%;'>";
-                    divStr[1] = "<div class='input-group date' id='timepicker" + dayNum + "" + j[dayNum] + "' onclick='setTime(" + dayNum + "," + j[dayNum] + ");' style='width: 99%;' >";
+                    divStr[1] = "<div class='input-group date' id='timepicker" + dayNum + "" + j[dayNum] + "' onclick='resetTime(" + dayNum + "," + j[dayNum] + ");' style='width: 99%;' >";
                     divStr[2] = "<input type='text' class='form-control' id='timeText" + dayNum + "" + j[dayNum] + "' />";
                     divStr[3] = "<span class='input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span></div></div>";
                     divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' onclick='deleteTime(" + dayNum + "," + j[dayNum] + ");'>삭제</button></span>";
@@ -190,10 +191,6 @@
                 }
             }
 
-            if (timeText[dayNum][timeNum].value != "") {
-                timeText[dayNum][timeNum].value = "";
-            }
-
             for (t = 0; t <= dayAdditionCount; t++) {
                 for (i = 0; i < j[dayAdditionCount]; i++) {
                     $(timepicker[t][i]).datetimepicker({
@@ -201,7 +198,13 @@
                     });
                 }
             }
+
             $(timepicker[dayNum][timeNum]).datetimepicker('show');
+
+            if (timeText[dayNum][timeNum].value != "") {
+                timeText[dayNum][timeNum].value = "";
+            }
+
         }
 
         function deleteTime(dayNum, j) {
@@ -224,13 +227,17 @@
             var str = "";
             var i;
 
+            if(dayDeletionCount==1){
+              dayAdditionCount=0;
+            }
+
             dayAdditionCount++;
             var dayDiv = document.getElementById("dayDiv"+dayAdditionCount);
             for (i = 0; i < dayDivStr.length; i++) {
                 dayDivStr[i] = new Array();
             }
 
-            dayDivStr[0][0] = "<div class='form-group'><label class='col-xs-3 control-label text-center'>● 날짜 : </label>";
+            dayDivStr[0][0] = "<div class='form-group'><button type='button' class='btn btn-danger' onclick='deleteDate("+dayAdditionCount+");' style='float:right;'>삭제</button><br/><br/><br/><label class='col-xs-3 control-label text-center'>● 날짜 : </label>";
             dayDivStr[0][1] = "<div class='col-xs-7'><div class='input-group date' id='datepicker" + dayAdditionCount + "' onclick='setDate(" + dayAdditionCount + ");'>  ";
             dayDivStr[0][2] = "<input type='text' class='form-control' id='dateText" + dayAdditionCount + "' />";
             dayDivStr[0][3] = "<span class='input-group-addon' ><span class='glyphicon glyphicon-calendar' ></span></span></div></div></div>";
@@ -253,6 +260,25 @@
                 }
             }
             dayDiv.innerHTML += str;
+            if(dayDeletionCount==1){
+              dayAdditionCount++;
+              dayDeletionCount=0;
+            }
+            if(dayAdditionCount==2){
+              var dayAddBtnDiv = document.getElementById("dayAddBtnDiv");
+              dayAddBtnDiv.innerHTML = "";
+            }
+        }
+
+        function deleteDate(dayNum){
+            var dayDiv = document.getElementById("dayDiv"+dayNum);
+            var dayAddBtnDiv = document.getElementById("dayAddBtnDiv");
+            dayDiv.innerHTML = "";
+            dayAdditionCount--;
+            dayAddBtnDiv.innerHTML = "<button type='button' class='btn btn-primary' id='dayAddBtn' onclick='addDay();'' style='margin-bottom: 3%;'>거래가능 날짜 추가</button><hr/>";
+            if(dayNum==1){
+              dayDeletionCount = 1;
+            }
         }
 
         function writeTradePlace(dayNum) {
@@ -305,9 +331,11 @@
             <hr>
 
             <form id="eventFrom" method="post" class="form-horizontal">
+              <div id="dayAddBtnDiv">
                 <button type="button" class="btn btn-primary" id="dayAddBtn" onclick="addDay();" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
-
+                <br/><small>날짜는 3개, 시간은 5개까지 추가 가능합니다 :)</small>
                 <hr/>
+              </div>
 
                 <div class="form-group">
                     <label class="col-xs-3 control-label text-center">● 날짜 : </label>
