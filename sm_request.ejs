@@ -54,17 +54,32 @@
                 viewMode: 'days',
                 format: 'YYYY/MM/DD'
             });
+
             $('#timepicker00').datetimepicker({
                 format: 'LT'
             });
         });
 
-        function setDate() {
+        function setDate(dayNum) {
             var dateText = new Array();
-            dateText[0] = document.getElementById("dateText0");
-            if (dateText[0].value != "") {
-                dateText[0].value = "";
+            var datepicker = new Array();
+
+            for (var i = 0; i <= dayAdditionCount; i++) {
+                dateText[i] = document.getElementById("dateText" + i);
+                datepicker[i] = '#datepicker' + i;
             }
+
+            if (dateText[dayNum].value != "") {
+                dateText[dayNum].value = "";
+            }
+
+            for (var i = 0; i <= dayAdditionCount; i++) {
+                $(datepicker[i]).datetimepicker({
+                    viewMode: 'days',
+                    format: 'YYYY/MM/DD'
+                });
+            }
+            $(datepicker[dayNum]).datetimepicker('show');
         }
 
         function showPlusBtn(dayNum) {
@@ -186,6 +201,7 @@
                     });
                 }
             }
+            $(timepicker[dayNum][timeNum]).datetimepicker('show');
         }
 
         function deleteTime(dayNum, j) {
@@ -196,11 +212,85 @@
             }
             timeDiv[dayNum][j] = document.getElementById("timeDiv" + dayNum + "" + j);
             timeDiv[dayNum][j].innerHTML = "";
-            PlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime("+dayNum+");' />";
+            PlusBtn.innerHTML = "<img src='/img/plus.png' onclick='addTime(" + dayNum + ");' />";
             deletionCount[dayNum]++;
             timeAdditionCount[dayNum]--;
             erasedOne[dayNum][0] = 1;
             erasedOne[dayNum][j] = 1;
+        }
+
+        function addDay() {
+            var dayDivStr = new Array(4);
+            var str = "";
+            var i;
+
+            dayAdditionCount++;
+            var dayDiv = document.getElementById("dayDiv"+dayAdditionCount);
+            for (i = 0; i < dayDivStr.length; i++) {
+                dayDivStr[i] = new Array();
+            }
+
+            dayDivStr[0][0] = "<div class='form-group'><label class='col-xs-3 control-label text-center'>● 날짜 : </label>";
+            dayDivStr[0][1] = "<div class='col-xs-7'><div class='input-group date' id='datepicker" + dayAdditionCount + "' onclick='setDate(" + dayAdditionCount + ");'>  ";
+            dayDivStr[0][2] = "<input type='text' class='form-control' id='dateText" + dayAdditionCount + "' />";
+            dayDivStr[0][3] = "<span class='input-group-addon' ><span class='glyphicon glyphicon-calendar' ></span></span></div></div></div>";
+            dayDivStr[1][0] = "<div class='form-group' style='margin-left:7%;'><label class='col-xs-3 control-label text-center'>- 시간 : </label>";
+            dayDivStr[1][1] = "<div class='col-xs-7' style='width:40%;'><div class='input-group date' id='timepicker" + dayAdditionCount + "0' onclick='resetTime(" + dayAdditionCount + ",0);' style='width: 99%;'>";
+            dayDivStr[1][2] = "<input type='text' class='form-control' id='timeText" + dayAdditionCount + "0' /><span class='input-group-addon' onclick='showPlusBtn(" + dayAdditionCount + ");'>";
+            dayDivStr[1][3] = "<span class='glyphicon glyphicon-calendar'></span></span></div></div><span id='plusBtn" + dayAdditionCount + "'></span></div>";
+            for (i = 0; i <= 3; i++) {
+                dayDivStr[2][i] = "<div class='form-group' id= 'timeDiv" + dayAdditionCount + "" + (i + 1) + "' style= 'margin-left:7%;'></div>";
+            }
+            dayDivStr[3][0] = "<div class='form-group' style='margin-left:7%;'><label class='col-xs-3 control-label text-center'>- 방법 : </label>";
+            dayDivStr[3][1] = "<div class='col-xs-5' style='width: 60%; display:block;'><input type='checkbox' value='직거래' name='way" + dayAdditionCount + "' onclick='writeTradePlace(" + dayAdditionCount + ");' />직거래<br/>";
+            dayDivStr[3][2] = "<div class='col-xs-5' style='width: 95%;' id='directText" + dayAdditionCount + "'></div><br/><input type='checkbox' value='사물함거래' name='way" + dayAdditionCount + "' onclick='writeLockerPlace(" + dayAdditionCount +
+                ");' />사물함 거래<br/>";
+            dayDivStr[3][3] = "<div class='col-xs-5' style='width: 95%;' id='lockerText" + dayAdditionCount + "'></div><br/></div></div><hr/>";
+
+            for (i = 0; i <= 3; i++) {
+                for (var k = 0; k <= 3; k++) {
+                    str += dayDivStr[i][k];
+                }
+            }
+            dayDiv.innerHTML += str;
+        }
+
+        function writeTradePlace(dayNum) {
+            var way = document.getElementsByName("way" + dayNum);
+            var placeText = new Array();
+            var directText = document.getElementById("directText" + dayNum);
+
+            if (way[0].checked == true) {
+                directText.style.margin = "2%";
+                placeText[0] = "- 장소 : <input type='checkbox' value='school' name='place" + dayNum + "' /> 교내";
+                placeText[1] = " <input type='checkbox' value='outside' name='place" + dayNum + "' /> 교외";
+                placeText[2] = "<br/><textarea class='form-control' rows='3' name='directDetailPlace" + dayNum + "' placeholder='ex) 블루베리 카페 앞'></textarea><br/>";
+
+                for (var i = 0; i < placeText.length; i++)
+                    directText.innerHTML += placeText[i];
+            } else if (way[0].checked == false) {
+                directText.innerHTML = "";
+            }
+        }
+
+        function writeLockerPlace(dayNum) {
+            var way = document.getElementsByName("way" + dayNum);
+            var placeText = new Array();
+            var lockerText = document.getElementById("lockerText" + dayNum);
+
+            if (way[1].checked == true) {
+                lockerText.style.margin = "2%";
+                placeText[0] = "- 사물함 위치 : <br/>";
+                placeText[1] = "<textarea class='form-control' rows='3' name='lockerDetailPlace" + dayNum + "' placeholder='ex) 명신관 4층 413호 옆 회색사물함'></textarea><br/>";
+                placeText[2] = "- 사물함 번호 : ";
+                placeText[3] = "<input type='text' class='form-control' name='lockerNum" + dayNum + "' placeholder='123번' style='width:31%; display:inline;'/><br/><br/>";
+                placeText[4] = "- 비밀번호 : ";
+                placeText[5] = "<input type='text' class='form-control' name='lockerPw" + dayNum + "' placeholder='1234' style='width:31%; display:inline;'/><br/><br/>";
+                for (var i = 0; i < placeText.length; i++)
+                    lockerText.innerHTML += placeText[i];
+            } else if (way[1].checked == false) {
+                lockerText.innerHTML = "";
+            }
         }
     </script>
 
@@ -218,6 +308,7 @@
                 <button type="button" class="btn btn-primary" id="dayAddBtn" onclick="addDay();" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
 
                 <hr/>
+
                 <div class="form-group">
                     <label class="col-xs-3 control-label text-center">● 날짜 : </label>
                     <div class="col-xs-7">
@@ -255,17 +346,23 @@
                 <div class="form-group" style="margin-left:7%;">
                     <label class="col-xs-3 control-label text-center">- 방법 : </label>
                     <div class="col-xs-5" style="width: 60%; display:block;">
-                        <input type="checkbox" value="직거래" name="way" onclick="writeTradePlace();" />직거래
+                        <input type="checkbox" value="직거래" name="way0" onclick="writeTradePlace(0);" />직거래
                         <br/>
-                        <div class="col-xs-5" style="width: 95%;" id="directText"></div>
+                        <div class="col-xs-5" style="width: 95%;" id="directText0"></div>
                         <br/>
-                        <input type="checkbox" value="사물함거래" name="way" onclick="writeLockerPlace();" />사물함 거래
+                        <input type="checkbox" value="사물함거래" name="way0" onclick="writeLockerPlace(0);" />사물함 거래
                         <br/>
-                        <div class="col-xs-5" style="width: 95%;" id="lockerText"></div>
+                        <div class="col-xs-5" style="width: 95%;" id="lockerText0"></div>
                         <br/>
                     </div>
                 </div>
                 <hr/>
+
+                <div id="dayDiv1">
+                </div>
+
+                <div id="dayDiv2">
+                </div>
 
                 <div class="form-group">
                     <div class="col-xs-5 col-xs-offset-3" style="width:60%;">
