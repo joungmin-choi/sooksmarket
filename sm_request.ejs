@@ -191,6 +191,10 @@
                 }
             }
 
+            if (timeText[dayNum][timeNum].value != "") {
+                timeText[dayNum][timeNum].value = "";
+            }
+
             for (t = 0; t <= dayAdditionCount; t++) {
                 for (i = 0; i < j[dayAdditionCount]; i++) {
                     $(timepicker[t][i]).datetimepicker({
@@ -201,9 +205,7 @@
 
             $(timepicker[dayNum][timeNum]).datetimepicker('show');
 
-            if (timeText[dayNum][timeNum].value != "") {
-                timeText[dayNum][timeNum].value = "";
-            }
+
 
         }
 
@@ -277,8 +279,19 @@
             dayDiv.innerHTML = "";
             dayAdditionCount--;
             dayAddBtnDiv.innerHTML = "<button type='button' class='btn btn-primary' id='dayAddBtn' onclick='addDay();'' style='margin-bottom: 3%;'>거래가능 날짜 추가</button><hr/>";
-            if (dayNum == 1) {
-                dayDeletionCount = 1;
+
+            if((dayNum ==2)&&(dayDeletionCount==1)){
+              dayDeletionCount=0;
+              dayAdditionCount=0;
+            }
+            else if((dayNum ==1 )&&(dayDeletionCount==2)){
+              dayDeletionCount=0;
+              dayAdditionCount=0;
+            }
+            else if (dayNum == 1) {
+                dayDeletionCount=1;
+            }else if(dayNum ==2){
+              dayDeletionCount = 2;
             }
         }
 
@@ -404,7 +417,7 @@
                 }
 
                 form.submit();
-                return true;                
+                return true;
             }
 
 
