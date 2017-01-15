@@ -678,33 +678,146 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
 });
 
 app.get('/sm_request/:id', function(request, response) {
-  var product_id, product_way;
-  var tasks = [
-    function(callback){
-      product_id = request.params.id;
-      var findTradeWaySql = 'SELECT product_way FROM ProductInfo WHERE product_id=?';
-      client.query(findTradeWaySql, [product_id], function(err, result){
-        product_way = result[0].product_way;
-        callback(null, product_way);
-      });
-    },
-    function(callback){
-      var context = {id:product_id, way:product_way};
-      request.app.render('sm_request.ejs', context, function(err, html) {
-          if (err) {
-              throw err;
-          }
-          response.end(html);
-      });
-      callback(null);
-    }
-  ];
-  async.series(tasks, function(err, results){
-  });
+    var product_id, product_way;
+    var tasks = [
+        function(callback) {
+            product_id = request.params.id;
+            var findTradeWaySql = 'SELECT product_way FROM ProductInfo WHERE product_id=?';
+            client.query(findTradeWaySql, [product_id], function(err, result) {
+                product_way = result[0].product_way;
+                callback(null, product_way);
+            });
+        },
+        function(callback) {
+            var context = {
+                id: product_id,
+                way: product_way
+            };
+            request.app.render('sm_request.ejs', context, function(err, html) {
+                if (err) {
+                    throw err;
+                }
+                response.end(html);
+            });
+            callback(null);
+        }
+    ];
+    async.series(tasks, function(err, results) {});
 });
 
-app.post('/sm_request', function(request, response){
-  var body = request.body;
+app.post('/sm_request/:id', function(request, response) {
+
+    var product_id, seller, customer, request_num, requestor;
+    var SqlQuery;
+    var tasks = [
+        function(callback) {
+            product_id = request.params.id;
+            SqlQuery = 'SELECT product_seller FROM ProductInfo WHERE product_id=?';
+            client.query(SqlQuery, [product_id], function(err, result) {
+                seller = result[0].product_seller;
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            SqlQuery = 'SELECT MAX(request_num) AS maxRequestNum,customer FROM TradeInfo WHERE product_id=?';
+
+            client.query(SqlQuery, [product_id], function(err, result) {
+                if (result[0].customer === null) {
+                    customer = loginId[1];
+                    request_num = 1;
+
+                } else {
+                    customer = result[0].customer;
+                    request_num = result[0].maxRequestNum + 1;
+                }
+                requestor = loginId[1];
+
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            var tradeInfoData = {
+                product_id: product_id,
+                request_num: request_num,
+                seller: seller,
+                customer: customer,
+                requestor: requestor
+            };
+
+            SqlQuery = 'INSERT INTO TradeInfo SET ?';
+            client.query(SqlQuery, tradeInfoData, function(err, result) {});
+            callback(null);
+        },
+
+        function(callback) {
+            var body = request.body;
+            var dayMaxNum = 3;
+            var timeMaxNum = 5;
+            var trade_date, trade_way, directPlace, directDetailPlace, lockerDetailPlace, lockerNum, lockerPw;
+            var trade_time = [];
+            var i, j;
+            trade_way = 0;
+
+            for (i = 0; i < dayMaxNum; i++) {
+                trade_date = body["dateText" + i];
+
+                if (trade_date !== undefined) {
+                    for (j = 0; j < timeMaxNum; j++) {
+                        trade_time[j] = body["timeText" + i + "" + j];
+                        if (trade_time[j] === undefined)
+                            trade_time[j] = null;
+                    }
+
+                    directDetailPlace = body["directDetailPlace" + i];
+                    if (directDetailPlace === undefined) {
+                        directPlace = directDetailPlace = null;
+                    } else {
+                        directPlace = body["place" + i];
+                        trade_way = 1;
+                    }
+
+                    lockerDetailPlace = body["lockerDetailPlace" + i];
+                    if (lockerDetailPlace === undefined) {
+                        lockerDetailPlace = lockerPw = lockerNum = null;
+                    } else {
+                        lockerNum = body["lockerNum" + i];
+                        lockerPw = body["lockerPw" + i];
+                        if (trade_way == 1) {
+                            trade_way = 3;
+                        } else {
+                            trade_way = 2;
+                        }
+                    }
+
+                    var data = {
+                      product_id : product_id,
+                      request_num : request_num,
+                      trade_date : trade_date,
+                      trade_time1 : trade_time[0],
+                      trade_time2 : trade_time[1],
+                      trade_time3 : trade_time[2],
+                      trade_time4 : trade_time[3],
+                      trade_time5 : trade_time[4],
+                      trade_way : trade_way,
+                      directPlace : directPlace,
+                      directDetailPlace : directDetailPlace,
+                      lockerDetailPlace : lockerDetailPlace,
+                      lockerNum : lockerNum,
+                      lockerPw : lockerPw
+                    };
+
+                    SqlQuery = 'INSERT INTO TradeTimePlace SET ?';
+                    client.query(SqlQuery, data, function(err, result){
+                    });
+                }
+            }
+            response.redirect('/sm_main');
+            callback(null);
+        }
+    ];
+    async.series(tasks, function(err, results) {});
 });
 
 app.get('/t_request', function(request, response) {
