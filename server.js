@@ -677,14 +677,30 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
         });
 });
 
-app.get('/sm_request', function(request, response) {
-    var context = {};
-    request.app.render('sm_request.ejs', context, function(err, html) {
-        if (err) {
-            throw err;
-        }
-        response.end(html);
-    });
+app.get('/sm_request/:id', function(request, response) {
+  var product_id, product_way;
+  var tasks = [
+    function(callback){
+      product_id = request.params.id;
+      var findTradeWaySql = 'SELECT product_way FROM ProductInfo WHERE product_id=?';
+      client.query(findTradeWaySql, [product_id], function(err, result){
+        product_way = result[0].product_way;
+        callback(null, product_way);
+      });
+    },
+    function(callback){
+      var context = {id:product_id, way:product_way};
+      request.app.render('sm_request.ejs', context, function(err, html) {
+          if (err) {
+              throw err;
+          }
+          response.end(html);
+      });
+      callback(null);
+    }
+  ];
+  async.series(tasks, function(err, results){
+  });
 });
 
 app.post('/sm_request', function(request, response){
