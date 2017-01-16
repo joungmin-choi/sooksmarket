@@ -15,6 +15,7 @@ var nodemailer = require('nodemailer');
 var multipart = require('connect-multiparty');
 var smtpTransport = require("nodemailer-smtp-transport");
 var async = require('async');
+var moment = require('moment');
 
 var multipartMiddleware = multipart();
 var loginId = "";
@@ -88,10 +89,12 @@ app.get('/', function(req, res){
   // console.log("index.ejs 요청됨");
   // response.render('index.ejs');
   var flag = req.user && req.user.displayName;
+  console.log(1);
+  console.log(flag);
   var main_name = []; var main_id = []; var main_detail = []; var main_photo = [];
   var pk_id = [];
 
-  if(flag != 0){
+  if(flag != undefined){
     async.series([
       // 1st
       function(callback){
@@ -113,11 +116,12 @@ app.get('/', function(req, res){
     ],
     // callback (final)
     function(err){
-      res.render('sm_main.ejs', {loginon:1, name: main_name, id: main_id, detail: main_detail, photo: main_photo, PK: pk_id});
+      //res.render('sm_main', {loginon:1, name: main_name, id: main_id, detail: main_detail, photo: main_photo, PK: pk_id});
+      res.redirect('/sm_main');
     });
   }
   else{
-    res.render('index.ejs');
+    res.render('index',{loginon:0});
   }
 
 });
@@ -147,7 +151,7 @@ app.get('/sm_main', function(req, res){
   var main_name = []; var main_id = []; var main_detail = []; var main_photo = [];
   var pk_id = [];
 
-  if(flag != 0){
+  if(flag != undefined){
     async.series([
       // 1st
       function(callback){
@@ -173,7 +177,7 @@ app.get('/sm_main', function(req, res){
     });
   }
   else{
-    res.render('index.ejs');
+    res.render('index',{loginon:0});
   }
 
 });
@@ -198,17 +202,23 @@ passport.deserializeUser(function(id, done) {
 });
 passport.use(new LocalStrategy(
 function(username, password, done) {
+  console.log('LocalStrategy 접근');
   var uname = username;
   var pwd = password;
   var sql = 'SELECT * FROM users WHERE authId=?';
+  console.log('query문 접근');
   client.query(sql, ['local:' + uname], function(err, results) {
     var user = results[0];
+    console.log('user값 확인 :',user);
     if (user===undefined) {
         console.log(err);
         return done(null,false);
-        //redirect('/')
     }
+    console.log('pwd :',pwd);
       return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash) {
+        console.log('해쉬함수 진입');
+        console.log('hash :',hash);
+        console.log('user.passoword :',user.password);
           if (hash === user.password) {
               console.log('LocalStrategy', user);
                done(null, user);
@@ -302,7 +312,9 @@ app.get('/authenticateSookmyung', function(request, response){
   });
 });
 
+
 app.post('/sm_signup', function(req, res){
+  console.log('password',req.body.password);
   return hasher({password:req.body.password}, function(err, pass, salt, hash) {
     var user = {
         authId: 'local:' + req.body.username,
@@ -444,6 +456,7 @@ app.get('/sm_itemDetail/:id', function(request, response){
   var detail_name, detail_price, detail_way, detail_detail, detail_seller, detail_date;
   var detail_photo = [];
   var detail_id = request.params.id;   //console.log(request.params.id);  // 1
+  var comments =[];
 
   async.series([
     // 1st
@@ -461,11 +474,23 @@ app.get('/sm_itemDetail/:id', function(request, response){
 
         callback(null);
       });
+    },
+
+    function(callback){
+      console.log(':',detail_id);
+      var sql = 'SELECT * FROM comments WHERE product_id=? ORDER BY parent_id DESC,  child_id ASC';
+      client.query(sql,detail_id,function(err,rows,fields){
+        console.log('결과물입니다:',rows);
+        comments=rows;
+        callback(null);
+      });
     }
   ],
+
   // callback (final)
   function(err){
-    response.render('sm_itemDetail.ejs', {id: detail_id, name: detail_name, price: detail_price, way: detail_way, detail: detail_detail, seller: detail_seller, date: detail_date, photo: detail_photo});
+    response.render('sm_itemDetail.ejs', {rows:comments, session_id:loginId[1], id: detail_id, name: detail_name, price: detail_price, way: detail_way, detail: detail_detail, seller: detail_seller, date: detail_date, photo: detail_photo});
+    //response.send(rows);
   });
 });
 
@@ -561,13 +586,16 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
   ],
   // callback (final)
   function(err){
+    id = request.params.id;
     var update = 'UPDATE ProductInfo SET product_name=?, product_price=?, photo1=?, photo2=?, photo3=?, product_way=?, product_detail=? where product_id= ?';
     client.query(update, [body.name, body.price, outputPath[0], outputPath[1], outputPath[2], value, detail, request.params.id], function(){
       var photo_split = (outputPath[0]).substring(1); change_photo.push(photo_split);
       photo_split = (outputPath[1]).substring(1); change_photo.push(photo_split);
       photo_split = (outputPath[2]).substring(1); change_photo.push(photo_split);
 
-      response.render('sm_itemDetail.ejs', {id: request.params.id, name: body.name, price: body.price, way: value, detail: detail, seller: seller, date: date, photo: change_photo});
+      var str = '/sm_itemDetail/'+id;
+      response.redirect(str);
+      //response.render('sm_itemDetail.ejs', {id: request.params.id, name: body.name, price: body.price, way: value, detail: detail, seller: seller, date: date, photo: change_photo});
     });
   });
 });
@@ -621,17 +649,17 @@ app.post('/sm_changeInfo',function(req,res){
     });
 });
 
-})
+});
 app.get('/sm_enter_changeInfo',function(req,res){
   res.render('sm_enter_changeInfo.ejs');
-})
+});
 
 app.post('/sm_enter_changeInfo',function(req,res){
   var sql = 'SELECT * FROM users WHERE username=?';
   client.query(sql, [loginId[1]], function(err, results) {
     var user = results[0];
     if (user===undefined) {
-        res.redirect('sm_main')
+        res.redirect('sm_main');
         //redirect('/')
     }
       return hasher({password:req.body.password, salt:user.salt}, function(err, pass, salt, hash) {
@@ -642,4 +670,209 @@ app.post('/sm_enter_changeInfo',function(req,res){
           }
       });
       });
+});
+
+app.post('/sm_itemDetail/:id/comments',function(req,res){
+  var id;
+  var m = moment();
+  var parent_id_max;
+
+async.series([
+  function(callback){
+
+    var sql ='SELECT MAX(parent_id) FROM comments';
+    client.query(sql, function(err,result){
+      console.log('1번');
+      if (err) {
+          console.log(err);
+          res.status(500);
+      } else {
+        parent_id_max = `${result[0]['MAX(parent_id)']+1}`;
+        //console.log('1번 값',parent_id_max);
+      }
+        callback(null,1);
+    });
+
+
+  },
+
+  function(callback){
+    //console.log('2번',parent_id_max);
+    id = req.params.id;
+
+      var comment = {
+        product_id : req.params.id,
+        session_id : loginId[1],
+        comment_detail : req.body.comment_detail,
+        comment_date : m.format("YYYY-MM-DD HH:mm"),
+        parent_id : parent_id_max,
+        child_id : 0
+      };
+
+      var sql1 ='INSERT INTO comments SET ?';
+      client.query(sql1, comment, function(err,result){
+        if (err) {
+            console.log(err);
+            res.status(500);
+        }
+        callback(null,2);
+    });
+
+  }
+],
+function(err,results){
+  var str = '/sm_itemDetail/'+id;
+  res.redirect(str);
+  //console.log('3번',`${results[0]}`,`${results[1]}`);
+});
+// var sql ='SELECT MAX(parent_id) FROM comments';
+// client.query(sql, function(err,result){
+//   if (err) {
+//       console.log(err);
+//       res.status(500);
+//   } else {
+//     parent_id_max = `${result[0]['MAX(parent_id)']+2}`;
+//     console.log(parent_id_max);
+//   }
+// });
+// id = req.params.id;
+//
+//   var comment = {
+//     product_id : req.params.id,
+//     session_id : loginId[1],
+//     comment_detail : req.body.comment_detail,
+//     comment_date : m.format("YYYY-MM-DD HH:mm"),
+//     parent_id : parent_id_max,
+//     child_id : 0
+//   };
+//
+//   var sql1 ='INSERT INTO comments SET ?';
+//   client.query(sql1, comment, function(err,result){
+//     if (err) {
+//         console.log(err);
+//         res.status(500);
+//     } else {
+//       var str = '/sm_itemDetail/'+id;
+//       res.redirect(str);
+//     }
+// });
+});
+
+app.post('/sm_itemDetail/:id/comment/:parent_id/reply',function(req,res){
+  var id = req.params.id;
+  var pid = req.params.parent_id;
+  var m = moment();
+  var contents= req.body.each_comment_detail;
+  var child_id_max =0;
+  console.log('제품 id',id,'상품 부모 id',pid,'내용',contents);
+
+  async.series([
+    function(callback){
+      var sql ='SELECT MAX(child_id) FROM comments WHERE product_id=? AND parent_id=?';
+      client.query(sql, [id, pid], function(err,result){
+        console.log('1번');
+        if (err) {
+            console.log(err);
+            res.status(500);
+        } else {
+          console.log(result);
+          child_id_max = `${result[0]['MAX(child_id)']+1}`;
+          console.log('1번 값', child_id_max);
+        }
+          callback(null,1);
+      });
+    },
+
+    function(callback){
+      var comment ={
+        product_id : req.params.id,
+        session_id : loginId[1],
+        comment_detail : contents,
+        comment_date : m.format("YYYY-MM-DD HH:mm"),
+        parent_id : pid,
+        child_id : child_id_max,
+      }
+      var sql1= 'INSERT INTO comments SET ?';
+      client.query(sql1, comment, function(err,result){
+        if (err) {
+            console.log(err);
+            res.status(500);
+        }
+        callback(null,2);
+    });
+
+    }
+  ],
+  function(err,results){
+    var str = '/sm_itemDetail/'+id;
+    res.redirect(str);
+  });
+});
+
+app.get('/sm_itemDetail/:id/comment/:parent_id/:child_id/delete',function(req,res){
+  var id = req.params.id;
+  var pid = req.params.parent_id;
+  var cid = req.params.child_id;
+
+  async.series([
+    function(callback){
+      if(cid != 0){
+      var sql= 'DELETE FROM comments WHERE product_id=? AND parent_id=? AND child_id=?'
+      client.query(sql, [id, pid, cid], function(err,result){
+        if (err) {
+            console.log(err);
+            res.status(500);
+        }
+        callback(null,1);
+      });
+    } else {
+      var sql= 'DELETE FROM comments WHERE parent_id=?'
+      client.query(sql, [pid], function(err,result){
+        if (err) {
+            console.log(err);
+            res.status(500);
+        }
+        callback(null,1);
+      });
+    }
+    }
+    // function(callback){
+    //
+    // }
+  ],
+  function(err,results){
+    var str = '/sm_itemDetail/'+id;
+    res.redirect(str);
+  });
+
+});
+
+
+app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit',function(req,res){
+  console.log('1번');
+  var id = req.params.id;
+  var pid = req.params.parent_id;
+  var cid = req.params.child_id;
+  var comment = req.body.comment;
+  console.log(comment);
+
+  async.series([
+    function(callback){
+      var sql= 'UPDATE comments SET comment_detail=? WHERE product_id=? AND parent_id=? AND child_id=?';
+      client.query(sql, [comment,id,pid,cid], function(err,rows,fields){
+        if(err){
+          console.log(err);
+        }
+          callback(null,1);
+      });
+    }
+    // function(callback){
+    //
+    // }
+  ],
+  function(err,results){
+    var str = '/sm_itemDetail/'+id;
+    res.redirect(str);
+  });
+
 });
