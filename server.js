@@ -83,13 +83,7 @@ var checkUserId = function(id, callback) {
 
 
 app.get('/', function(req, res) {
-    //   if (req.user && req.user.displayName) {
-    //   res.render('/sm_main', );
-    // } else {
-    //   res.render('index',{loginon:0});
-    // }
-    // console.log("index.ejs 요청됨");
-    // response.render('index.ejs');
+
     var flag = req.user && req.user.displayName;
     console.log(1);
     console.log(flag);
@@ -196,7 +190,6 @@ app.get('/sm_main', function(req, res) {
         });
     }
 
-
 });
 
 passport.serializeUser(function(user, done) {
@@ -276,6 +269,40 @@ app.get('/sm_signup', function(request, response) {
     });
 });
 
+app.post('/sm_signup', function(req, res) {
+    console.log('password', req.body.password);
+    return hasher({
+        password: req.body.password
+    }, function(err, pass, salt, hash) {
+        var user = {
+            authId: 'local:' + req.body.username,
+            username: req.body.username,
+            password: hash,
+            salt: salt,
+            displayName: req.body.displayName,
+            login_name: req.body.name,
+            login_email: req.body.email + '@sm.ac.kr',
+            login_phone: req.body.phone
+        };
+
+        //users.push(user);
+        var sql = 'INSERT INTO users SET ?';
+        client.query(sql, user, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500);
+            } else { //바로 로그인 하고 싶을 때 추가!!
+                // req.login(user,function(err){
+                //   req.session.save(function(){
+                res.redirect('/');
+                //   });
+                // });
+            }
+
+        });
+    });
+});
+
 app.get('/checkId', function(request, response) {
     var id = request.query.id;
 
@@ -344,41 +371,6 @@ app.get('/authenticateSookmyung', function(request, response) {
                 throw err;
             }
             response.end(html);
-        });
-    });
-});
-
-
-app.post('/sm_signup', function(req, res) {
-    console.log('password', req.body.password);
-    return hasher({
-        password: req.body.password
-    }, function(err, pass, salt, hash) {
-        var user = {
-            authId: 'local:' + req.body.username,
-            username: req.body.username,
-            password: hash,
-            salt: salt,
-            displayName: req.body.displayName,
-            login_name: req.body.name,
-            login_email: req.body.email + '@sm.ac.kr',
-            login_phone: req.body.phone
-        };
-
-        //users.push(user);
-        var sql = 'INSERT INTO users SET ?';
-        client.query(sql, user, function(err, result) {
-            if (err) {
-                console.log(err);
-                res.status(500);
-            } else { //바로 로그인 하고 싶을 때 추가!!
-                // req.login(user,function(err){
-                //   req.session.save(function(){
-                res.redirect('/');
-                //   });
-                // });
-            }
-
         });
     });
 });
@@ -487,6 +479,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
         value = 2;
     } else {
         value = 3;
+
     }
 
     if (detail === null) {
@@ -557,187 +550,6 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     });
 });
 
-app.get('/sm_itemDetail/:id', function(request, response) {
-    var detail_name, detail_price, detail_way, detail_detail, detail_seller, detail_date;
-    var detail_photo = [];
-    var detail_id = request.params.id; //console.log(request.params.id);  // 1
-
-    async.series([
-            // 1st
-            function(callback) {
-                client.query('SELECT * FROM ProductInfo WHERE product_id=?', [detail_id], function(err, result) {
-                    //console.log(result);
-                    var object = result[0];
-                    detail_id = object.product_id;
-                    detail_name = object.product_name;
-                    detail_price = object.product_price;
-                    detail_way = object.product_way;
-                    detail_detail = object.product_detail;
-                    detail_seller = object.product_seller;
-                    detail_date = object.product_date;
-
-                    var photo_split = (object.photo1).substring(1);
-                    detail_photo.push(photo_split);
-                    photo_split = (object.photo2).substring(1);
-                    detail_photo.push(photo_split);
-                    photo_split = (object.photo3).substring(1);
-                    detail_photo.push(photo_split);
-
-                    callback(null);
-                });
-            }
-        ],
-        // callback (final)
-        function(err) {
-            response.render('sm_itemDetail.ejs', {
-                id: detail_id,
-                name: detail_name,
-                price: detail_price,
-                way: detail_way,
-                detail: detail_detail,
-                seller: detail_seller,
-                date: detail_date,
-                photo: detail_photo
-            });
-        });
-});
-
-
-app.get('/sm_changeDetail/:id', function(request, response) {
-    var id = request.params.id; //console.log(request.params.id);  // 1
-    var before_photo = [];
-
-    async.series([
-            function(callback) { // 1st
-                client.query('SELECT * FROM ProductInfo WHERE product_id=?', [id], function(err, result) {
-                    //console.log(result);
-                    var object = result[0];
-                    before_name = object.product_name;
-                    before_price = object.product_price;
-                    before_way = object.product_way;
-                    before_detail = object.product_detail;
-                    before_category = object.product_category;
-
-                    before_photo = [];
-                    before_photo.push(object.photo1);
-                    before_photo.push(object.photo2);
-                    before_photo.push(object.photo3);
-
-                    callback(null, result);
-                });
-            }
-        ],
-
-        function(err, result) { // callback (final)
-            response.render('sm_changeDetail.ejs', {
-                id: id,
-                name: before_name,
-                price: before_price,
-                photo: before_photo,
-                way: before_way,
-                category: before_category,
-                detail: before_detail
-            });
-        });
-});
-
-
-app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response) {
-    var body = request.body;
-    var way = body.way;
-    var category = body.category;
-    var detail = body.detail;
-
-    if (way == '직거래') {
-        value = 1;
-    } else if (way == '사물함거래') {
-        value = 2;
-    } else {
-        value = 3;
-    }
-
-    if (detail === null) {
-        detail = "";
-    }
-
-    // 파일이 업로드되면 files 속성이 전달됨
-    var imageFile = request.files.file;
-    var length = request.files.file.length;
-
-    var name = [];
-    var path = [];
-    var type = [];
-    var outputPath = [];
-
-    if (!(length > 0) && (request.files.file.size === 0)) { // 파일 0개
-        outputPath[0] = "";
-        outputPath[1] = "";
-        outputPath[2] = "";
-        fs.unlink(request.files.file.path, function(err) {});
-    } else if (!(length > 0) && (request.files.file.size !== 0)) { // 파일 1개
-        name[0] = imageFile.name;
-        path[0] = imageFile.path;
-        type[0] = imageFile.type;
-
-        if (type[0].indexOf('image') != -1) {
-            // image 타입이면 이름을 재지정함(현재날짜로)
-            outputPath[0] = './fileUploads/' + Date.now() + '_' + name[0];
-            fs.rename(path[0], outputPath[0], function(err) {});
-        }
-        outputPath[1] = "";
-        outputPath[2] = "";
-    } else { // 파일 2개 또는 3개
-        for (var i = 0; i < length; i++) {
-            // 업로드 파일이 존재하면
-            // 그 파일의 이름, 경로, 타입을 저장
-            name[i] = request.files.file[i].name;
-            path[i] = request.files.file[i].path;
-            type[i] = request.files.file[i].type;
-
-            if (type[i].indexOf('image') != -1) {
-                // image 타입이면 이름을 재지정함(현재날짜로)
-                outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
-                fs.rename(path[i], outputPath[i], function(err) {});
-            }
-        }
-        for (i = length; i < 3; i++) {
-            request.files.file[i] = "";
-            outputPath[i] = "";
-        }
-    }
-
-    var change_photo = [];
-
-    async.series([
-            function(callback) {
-                client.query('SELECT * FROM ProductInfo WHERE product_id=?', [request.params.id], function(err, result) {
-                    //console.log(result);
-                    var object = result[0];
-                    seller = object.product_seller;
-                    date = object.product_date;
-
-                    callback(null);
-                });
-            }
-        ],
-        // callback (final)
-        function(err) {
-            id = request.params.id;
-            var update = 'UPDATE ProductInfo SET product_name=?, product_price=?, photo1=?, photo2=?, photo3=?, product_way=?, product_detail=? where product_id= ?';
-            client.query(update, [body.name, body.price, outputPath[0], outputPath[1], outputPath[2], value, detail, request.params.id], function() {
-                var photo_split = (outputPath[0]).substring(1);
-                change_photo.push(photo_split);
-                photo_split = (outputPath[1]).substring(1);
-                change_photo.push(photo_split);
-                photo_split = (outputPath[2]).substring(1);
-                change_photo.push(photo_split);
-
-                var str = '/sm_itemDetail/' + id;
-                response.redirect(str);
-                //response.render('sm_itemDetail.ejs', {id: request.params.id, name: body.name, price: body.price, way: value, detail: detail, seller: seller, date: date, photo: change_photo});
-            });
-        });
-});
 
 app.get('/sm_request/:id', function(request, response) {
     var product_id, product_way;
@@ -881,11 +693,6 @@ app.post('/sm_request/:id', function(request, response) {
     async.series(tasks, function(err, results) {});
 });
 
-app.get('/t_request', function(request, response) {
-    fs.readFile('t_request.html', 'utf8', function(error, data) {
-        response.send(data);
-    });
-});
 
 app.get('/sm_changeInfo', function(req, res) {
     var sql = 'SELECT * FROM users  WHERE username=?';
@@ -893,17 +700,6 @@ app.get('/sm_changeInfo', function(req, res) {
         res.render('sm_changeInfo', {
             rows: rows
         });
-    });
-});
-
-app.get('/test', function(req, res) {
-    //var str = loginId.split(":");
-    var sql = 'SELECT * FROM users WHERE username=?';
-    client.query(sql, str[1], function(err, rows, fields) {
-        res.render('test', {
-            rows: rows
-        });
-        //res.send(`${rows[3].username}`);
     });
 });
 
@@ -930,6 +726,148 @@ app.post('/sm_changeInfo', function(req, res) {
 
 });
 
+app.get('/sm_itemDetail/:id/delete', function(request, response) {
+    var id = request.params.id;
+    client.query('DELETE FROM ProductInfo WHERE product_id=?', [id], function() {
+        response.redirect('/');
+    });
+}); //삭제
+
+app.get('/sm_changeDetail/:id', function(request, response) {
+    var id = request.params.id; //console.log(request.params.id);  // 1
+    var before_photo = [];
+
+    async.series([
+            function(callback) { // 1st
+                client.query('SELECT * FROM ProductInfo WHERE product_id=?', [id], function(err, result) {
+                    //console.log(result);
+                    var object = result[0];
+                    before_name = object.product_name;
+                    before_price = object.product_price;
+                    before_way = object.product_way;
+                    before_detail = object.product_detail;
+                    before_category = object.product_category;
+
+                    before_photo = [];
+                    before_photo.push(object.photo1);
+                    before_photo.push(object.photo2);
+                    before_photo.push(object.photo3);
+
+                    callback(null, result);
+                });
+            }
+        ],
+
+        function(err, result) { // callback (final)
+            response.render('sm_changeDetail.ejs', {
+                id: id,
+                name: before_name,
+                price: before_price,
+                photo: before_photo,
+                way: before_way,
+                category: before_category,
+                detail: before_detail
+            });
+        });
+});
+
+
+app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response) {
+    var body = request.body;
+    var way = body.way;
+    var category = body.category;
+    var detail = body.detail;
+
+    if (way == '직거래') {
+        value = 1;
+    } else if (way == '사물함거래') {
+        value = 2;
+    } else {
+        value = 3;
+    }
+
+    if (detail === null) {
+        detail = "";
+    }
+
+    // 파일이 업로드되면 files 속성이 전달됨
+    var imageFile = request.files.file;
+    var length = request.files.file.length;
+
+    var name = [];
+    var path = [];
+    var type = [];
+    var outputPath = [];
+
+    if (!(length > 0) && (request.files.file.size === 0)) { // 파일 0개
+        outputPath[0] = "";
+        outputPath[1] = "";
+        outputPath[2] = "";
+        fs.unlink(request.files.file.path, function(err) {});
+    } else if (!(length > 0) && (request.files.file.size !== 0)) { // 파일 1개
+        name[0] = imageFile.name;
+        path[0] = imageFile.path;
+        type[0] = imageFile.type;
+
+        if (type[0].indexOf('image') != -1) {
+            // image 타입이면 이름을 재지정함(현재날짜로)
+            outputPath[0] = './fileUploads/' + Date.now() + '_' + name[0];
+            fs.rename(path[0], outputPath[0], function(err) {});
+        }
+        outputPath[1] = "";
+        outputPath[2] = "";
+    } else { // 파일 2개 또는 3개
+        for (var i = 0; i < length; i++) {
+            // 업로드 파일이 존재하면
+            // 그 파일의 이름, 경로, 타입을 저장
+            name[i] = request.files.file[i].name;
+            path[i] = request.files.file[i].path;
+            type[i] = request.files.file[i].type;
+
+            if (type[i].indexOf('image') != -1) {
+                // image 타입이면 이름을 재지정함(현재날짜로)
+                outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
+                fs.rename(path[i], outputPath[i], function(err) {});
+            }
+        }
+        for (i = length; i < 3; i++) {
+            request.files.file[i] = "";
+            outputPath[i] = "";
+        }
+    }
+
+    var change_photo = [];
+
+    async.series([
+            function(callback) {
+                client.query('SELECT * FROM ProductInfo WHERE product_id=?', [request.params.id], function(err, result) {
+                    //console.log(result);
+                    var object = result[0];
+                    seller = object.product_seller;
+                    date = object.product_date;
+
+                    callback(null);
+                });
+            }
+        ],
+        // callback (final)
+        function(err) {
+            var update = 'UPDATE ProductInfo SET product_name=?, product_price=?, photo1=?, photo2=?, photo3=?, product_way=?, product_detail=? where product_id= ?';
+            client.query(update, [body.name, body.price, outputPath[0], outputPath[1], outputPath[2], value, detail, request.params.id], function() {
+                var photo_split = (outputPath[0]).substring(1);
+                change_photo.push(photo_split);
+                photo_split = (outputPath[1]).substring(1);
+                change_photo.push(photo_split);
+                photo_split = (outputPath[2]).substring(1);
+                change_photo.push(photo_split);
+
+                //response.render('sm_itemDetail.ejs', {id: request.params.id, name: body.name, price: body.price, way: value, detail: detail, seller: seller, date: date, photo: change_photo});
+                id = request.params.id;
+                var str = '/sm_itemDetail/' + id;
+                response.redirect(str);
+            });
+        });
+});
 
 app.get('/sm_enter_changeInfo', function(req, res) {
     res.render('sm_enter_changeInfo.ejs');
@@ -976,8 +914,6 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) {
                     }
                     callback(null, 1);
                 });
-
-
             },
 
             function(callback) {
@@ -1009,37 +945,6 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) {
             res.redirect(str);
             //console.log('3번',`${results[0]}`,`${results[1]}`);
         });
-    // var sql ='SELECT MAX(parent_id) FROM comments';
-    // client.query(sql, function(err,result){
-    //   if (err) {
-    //       console.log(err);
-    //       res.status(500);
-    //   } else {
-    //     parent_id_max = `${result[0]['MAX(parent_id)']+2}`;
-    //     console.log(parent_id_max);
-    //   }
-    // });
-    // id = req.params.id;
-    //
-    //   var comment = {
-    //     product_id : req.params.id,
-    //     session_id : loginId[1],
-    //     comment_detail : req.body.comment_detail,
-    //     comment_date : m.format("YYYY-MM-DD HH:mm"),
-    //     parent_id : parent_id_max,
-    //     child_id : 0
-    //   };
-    //
-    //   var sql1 ='INSERT INTO comments SET ?';
-    //   client.query(sql1, comment, function(err,result){
-    //     if (err) {
-    //         console.log(err);
-    //         res.status(500);
-    //     } else {
-    //       var str = '/sm_itemDetail/'+id;
-    //       res.redirect(str);
-    //     }
-    // });
 });
 
 app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) {
@@ -1101,7 +1006,7 @@ app.get('/sm_itemDetail/:id/comment/:parent_id/:child_id/delete', function(req, 
     async.series([
             function(callback) {
                 if (cid != 0) {
-                    var sql = 'DELETE FROM comments WHERE product_id=? AND parent_id=? AND child_id=?'
+                    var sql = 'DELETE FROM comments WHERE product_id=? AND parent_id=? AND child_id=?';
                     client.query(sql, [id, pid, cid], function(err, result) {
                         if (err) {
                             console.log(err);
@@ -1110,7 +1015,7 @@ app.get('/sm_itemDetail/:id/comment/:parent_id/:child_id/delete', function(req, 
                         callback(null, 1);
                     });
                 } else {
-                    var sql = 'DELETE FROM comments WHERE parent_id=?'
+                    var sql = 'DELETE FROM comments WHERE parent_id=?';
                     client.query(sql, [pid], function(err, result) {
                         if (err) {
                             console.log(err);
@@ -1120,9 +1025,7 @@ app.get('/sm_itemDetail/:id/comment/:parent_id/:child_id/delete', function(req, 
                     });
                 }
             }
-            // function(callback){
-            //
-            // }
+
         ],
         function(err, results) {
             var str = '/sm_itemDetail/' + id;
@@ -1133,12 +1036,10 @@ app.get('/sm_itemDetail/:id/comment/:parent_id/:child_id/delete', function(req, 
 
 
 app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit', function(req, res) {
-    console.log('1번');
     var id = req.params.id;
     var pid = req.params.parent_id;
     var cid = req.params.child_id;
     var comment = req.body.comment;
-    console.log(comment);
 
     async.series([
             function(callback) {
@@ -1150,9 +1051,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit', function(req, r
                     callback(null, 1);
                 });
             }
-            // function(callback){
-            //
-            // }
+
         ],
         function(err, results) {
             var str = '/sm_itemDetail/' + id;

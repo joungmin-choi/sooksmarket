@@ -48,15 +48,13 @@
                 <div class="thumbnail">
                     <% for (i=0; i< photo.length; i++){
             if (photo[i] != ""){ %>
-                        <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" />
-                        <br/>
-                        <% } %>
-                            <% if (photo[0] == ""){ %>
-                                <br/><br/>
-                                </br/>
-                                <% }
+              <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="300" height="200"/>
+              <br/>
+            <% } %>
+            <% if (photo[0] == ""){ %>
+              <br/><br/></br/>
+            <% }
           } %>
-
           <br/>
           <table class="table table-hover">
             <tbody class="text-center">

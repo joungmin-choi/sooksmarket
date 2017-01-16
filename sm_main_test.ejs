@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+function example(){
+  var url = window.location.search;
+  document.write("url : " + url + "<br>");
+  document.write("id : " + getQueryParam("id") + "<br>");
+  document.write("name : " + getQueryParam("name") + "<br>");
+  document.write("sex : " + getQueryParam("sex") + "<br>");
+  document.write("age : " + getQueryParam("age") + "<br>");
+  document.write("address : " + getQueryParam("address") + "<br>");
+  document.write("hobby : " + getQueryParam("hobby") + "<br>");
+}
+
+function getQueryParam(param){
+  var result = window.location.search.match(
+    new RegExp("(\\?|&)" + param + "(\\[\\])?=([^&]*)")
+  );
+  return result ? result[3] : false;
+}
+</script>
+</head>
+<body onLoad="example();">
+</body>
+</html>

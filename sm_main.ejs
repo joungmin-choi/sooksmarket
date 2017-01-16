@@ -1,71 +1,110 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <% include ./sm_head %>
+
+
+    <style>
+    a:link {text-decoration: none;}
+    a:visited {text-decoration: none; color: #000066;}
+    div.thumbnail:hover { border: 1px solid #777; }
+    </style>
+
     <script>
     $(document).ready(function(){
       if(<%= `${loginon}` %> == 1){
       alert('로그인 상태입니다');
       }
     });
+    function a(this){
+
+      alert(this);
+    }
+
     </script>
   </head>
 
   <body>
-      <% include ./sm_top_navigator %>
+    <% include ./sm_top_navigator %>
+
+
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-8 col-xs-offset-2">
+          <div class="input-group">
+            <div class="input-group-btn search-panel">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                <span id="search_concept">전체보기</span> <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#/sm_main/top">상의</a></li>
+                <!-- <li><a href="/sm_main_test?id=1&name=홍길동&sex=남&age=34">상의</a></li> -->
+                <li><a href="#/sm_main/bottoms">하의</a></li>
+                <li><a href="#/sm_main/cosmetics">화장품</a></li>
+                <li><a href="#/sm_main/book">책</a></li>
+                <li><a href="#/sm_main/electronic_equipment">전자기기</a></li>
+                <li><a href="#/sm_main/food">음식</a></li>
+                <li><a href="#/sm_main/writing_instrument">필기류</a></li>
+                <li><a href="#/sm_main/transfer_ticket">티켓 양도</a></li>
+                <li class="divider"></li>
+                <li><a href="#/sm_main/etc">기타</a></li>
+              </ul>
+            </div>
+            <input type="hidden" name="search_param" value="all" id="search_param">
+            <input type="text" class="form-control" name="x" placeholder="Search term...">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button" onclick="location.href='/sm_main'"><span class="glyphicon glyphicon-search"></span></button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Page Content -->
-
-<div class="container">
-
-        <!-- Introduction Row -->
-
-        <!-- Team Members Row -->
-
+    <div class="container">
+      <!-- Introduction Row -->
+      <!-- Team Members Row -->
       <div class="row">
         <div class="col-lg-4 col-sm-6 text-left">
         <a href="/sm_addItems">
         <button type="button" class="btn btn-default btn-lg" >
-      	  <span class="glyphicon glyphicon-star" aria-hidden="true"></span> 파일 추가
+      	  <span class="glyphicon glyphicon-star" aria-hidden="true"></span> 상품 등록
       	</button>
         </a>
         </div>
       </div>
 
 
-        <div class="row">
-            <!-- 0-->
-            <div class="col-lg-12">
-                <h2 class="page-header">현재 등록된 제품</h2>
-            </div>
-            <!-- 1-->
-            <% for (i=0; i< name.length; i++){
-              if(((i+1) % 2) == 0){ %>
-                <hr/>
-              <% } %>
-
-              <div class="col-lg-4 col-sm-6 text-center">
-                <div class="thumbnail">
-                  <a href="/sm_itemDetail/<%= PK[i] %>">
-                    <% if(photo[i] != ""){ %>
-                        <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" />
-                    <% } else{ %>
-                        <img class="img-responsive img-center" src="./사진없음.png" alt="x" />
-                    <% }%>
-                  </a>
-                  <h3 id="name" name="name"><%= name[i] %>
-                      <small><%= id[i] %></small>
-                  </h3>
-                  <p><%= detail[i] %></p>
-                </div>
-              </div>
-            <% } %>
-
-
-
+      <div class="row">
+        <!-- 0-->
+        <div class="col-lg-12">
+          <h2 class="page-header">현재 등록된 제품</h2>
         </div>
+        <!-- 1-->
+        <% for (i=0; i< name.length; i++){%>
 
-        <hr>
+          <div class="col-lg-4 col-sm-6 col-xs-6 text-center">
+            <div class="thumbnail">
+              <a href="/sm_itemDetail/<%= PK[i] %>" >
+                <% if(photo[i] != ""){ %>
+                  <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                <% } else{ %>
+                  <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                  <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
+                <% } %>
+
+                <h3 id="name" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
+                  <%= name[i] %>
+                </h3>
+                <small><%= id[i] %></small>
+              </a>
+            </div>
+          </div>
+        <% } %>
+
+      </div>
+
+      <hr>
     </div> <!-- /container -->
 
     <!-- Bootstrap core JavaScript
