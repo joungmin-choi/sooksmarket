@@ -1,19 +1,33 @@
 var fs = require('fs');
+console.log('1');
 var ejs = require('ejs');
+console.log('2');
 var mysql = require('mysql');
+console.log('3');
 var express = require('express');
+console.log('4');
 var session = require('express-session');
+console.log('5');
 var MySQLStore = require('express-mysql-session')(session);
+console.log('6');
 var bodyParser = require('body-parser');
+console.log('7');
 var cookieParser = require('cookie-parser');
+console.log('8');
 var bkfd2Password = require("pbkdf2-password");
+console.log('9');
 var passport = require('passport');
+console.log('10');
 var LocalStrategy = require('passport-local').Strategy;
+console.log('11');
 var hasher = bkfd2Password();
+console.log('12');
 var flash = require('connect-flash');
+console.log('13');
 var nodemailer = require('nodemailer');
+console.log('14');
 var smtpTransport = require("nodemailer-smtp-transport");
-
+console.log('15');
 
 //DB 설정//
 var client = mysql.createConnection({
@@ -25,12 +39,15 @@ var client = mysql.createConnection({
 });
 client.connect();
 
+console.log('16');
 //express 서버객체 생성//
 var app = express();
-
+console.log('17');
 //뷰 엔진 설정//
 app.set('views', __dirname);
+console.log('18');
 app.set('view engine', 'ejs');
+console.log('19');
 app.use(session({
     secret: '1234DSFs@adf1234!@#$asd',
     resave: false,
@@ -43,22 +60,27 @@ app.use(session({
         database: 'sooksmarket'
     })
 }));
-
+console.log('20');
 app.use(bodyParser.urlencoded({extended: true}));
+console.log('21');
 app.use(express.static(__dirname));
-
+console.log('22');
 app.use(passport.initialize());
+console.log('23');
 app.use(passport.session());
+console.log('24');
 
 //서버 실행
 app.listen(80, function(){
+  console.log('a');
   console.log('server running at http://127.0.0.1:80');
 });
-
+console.log('25');
 //아이디 중복체크 함수
 var idExistence = -1;
-
+console.log('26');
 var checkUserId = function(id, callback){
+  console.log('b');
   var column = ['login_id'];
   var tablename = 'Login';
 
@@ -77,39 +99,46 @@ var checkUserId = function(id, callback){
   });
 };
 
-
+console.log('27');
 app.get('/', function(request, response){
+  console.log('c');
   console.log("index.ejs 요청됨");
   response.render('index.ejs');
 });
 
 
-
+console.log('28');
 ////--
 app.get('/auth/logout', function(req, res) {
+  console.log('d');
     req.logout();
     req.session.save(function() {
         res.redirect('/sm_main');
     });
 });
 
+console.log('29');
 app.get('/sm_main', function(req, res){
+  console.log('e');
   if (req.user && req.user.displayName) {
   res.render('sm_main.ejs');
   // fs.readFile('sm_main.html', 'utf8', function(error, data){
   //   response.send(data);
   // });
 } else {
-  res.render('index.ejs');
+  res.render('index.ejs')
 }
 });
 
+console.log('30');
 passport.serializeUser(function(user, done) {
+  console.log('f');
     console.log('serializeUser', user);
     done(null, user.authId);
 });
-
+console.log('31');
 passport.deserializeUser(function(id, done) {
+  console.log('g');
     console.log('deserializeUser', id);
     var sql='SELECT * FROM users WHERE authId=?';
     client.query(sql,[id],function(err,results){
@@ -130,6 +159,7 @@ passport.deserializeUser(function(id, done) {
 });
 passport.use(new LocalStrategy(
 function(username, password, done) {
+  console.log('h');
     var uname = username;
     var pwd = password;
     var sql = 'SELECT * FROM users WHERE authId=?';
@@ -170,16 +200,18 @@ function(username, password, done) {
         )
     );
 
-
+console.log('32');
 app.get('/sm_signup', function(request, response){
+  console.log('i');
   var context = {idExistence : idExistence};
   request.app.render('sm_signup.ejs', context, function(err,html){
     if(err){throw err;}
     response.end(html);
   });
 });
-
+console.log('33');
 app.get('/checkId', function(request, response){
+  console.log('j');
   var id = request.query.id;
 
   readData(id, function(){
@@ -190,14 +222,14 @@ app.get('/checkId', function(request, response){
     });
   });
 });
-
+console.log('34');
 var readData = function(id, callback){
   checkUserId(id, function(err, rows){
     if(err){throw err;}
     callback();
   });
 };
-
+console.log('35');
 var smtpTransport = nodemailer.createTransport(smtpTransport({
   host : "smtp.gmail.com",
   secureConnection : false,
@@ -207,7 +239,7 @@ var smtpTransport = nodemailer.createTransport(smtpTransport({
     pass : "sb028390"
   }
 }));
-
+console.log('36');
 var sendCode = function(authenticationCode, email, callback){
   var mailOptions = {
     from: '숙스마켓 <miniymay101@gmail.com>',
@@ -226,7 +258,7 @@ var sendCode = function(authenticationCode, email, callback){
     callback();
   });
 };
-
+console.log('37');
 app.get('/authenticateSookmyung', function(request, response){
   var email = request.query.email;
   var authenticationCode = Math.floor(Math.random()*1000000) + 100000;
@@ -239,14 +271,20 @@ app.get('/authenticateSookmyung', function(request, response){
     });
   });
 });
-
+console.log('38');
 app.post('/sm_signup', function(req, res){
   // var body = request.body;
   // client.query('INSERT INTO Login (login_name, login_id, login_password, login_email, login_phone) VALUES (?,?,?,?,?)', [body.name, body.id, body.pw, body.email+"@sm.ac.kr", body.phone], function(){
   //   response.redirect('/');
   // });
+  console.log('k');
   console.log(req.body.password);
+  console.log(`${req.body.password}`);
+  console.log('kk')
   return hasher({password:req.body.password}, function(err, pass, salt, hash) {
+    console.log('l');
+    console.log('input : salt',`${salt}`);
+    console.log('input : hash',`${hash}`);
     var user = {
         authId: 'local:' + req.body.username,
         username: req.body.username,
@@ -284,13 +322,13 @@ app.post('/sm_signup', function(req, res){
 });
 
 });
-
+console.log('39');
 app.get('/sm_addItems', function(request, response){
   fs.readFile('sm_addItems.html', 'utf8', function(error, data){
     response.send(data);
   });
 });
-
+console.log('40');
 app.post('/sm_addItems', function(request, response){
   var body = request.body;
   var way = body.way;
@@ -312,22 +350,40 @@ app.post('/sm_addItems', function(request, response){
   });
 });
 
-
+console.log('41');
 
 app.get('/sm_itemDetail', function(request, response){
   fs.readFile('sm_itemDetail.html', 'utf8', function(error, data){
     response.send(data);
   });
 });
-
+console.log('42');
 app.get('/sm_request', function(request, response){
   fs.readFile('sm_request.html', 'utf8', function(error, data){
     response.send(data);
   });
 });
-
+console.log('43');
 app.get('/t_request', function(request, response){
   fs.readFile('t_request.html', 'utf8', function(error, data){
     response.send(data);
   });
+});
+console.log('44');
+app.get('/auth/login', function(req, res) {
+    var output = `
+  <h1>Login</h1>
+  <form action="/auth/login" method="post">
+    <p>
+      <input type="text" name="username" placeholder="username">
+    </p>
+    <p>
+      <input type="password" name="password" placeholder="password">
+    </p>
+    <p>
+      <input type="submit">
+    </p>
+  </form>
+  `;
+    res.send(output);
 });

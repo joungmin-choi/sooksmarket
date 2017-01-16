@@ -12,8 +12,11 @@ var LocalStrategy = require('passport-local').Strategy;
 var hasher = bkfd2Password();
 var flash = require('connect-flash');
 var nodemailer = require('nodemailer');
+var multipart = require('connect-multiparty');
 var smtpTransport = require("nodemailer-smtp-transport");
 
+var multipartMiddleware = multipart();
+var loginId = "";
 
 //DB 설정//
 var client = mysql.createConnection({
@@ -31,6 +34,7 @@ var app = express();
 //뷰 엔진 설정//
 app.set('views', __dirname);
 app.set('view engine', 'ejs');
+app.set('uploadDir', './fileUploads');
 app.use(session({
     secret: '1234DSFs@adf1234!@#$asd',
     resave: false,
@@ -62,7 +66,7 @@ var checkUserId = function(id, callback){
   var column = ['login_id'];
   var tablename = 'Login';
 
-  var exec = client.query('select login_id from Login where login_id='+mysql.escape(id), function(err, rows){
+  var exec = client.query('select username from users where username='+mysql.escape(id), function(err, rows){
     console.log('실행대상 SQL :' + exec.sql);
 
     if(rows.length > 0){
@@ -96,65 +100,54 @@ app.get('/auth/logout', function(req, res) {
 app.get('/sm_main', function(req, res){
   if (req.user && req.user.displayName) {
   res.render('sm_main.ejs');
-  // fs.readFile('sm_main.html', 'utf8', function(error, data){
-  //   response.send(data);
-  // });
 } else {
   res.render('index.ejs');
 }
 });
 
 passport.serializeUser(function(user, done) {
-    console.log('serializeUser', user);
+    console.log('4 serializeUser', user);
     done(null, user.authId);
 });
 
 passport.deserializeUser(function(id, done) {
-    console.log('deserializeUser', id);
+    console.log('5 deserializeUser', id);
+
     var sql='SELECT * FROM users WHERE authId=?';
     client.query(sql,[id],function(err,results){
       if(err){
         console.log(err);
-        done('There is no user. ');
+        done(null,false);
       } else{
         done(null,results[0]);
       }
     });
-    // for (var i = 0; i < users.length; i++) {
-    //     var user = users[i];
-    //     if (user.authId === id) {
-    //         return done(null, user);
-    //     }
-    // }
-    // done('There is no user.');
 });
+
 passport.use(new LocalStrategy(
 function(username, password, done) {
     var uname = username;
     var pwd = password;
     var sql = 'SELECT * FROM users WHERE authId=?';
     client.query(sql, ['local:' + uname], function(err, results) {
-            console.log(results);
-            if (err) {
-                return done('There is no user.');
+      console.log('1',results);
+      var user = results[0];
+      if (user===undefined) {
+          console.log(err);
+          return done(null,false);
+          //redirect('/')
+      }
+      console.log('2',user);
+        return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash) {
+
+            if (hash === user.password) {
+                console.log('3 LocalStrategy', user);
+                 done(null, user);
+            } else {
+              console.log('err');
+                 done(null, false);
             }
-            var user = results[0];
-
-            return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash) {
-                        console.log('------salt :',salt);
-                        console.log('------salt :',user.salt);
-                        console.log('------사용자 디비에 저장되어 있는 password :',user.password);
-                        console.log('------사용자가 입력한 password :',pwd);
-                        console.log('------hash :',hash);
-
-                if (hash === user.password) {
-                    console.log('LocalStrategy', user);
-                     done(null, user);
-                } else {
-                  console.log('err');
-                     done(null, false);
-                }
-            });
+        });
         });
     }
     ));
@@ -164,7 +157,7 @@ function(username, password, done) {
         passport.authenticate(
             'local', {
                 successRedirect: '/sm_main',
-                failureRedirect: '/index',
+                failureRedirect: '/',
                 failureFlash: false
             }
         )
@@ -257,11 +250,6 @@ app.post('/sm_signup', function(req, res){
         login_email : req.body.email+'@sm.ac.kr',
         login_phone : req.body.phone
     };
-  //  console.log('1번' + `${hash}`);
-  //  console.log('1번' + `${salt}`);
-
-    console.log('---password :' +user.password);
-    console.log('---salt :' +user.salt);
     //users.push(user);
     var sql = 'INSERT INTO users SET ?';
     client.query(sql, user, function(err, result) {
@@ -291,23 +279,59 @@ app.get('/sm_addItems', function(request, response){
   });
 });
 
-app.post('/sm_addItems', function(request, response){
+app.post('/sm_addItems', multipartMiddleware, function(request, response){
   var body = request.body;
   var way = body.way;
   var category = body.category;
-  var photo = body.photo; //photo배열이 만들어짐!!!  console.log(photo[1]);
-  var path = "";
 
   if (way == '직거래'){ value = 1; }
   else if (way == '사물함거래'){ value = 2; }
   else{ value = 3; }
 
-  for(i=0; i<photo.length; i++){
-    //client.query('INSERT INTO test2 (product_photo) VALUES (?)', [photo[i]], function(){});
-    path = (path+photo[i]);
-  }
+  // 파일이 업로드되면 files 속성이 전달됨
+  var imageFile = request.files.file;
+  var length = request.files.file.length;
 
-  client.query('INSERT INTO test2 (product_name, product_price, product_category, product_photo, product_way, product_detail) VALUES (?,?,?,?,?,?)', [body.name, body.price, category, path, value, body.detail], function(){
+  var name = new Array();
+  var path = new Array();
+  var type = new Array();
+  var outputPath = new Array();
+
+  if(!(length > 0) && (request.files.file.size === 0)){  // 파일 0개
+    outputPath[0] = ""; outputPath[1] = ""; outputPath[2] = "";
+    fs.unlink(request.files.file.path, function(err) { });
+  }
+  else if(!(length > 0) && (request.files.file.size !== 0)){  // 파일 1개
+    name[0] = imageFile.name;
+    path[0] = imageFile.path;
+    type[0] = imageFile.type;
+
+    if(type[0].indexOf('image') != -1) {
+        // image 타입이면 이름을 재지정함(현재날짜로)
+        outputPath[0] = './fileUploads/' + Date.now() + '_' + name[0];
+        fs.rename(path[0], outputPath[0], function(err) {});
+    }
+    outputPath[1] = ""; outputPath[2] = "";
+  }
+  else{  // 파일 2개 또는 3개
+    for(var i=0; i<length; i++){
+      // 업로드 파일이 존재하면
+      // 그 파일의 이름, 경로, 타입을 저장
+      name[i] = request.files.file[i].name;
+      path[i] = request.files.file[i].path;
+      type[i] = request.files.file[i].type;
+
+      if(type[i].indexOf('image') != -1) {
+          // image 타입이면 이름을 재지정함(현재날짜로)
+          outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
+          fs.rename(path[i], outputPath[i], function(err) {});
+      }
+    }
+    for( i=length; i<3; i++){
+      request.files.file[i] = ""; outputPath[i] = "";
+    }
+  }
+  client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail) VALUES (?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, body.detail], function(){
     response.redirect('/');
   });
 });
@@ -329,5 +353,20 @@ app.get('/sm_request', function(request, response){
 app.get('/t_request', function(request, response){
   fs.readFile('t_request.html', 'utf8', function(error, data){
     response.send(data);
+  });
+});
+
+app.get('/sm_changeInfo', function(req, res){
+  var sql = 'SELECT * FROM users';
+  client.query(sql,function(err, rows, fields){
+    res.render('sm_changeInfo', {rows:rows});
+  });
+});
+
+app.get('/test', function(req, res){
+  var sql = 'SELECT id,username FROM users';
+  client.query(sql,function(err, rows, fields){
+    res.render('test',{rows:rows});
+    //res.send(`${rows[3].username}`);
   });
 });

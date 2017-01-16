@@ -100,7 +100,7 @@ app.get('/sm_main', function(req, res){
   //   response.send(data);
   // });
 } else {
-  res.render('index.ejs');
+  res.render('index.ejs')
 }
 });
 
@@ -134,18 +134,19 @@ function(username, password, done) {
     var pwd = password;
     var sql = 'SELECT * FROM users WHERE authId=?';
     client.query(sql, ['local:' + uname], function(err, results) {
-            console.log(results);
-            if (err) {
-                return done('There is no user.');
-            }
-            var user = results[0];
+      console.log(results);
+      var user = results[0];
+      if (user===undefined) {
+          console.log(err);
+          return done(null,false);
+          //redirect('/')
+      }
+      console.log(user);
 
             return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash) {
-                        console.log('------salt :',salt);
-                        console.log('------salt :',user.salt);
-                        console.log('------사용자 디비에 저장되어 있는 password :',user.password);
-                        console.log('------사용자가 입력한 password :',pwd);
-                        console.log('------hash :',hash);
+              console.log('salt :',user.salt);
+              console.log('password :',pwd);
+              console.log('hash :',hash);
 
                 if (hash === user.password) {
                     console.log('LocalStrategy', user);
@@ -164,7 +165,7 @@ function(username, password, done) {
         passport.authenticate(
             'local', {
                 successRedirect: '/sm_main',
-                failureRedirect: '/index',
+                failureRedirect: '/',
                 failureFlash: false
             }
         )
@@ -257,11 +258,11 @@ app.post('/sm_signup', function(req, res){
         login_email : req.body.email+'@sm.ac.kr',
         login_phone : req.body.phone
     };
-  //  console.log('1번' + `${hash}`);
-  //  console.log('1번' + `${salt}`);
+    console.log('1번' + `${hash}`);
+    console.log('1번' + `${salt}`);
 
-    console.log('---password :' +user.password);
-    console.log('---salt :' +user.salt);
+    console.log('2번' +user.password);
+    console.log('3번' +user.salt);
     //users.push(user);
     var sql = 'INSERT INTO users SET ?';
     client.query(sql, user, function(err, result) {
@@ -330,4 +331,22 @@ app.get('/t_request', function(request, response){
   fs.readFile('t_request.html', 'utf8', function(error, data){
     response.send(data);
   });
+});
+
+app.get('/auth/login', function(req, res) {
+    var output = `
+  <h1>Login</h1>
+  <form action="/auth/login" method="post">
+    <p>
+      <input type="text" name="username" placeholder="username">
+    </p>
+    <p>
+      <input type="password" name="password" placeholder="password">
+    </p>
+    <p>
+      <input type="submit">
+    </p>
+  </form>
+  `;
+    res.send(output);
 });

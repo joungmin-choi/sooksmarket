@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include ./sm_head %>
+
+  <script>
+
+  function submitCheck(){
+    var target = document.getElementById("target");
+    var price = document.getElementById("price");
+    var form = document.getElementById("form");
+    var way = document.getElementsByName("way");
+
+    if(target.value==""){
+      alert("상품명을 입력하세요.");
+      return false;
+    }
+    else if(price.value==""){
+      alert("가격을 입력하세요.");
+      return false;
+    }
+    else if(form.category.value==""){
+      alert("품목을 선택하세요.");
+      return false;
+    }
+    else if((way[0].checked == false) && (way[1].checked == false)){
+      alert("거래방법을 선택하세요.");
+      return false;
+    }
+    else{
+      form.submit();
+      return true;
+    }
+
+  }
+
+  function Upload(target) {
+    var files = target.files;
+
+    if(files.length>3){
+      alert('최대 3개까지 가능합니다.');
+      document.getElementById('file').value = "";
+    }
+  }
+  </script>
+
+
+</head>
+
+<body class="body">
+    <% include ./sm_top_navigator %>
+
+    <div class="container">
+      <!--1-->
+      <p class="lead"><strong>Shop Name</strong></p>
+      <!--2-->
+      <div class="row">
+      <!-- (2-1) -->
+      <div class="col-md-3">
+        <% include ./sm_sidebar %>
+      </div>
+      <!-- (2-2) -->
+      <div class="col-md-9">
+        <form action='/sm_changeDetail/<%= id %>' class="form-horizontal" role="form" id="form" name="form" method = "post"  enctype="multipart/form-data" onsubmit="return submitCheck()" >
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">팔고자 하는 물건 :</label>
+            <div class="col-sm-5">
+              <input type="text" class="form-control" name="name" id="target"  placeholder="내용을 입력해주세요." value="<%= name %>">
+
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">가격 :</label>
+            <div class="col-sm-5">
+              <input type="text" id="price" class="form-control" name="price" placeholder="내용을 입력해주세요." value="<%= price %>">
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">카테고리 :</label>
+            <div class="col-sm-5">
+              <select class="form-control" id="catagory" name="category" disabled="true" style="cursor:context-menu;">
+                <option><%= category %></option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">사진 :</label>
+            <div class="col-sm-5">
+              <input type="file" id="file" class="form-control" name="file"  accept="image/*" capture="photo"  multiple="true" onChange="Upload(this)";>
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">희망거래방법 :</label>
+            <div class="col-sm-5">
+              <% if (way == 1){ %>
+                <label class="checkbox-inline"><input name="way" type="checkbox" value="직거래" checked>직거래</label>
+                <label class="checkbox-inline"><input name="way" type="checkbox" value="사물함거래">사물함거래</label>
+              <% } else if (way == 2){ %>
+                <label class="checkbox-inline"><input name="way" type="checkbox" value="직거래">직거래</label>
+                <label class="checkbox-inline"><input name="way" type="checkbox" value="사물함거래" checked>사물함거래</label>
+              <% } else { %>
+                <label class="checkbox-inline"><input name="way" type="checkbox" value="직거래" checked>직거래</label>
+                <label class="checkbox-inline"><input name="way" type="checkbox" value="사물함거래" checked>사물함거래</label>
+              <% }%>
+
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">상세내용 :</label>
+            <div class="col-sm-5">
+              <textarea type="text" id="price" class="form-control" name="detail" rows="3"  placeholder="제품에 대한 설명을 해주세요" style="resize: none;"><%= detail %></textarea>
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <div class="text-center">
+              <input type="submit" value="등록하기" class="btn btn-primary" onclick="location.href='/sm_changeDetail/<%= id %>'" >
+              <input type="reset" value="취소하기" class="btn btn-danger" >
+            </div>
+          </div>
+
+        </form>
+      </div>
+      </div>
+    </div>
+
+</body>
+
+
+<% include ./sm_footer %>
+
+</html>
