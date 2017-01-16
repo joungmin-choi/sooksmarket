@@ -22,11 +22,11 @@ var loginId = "";
 
 //DB 설정//
 var client = mysql.createConnection({
-  host : '203.153.144.75',
-  port : 3306,
-  user : 'sm14',
-  password : 'sm14',
-  database : 'sooksmarket'
+    host: '203.153.144.75',
+    port: 3306,
+    user: 'sm14',
+    password: 'sm14',
+    database: 'sooksmarket'
 });
 client.connect();
 
@@ -50,33 +50,35 @@ app.use(session({
     })
 }));
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 app.use(express.static(__dirname));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 //서버 실행
-app.listen(80, function(){
-  console.log('server running at http://127.0.0.1:80');
+app.listen(80, function() {
+    console.log('server running at http://127.0.0.1:80');
 });
 
 //아이디 중복체크 함수
 var idExistence = -1;
 
-var checkUserId = function(id, callback){
+var checkUserId = function(id, callback) {
 
-  var exec = client.query('select username from users where username='+mysql.escape(id), function(err, rows){
-    //console.log('실행대상 SQL :' + exec.sql);
+    var exec = client.query('select username from users where username=' + mysql.escape(id), function(err, rows) {
+        //console.log('실행대상 SQL :' + exec.sql);
 
-    if(rows.length > 0){
-      idExistence = 1;
-      callback(null, rows);
-    }else{
-      idExistence = 0;
-      callback(null, null);
-    }
-  });
+        if (rows.length > 0) {
+            idExistence = 1;
+            callback(null, rows);
+        } else {
+            idExistence = 0;
+            callback(null, null);
+        }
+    });
 };
 
 
@@ -124,10 +126,11 @@ app.get('/', function(req, res){
     res.render('index',{loginon:0});
   }
 
+
 });
 
-app.get('/sm_enter_main',function(req,res){
-  res.render('sm_enter_main');
+app.get('/sm_enter_main', function(req, res) {
+    res.render('sm_enter_main');
 });
 
 
@@ -136,9 +139,12 @@ app.get('/sm_enter_main',function(req,res){
 app.get('/sm_logout', function(req, res) {
     req.logout();
     req.session.save(function() {
-        res.render('index',{loginon:0});
+        res.render('index', {
+            loginon: 0
+        });
     });
 });
+
 
 app.get('/sm_main', function(req, res){
 //   if (req.user && req.user.displayName) {
@@ -180,25 +186,26 @@ app.get('/sm_main', function(req, res){
     res.render('index',{loginon:0});
   }
 
+
 });
 
 passport.serializeUser(function(user, done) {
-  console.log('serializeUser', user);
-  done(null, user.authId);
+    console.log('serializeUser', user);
+    done(null, user.authId);
 });
 
 passport.deserializeUser(function(id, done) {
-  console.log('deserializeUser', id);
-  loginId=id.split(":");
-  var sql='SELECT * FROM users WHERE authId=?';
-  client.query(sql,[id],function(err,results){
-    if(err){
-      console.log(err);
-      done(null,false);
-    } else{
-      done(null,results[0]);
-    }
-  });
+    console.log('deserializeUser', id);
+    loginId = id.split(":");
+    var sql = 'SELECT * FROM users WHERE authId=?';
+    client.query(sql, [id], function(err, results) {
+        if (err) {
+            console.log(err);
+            done(null, false);
+        } else {
+            done(null, results[0]);
+        }
+    });
 });
 passport.use(new LocalStrategy(
 function(username, password, done) {
@@ -231,6 +238,7 @@ function(username, password, done) {
   }
   ));
 
+
 app.post(
     '/index',
     passport.authenticate(
@@ -243,73 +251,88 @@ app.post(
 );
 
 
-app.get('/sm_signup', function(request, response){
-  var context = {idExistence : idExistence};
-  request.app.render('sm_signup.ejs', context, function(err,html){
-    if(err){throw err;}
-    response.end(html);
-  });
-});
-
-app.get('/checkId', function(request, response){
-  var id = request.query.id;
-
-  readData(id, function(){
-    var context = {userId : id, idExistence : idExistence};
-    request.app.render('checkId.ejs', context, function(err,html){
-      if(err){throw err;}
-      response.end(html);
+app.get('/sm_signup', function(request, response) {
+    var context = {
+        idExistence: idExistence
+    };
+    request.app.render('sm_signup.ejs', context, function(err, html) {
+        if (err) {
+            throw err;
+        }
+        response.end(html);
     });
-  });
 });
 
-var readData = function(id, callback){
-  checkUserId(id, function(err, rows){
-    if(err){throw err;}
-    callback();
-  });
+app.get('/checkId', function(request, response) {
+    var id = request.query.id;
+
+    readData(id, function() {
+        var context = {
+            userId: id,
+            idExistence: idExistence
+        };
+        request.app.render('checkId.ejs', context, function(err, html) {
+            if (err) {
+                throw err;
+            }
+            response.end(html);
+        });
+    });
+});
+
+var readData = function(id, callback) {
+    checkUserId(id, function(err, rows) {
+        if (err) {
+            throw err;
+        }
+        callback();
+    });
 };
 
 var smtpTransport = nodemailer.createTransport(smtpTransport({
-  host : "smtp.gmail.com",
-  secureConnection : false,
-  port : 587,
-  auth : {
-    user : "miniymay101",
-    pass : "sb028390"
-  }
+    host: "smtp.gmail.com",
+    secureConnection: false,
+    port: 587,
+    auth: {
+        user: "miniymay101",
+        pass: "sb028390"
+    }
 }));
 
-var sendCode = function(authenticationCode, email, callback){
-  var mailOptions = {
-    from: '숙스마켓 <miniymay101@gmail.com>',
-    to : email,
-    subject: '숙스마켓 인증번호',
-    text: '인증 번호 : '+authenticationCode
-  };
+var sendCode = function(authenticationCode, email, callback) {
+    var mailOptions = {
+        from: '숙스마켓 <miniymay101@gmail.com>',
+        to: email,
+        subject: '숙스마켓 인증번호',
+        text: '인증 번호 : ' + authenticationCode
+    };
 
-  smtpTransport.sendMail(mailOptions, function(error, response){
-    if(error){
-      console.log(error);
-    }else{
-      console.log("Message sent : " + response.message);
-    }
-    smtpTransport.close();
-    callback();
-  });
+    smtpTransport.sendMail(mailOptions, function(error, response) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log("Message sent : " + response.message);
+        }
+        smtpTransport.close();
+        callback();
+    });
 };
 
-app.get('/authenticateSookmyung', function(request, response){
-  var email = request.query.email;
-  var authenticationCode = Math.floor(Math.random()*1000000) + 100000;
-  console.log(authenticationCode);
-  sendCode(authenticationCode, email, function(){
-    var context = {userCode : authenticationCode};
-    request.app.render('authenticateSookmyung.ejs', context, function(err,html){
-      if(err){throw err;}
-      response.end(html);
+app.get('/authenticateSookmyung', function(request, response) {
+    var email = request.query.email;
+    var authenticationCode = Math.floor(Math.random() * 1000000) + 100000;
+    console.log(authenticationCode);
+    sendCode(authenticationCode, email, function() {
+        var context = {
+            userCode: authenticationCode
+        };
+        request.app.render('authenticateSookmyung.ejs', context, function(err, html) {
+            if (err) {
+                throw err;
+            }
+            response.end(html);
+        });
     });
-  });
 });
 
 
@@ -340,117 +363,37 @@ app.post('/sm_signup', function(req, res){
             //   });
             // });
         }
+
     });
-});
 });
 
 function getTimeStamp() {
-  var d = new Date();
+    var d = new Date();
 
-  var string =
-    leadingZeros(d.getFullYear(), 4) + '-' +
-    leadingZeros(d.getMonth() + 1, 2) + '-' +
-    leadingZeros(d.getDate(), 2) + ' ' +
+    var string =
+        leadingZeros(d.getFullYear(), 4) + '-' +
+        leadingZeros(d.getMonth() + 1, 2) + '-' +
+        leadingZeros(d.getDate(), 2) + ' ' +
 
-    leadingZeros(d.getHours(), 2) + ':' +
-    leadingZeros(d.getMinutes(), 2) + ':' +
-    leadingZeros(d.getSeconds(), 2);
+        leadingZeros(d.getHours(), 2) + ':' +
+        leadingZeros(d.getMinutes(), 2) + ':' +
+        leadingZeros(d.getSeconds(), 2);
 
-  return string;
+    return string;
 }
 
 
 function leadingZeros(n, digits) {
-  var zero = '';
-  n = n.toString();
+    var zero = '';
+    n = n.toString();
 
-  if (n.length < digits) {
-    for (i = 0; i < digits - n.length; i++)
-      zero += '0';
-  }
-  return zero + n;
+    if (n.length < digits) {
+        for (i = 0; i < digits - n.length; i++)
+            zero += '0';
+    }
+    return zero + n;
 }
 
-
-app.get('/sm_addItems', function(request, response){
-  response.render('sm_addItems');
-  });
-
-app.post('/sm_addItems', multipartMiddleware, function(request, response){
-  var body = request.body;
-  var way = body.way;
-  var category = body.category;
-  var detail = body.detail;
-
-  if (way == '직거래'){ value = 1; }
-  else if (way == '사물함거래'){ value = 2; }
-  else{ value = 3; }
-
-  if (detail === null){
-    detail = "";
-  }
-
-  // 파일이 업로드되면 files 속성이 전달됨
-  var imageFile = request.files.file;
-  var length = request.files.file.length;
-
-  var name = new Array();
-  var path = new Array();
-  var type = new Array();
-  var outputPath = new Array();
-
-  if(!(length > 0) && (request.files.file.size === 0)){  // 파일 0개
-    outputPath[0] = ""; outputPath[1] = ""; outputPath[2] = "";
-    fs.unlink(request.files.file.path, function(err) { });
-  }
-  else if(!(length > 0) && (request.files.file.size !== 0)){  // 파일 1개
-    name[0] = imageFile.name;
-    path[0] = imageFile.path;
-    type[0] = imageFile.type;
-
-    if(type[0].indexOf('image') != -1) {
-        // image 타입이면 이름을 재지정함(현재날짜로)
-        outputPath[0] = './fileUploads/' + Date.now() + '_' + name[0];
-        fs.rename(path[0], outputPath[0], function(err) {});
-    }
-    outputPath[1] = ""; outputPath[2] = "";
-  }
-  else{  // 파일 2개 또는 3개
-    for(var i=0; i<length; i++){
-      // 업로드 파일이 존재하면
-      // 그 파일의 이름, 경로, 타입을 저장
-      name[i] = request.files.file[i].name;
-      path[i] = request.files.file[i].path;
-      type[i] = request.files.file[i].type;
-
-      if(type[i].indexOf('image') != -1) {
-          // image 타입이면 이름을 재지정함(현재날짜로)
-          outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
-          fs.rename(path[i], outputPath[i], function(err) {});
-      }
-    }
-    for( i=length; i<3; i++){
-      request.files.file[i] = ""; outputPath[i] = "";
-    }
-  }
-
-  var productId;
-  client.query('SELECT * FROM ProductInfo', function(err, result) {
-    var length = result.length;
-    if(length === 0){console.log("b");
-      productId = 1;
-    }
-    else{
-      productId = (result[length-1].product_id) + 1;
-      console.log(productId);
-    }
-  });
-console.log(outputPath);
-  var time = getTimeStamp();
-  client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time], function(){
-    response.redirect('/');
-  });
-});
 
 app.get('/sm_itemDetail/:id', function(request, response){
   var detail_name, detail_price, detail_way, detail_detail, detail_seller, detail_date;
@@ -492,93 +435,282 @@ app.get('/sm_itemDetail/:id', function(request, response){
     response.render('sm_itemDetail.ejs', {rows:comments, session_id:loginId[1], id: detail_id, name: detail_name, price: detail_price, way: detail_way, detail: detail_detail, seller: detail_seller, date: detail_date, photo: detail_photo});
     //response.send(rows);
   });
+
 });
 
-
-app.get('/sm_changeDetail/:id', function(request, response){
-  var id = request.params.id;   //console.log(request.params.id);  // 1
-  var before_photo = [];
-
-  async.series([
-    function(callback){  // 1st
-      client.query('SELECT * FROM ProductInfo WHERE product_id=?', [id], function(err, result) {
-        //console.log(result);
-        var object = result[0];
-        before_name = object.product_name; before_price = object.product_price; before_way = object.product_way;
-        before_detail = object.product_detail; before_category = object.product_category;
-
-        before_photo = [];
-        before_photo.push(object.photo1); before_photo.push(object.photo2); before_photo.push(object.photo3);
-
-        callback(null, result);
-      });
-    }
-  ],
-
-  function(err, result){  // callback (final)
-    response.render('sm_changeDetail.ejs', {id: id, name: before_name, price: before_price, photo: before_photo, way: before_way, category: before_category, detail: before_detail});
+app.get('/sm_addItems', function(request, response) {
+    response.render('sm_addItems');
   });
+
+app.post('/sm_addItems', multipartMiddleware, function(request, response) {
+    var body = request.body;
+    var way = body.way;
+    var category = body.category;
+    var detail = body.detail;
+
+    if (way == '직거래') {
+        value = 1;
+    } else if (way == '사물함거래') {
+        value = 2;
+    } else {
+        value = 3;
+    }
+
+    if (detail === null) {
+        detail = "";
+    }
+
+    // 파일이 업로드되면 files 속성이 전달됨
+    var imageFile = request.files.file;
+    var length = request.files.file.length;
+
+    var name = new Array();
+    var path = new Array();
+    var type = new Array();
+    var outputPath = new Array();
+
+    if (!(length > 0) && (request.files.file.size === 0)) { // 파일 0개
+        outputPath[0] = "";
+        outputPath[1] = "";
+        outputPath[2] = "";
+        fs.unlink(request.files.file.path, function(err) {});
+    } else if (!(length > 0) && (request.files.file.size !== 0)) { // 파일 1개
+        name[0] = imageFile.name;
+        path[0] = imageFile.path;
+        type[0] = imageFile.type;
+
+        if (type[0].indexOf('image') != -1) {
+            // image 타입이면 이름을 재지정함(현재날짜로)
+            outputPath[0] = './fileUploads/' + Date.now() + '_' + name[0];
+            fs.rename(path[0], outputPath[0], function(err) {});
+        }
+        outputPath[1] = "";
+        outputPath[2] = "";
+    } else { // 파일 2개 또는 3개
+        for (var i = 0; i < length; i++) {
+            // 업로드 파일이 존재하면
+            // 그 파일의 이름, 경로, 타입을 저장
+            name[i] = request.files.file[i].name;
+            path[i] = request.files.file[i].path;
+            type[i] = request.files.file[i].type;
+
+            if (type[i].indexOf('image') != -1) {
+                // image 타입이면 이름을 재지정함(현재날짜로)
+                outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
+                fs.rename(path[i], outputPath[i], function(err) {});
+            }
+        }
+        for (i = length; i < 3; i++) {
+            request.files.file[i] = "";
+            outputPath[i] = "";
+        }
+    }
+
+    var productId;
+    client.query('SELECT * FROM ProductInfo', function(err, result) {
+        var length = result.length;
+        if (length === 0) {
+            console.log("b");
+            productId = 1;
+        } else {
+            productId = (result[length - 1].product_id) + 1;
+            console.log(productId);
+        }
+    });
+    console.log(outputPath);
+    var time = getTimeStamp();
+    client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time], function() {
+        response.redirect('/');
+    });
+});
+
+app.get('/sm_itemDetail/:id', function(request, response) {
+    var detail_name, detail_price, detail_way, detail_detail, detail_seller, detail_date;
+    var detail_photo = [];
+    var detail_id = request.params.id; //console.log(request.params.id);  // 1
+
+    async.series([
+            // 1st
+            function(callback) {
+                client.query('SELECT * FROM ProductInfo WHERE product_id=?', [detail_id], function(err, result) {
+                    //console.log(result);
+                    var object = result[0];
+                    detail_id = object.product_id;
+                    detail_name = object.product_name;
+                    detail_price = object.product_price;
+                    detail_way = object.product_way;
+                    detail_detail = object.product_detail;
+                    detail_seller = object.product_seller;
+                    detail_date = object.product_date;
+
+                    var photo_split = (object.photo1).substring(1);
+                    detail_photo.push(photo_split);
+                    photo_split = (object.photo2).substring(1);
+                    detail_photo.push(photo_split);
+                    photo_split = (object.photo3).substring(1);
+                    detail_photo.push(photo_split);
+
+                    callback(null);
+                });
+            }
+        ],
+        // callback (final)
+        function(err) {
+            response.render('sm_itemDetail.ejs', {
+                id: detail_id,
+                name: detail_name,
+                price: detail_price,
+                way: detail_way,
+                detail: detail_detail,
+                seller: detail_seller,
+                date: detail_date,
+                photo: detail_photo
+            });
+        });
 });
 
 
-app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response){
-  var body = request.body;   var way = body.way;   var category = body.category;   var detail = body.detail;
+app.get('/sm_changeDetail/:id', function(request, response) {
+    var id = request.params.id; //console.log(request.params.id);  // 1
+    var before_photo = [];
 
-  if (way == '직거래'){ value = 1; }
-  else if (way == '사물함거래'){ value = 2; }
-  else{ value = 3; }
+    async.series([
+            function(callback) { // 1st
+                client.query('SELECT * FROM ProductInfo WHERE product_id=?', [id], function(err, result) {
+                    //console.log(result);
+                    var object = result[0];
+                    before_name = object.product_name;
+                    before_price = object.product_price;
+                    before_way = object.product_way;
+                    before_detail = object.product_detail;
+                    before_category = object.product_category;
 
-  if (detail === null){ detail = ""; }
+                    before_photo = [];
+                    before_photo.push(object.photo1);
+                    before_photo.push(object.photo2);
+                    before_photo.push(object.photo3);
 
-  // 파일이 업로드되면 files 속성이 전달됨
-  var imageFile = request.files.file;
-  var length = request.files.file.length;
+                    callback(null, result);
+                });
+            }
+        ],
 
-  var name = [];   var path = [];  var type = [];  var outputPath = [];
+        function(err, result) { // callback (final)
+            response.render('sm_changeDetail.ejs', {
+                id: id,
+                name: before_name,
+                price: before_price,
+                photo: before_photo,
+                way: before_way,
+                category: before_category,
+                detail: before_detail
+            });
+        });
+});
 
-  if(!(length > 0) && (request.files.file.size === 0)){  // 파일 0개
-    outputPath[0] = ""; outputPath[1] = ""; outputPath[2] = "";
-    fs.unlink(request.files.file.path, function(err) { });
-  }
-  else if(!(length > 0) && (request.files.file.size !== 0)){  // 파일 1개
-    name[0] = imageFile.name;
-    path[0] = imageFile.path;
-    type[0] = imageFile.type;
 
-    if(type[0].indexOf('image') != -1) {
-        // image 타입이면 이름을 재지정함(현재날짜로)
-        outputPath[0] = './fileUploads/' + Date.now() + '_' + name[0];
-        fs.rename(path[0], outputPath[0], function(err) {});
+app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response) {
+    var body = request.body;
+    var way = body.way;
+    var category = body.category;
+    var detail = body.detail;
+
+    if (way == '직거래') {
+        value = 1;
+    } else if (way == '사물함거래') {
+        value = 2;
+    } else {
+        value = 3;
     }
-    outputPath[1] = ""; outputPath[2] = "";
-  }
-  else{  // 파일 2개 또는 3개
-    for(var i=0; i<length; i++){
-      // 업로드 파일이 존재하면
-      // 그 파일의 이름, 경로, 타입을 저장
-      name[i] = request.files.file[i].name;
-      path[i] = request.files.file[i].path;
-      type[i] = request.files.file[i].type;
 
-      if(type[i].indexOf('image') != -1) {
-          // image 타입이면 이름을 재지정함(현재날짜로)
-          outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
-          fs.rename(path[i], outputPath[i], function(err) {});
-      }
+    if (detail === null) {
+        detail = "";
     }
-    for( i=length; i<3; i++){
-      request.files.file[i] = ""; outputPath[i] = "";
+
+    // 파일이 업로드되면 files 속성이 전달됨
+    var imageFile = request.files.file;
+    var length = request.files.file.length;
+
+    var name = [];
+    var path = [];
+    var type = [];
+    var outputPath = [];
+
+    if (!(length > 0) && (request.files.file.size === 0)) { // 파일 0개
+        outputPath[0] = "";
+        outputPath[1] = "";
+        outputPath[2] = "";
+        fs.unlink(request.files.file.path, function(err) {});
+    } else if (!(length > 0) && (request.files.file.size !== 0)) { // 파일 1개
+        name[0] = imageFile.name;
+        path[0] = imageFile.path;
+        type[0] = imageFile.type;
+
+        if (type[0].indexOf('image') != -1) {
+            // image 타입이면 이름을 재지정함(현재날짜로)
+            outputPath[0] = './fileUploads/' + Date.now() + '_' + name[0];
+            fs.rename(path[0], outputPath[0], function(err) {});
+        }
+        outputPath[1] = "";
+        outputPath[2] = "";
+    } else { // 파일 2개 또는 3개
+        for (var i = 0; i < length; i++) {
+            // 업로드 파일이 존재하면
+            // 그 파일의 이름, 경로, 타입을 저장
+            name[i] = request.files.file[i].name;
+            path[i] = request.files.file[i].path;
+            type[i] = request.files.file[i].type;
+
+            if (type[i].indexOf('image') != -1) {
+                // image 타입이면 이름을 재지정함(현재날짜로)
+                outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
+                fs.rename(path[i], outputPath[i], function(err) {});
+            }
+        }
+        for (i = length; i < 3; i++) {
+            request.files.file[i] = "";
+            outputPath[i] = "";
+        }
     }
-  }
 
-  var change_photo = [];
+    var change_photo = [];
 
-  async.series([
-    function(callback){
-      client.query('SELECT * FROM ProductInfo WHERE product_id=?', [request.params.id], function(err, result) {
-        //console.log(result);
-        var object = result[0];
-        seller = object.product_seller; date = object.product_date;
+    async.series([
+            function(callback) {
+                client.query('SELECT * FROM ProductInfo WHERE product_id=?', [request.params.id], function(err, result) {
+                    //console.log(result);
+                    var object = result[0];
+                    seller = object.product_seller;
+                    date = object.product_date;
+
+                    callback(null);
+                });
+            }
+        ],
+        // callback (final)
+        function(err) {
+            var update = 'UPDATE ProductInfo SET product_name=?, product_price=?, photo1=?, photo2=?, photo3=?, product_way=?, product_detail=? where product_id= ?';
+            client.query(update, [body.name, body.price, outputPath[0], outputPath[1], outputPath[2], value, detail, request.params.id], function() {
+                var photo_split = (outputPath[0]).substring(1);
+                change_photo.push(photo_split);
+                photo_split = (outputPath[1]).substring(1);
+                change_photo.push(photo_split);
+                photo_split = (outputPath[2]).substring(1);
+                change_photo.push(photo_split);
+
+                response.render('sm_itemDetail.ejs', {
+                    id: request.params.id,
+                    name: body.name,
+                    price: body.price,
+                    way: value,
+                    detail: detail,
+                    seller: seller,
+                    date: date,
+                    photo: change_photo
+                });
+            });
+        });
+});
 
         callback(null);
       });
@@ -600,56 +732,199 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
   });
 });
 
-app.get('/sm_request', function(request, response){
-  var context = {};
-  request.app.render('sm_request.ejs', context, function(err,html){
-    if(err){throw err;}
-    response.end(html);
+app.get('/sm_request/:id', function(request, response) {
+    var product_id, product_way;
+    var tasks = [
+        function(callback) {
+            product_id = request.params.id;
+            var findTradeWaySql = 'SELECT product_way FROM ProductInfo WHERE product_id=?';
+            client.query(findTradeWaySql, [product_id], function(err, result) {
+                product_way = result[0].product_way;
+                callback(null, product_way);
+            });
+        },
+        function(callback) {
+            var context = {
+                id: product_id,
+                way: product_way
+            };
+            request.app.render('sm_request.ejs', context, function(err, html) {
+                if (err) {
+                    throw err;
+                }
+                response.end(html);
+            });
+            callback(null);
+        }
+    ];
+    async.series(tasks, function(err, results) {});
   });
+
+app.post('/sm_request/:id', function(request, response) {
+
+    var product_id, seller, customer, request_num, requestor;
+    var SqlQuery;
+    var tasks = [
+        function(callback) {
+            product_id = request.params.id;
+            SqlQuery = 'SELECT product_seller FROM ProductInfo WHERE product_id=?';
+            client.query(SqlQuery, [product_id], function(err, result) {
+                seller = result[0].product_seller;
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            SqlQuery = 'SELECT MAX(request_num) AS maxRequestNum,customer FROM TradeInfo WHERE product_id=?';
+
+            client.query(SqlQuery, [product_id], function(err, result) {
+                if (result[0].customer === null) {
+                    customer = loginId[1];
+                    request_num = 1;
+
+                } else {
+                    customer = result[0].customer;
+                    request_num = result[0].maxRequestNum + 1;
+                }
+                requestor = loginId[1];
+
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            var tradeInfoData = {
+                product_id: product_id,
+                request_num: request_num,
+                seller: seller,
+                customer: customer,
+                requestor: requestor
+            };
+
+            SqlQuery = 'INSERT INTO TradeInfo SET ?';
+            client.query(SqlQuery, tradeInfoData, function(err, result) {});
+            callback(null);
+        },
+
+        function(callback) {
+            var body = request.body;
+            var dayMaxNum = 3;
+            var timeMaxNum = 5;
+            var trade_date, trade_way, directPlace, directDetailPlace, lockerDetailPlace, lockerNum, lockerPw;
+            var trade_time = [];
+            var i, j;
+            trade_way = 0;
+
+            for (i = 0; i < dayMaxNum; i++) {
+                trade_date = body["dateText" + i];
+
+                if (trade_date !== undefined) {
+                    for (j = 0; j < timeMaxNum; j++) {
+                        trade_time[j] = body["timeText" + i + "" + j];
+                        if (trade_time[j] === undefined)
+                            trade_time[j] = null;
+                    }
+
+                    directDetailPlace = body["directDetailPlace" + i];
+                    if (directDetailPlace === undefined) {
+                        directPlace = directDetailPlace = null;
+                    } else {
+                        directPlace = body["place" + i];
+                        trade_way = 1;
+                    }
+
+                    lockerDetailPlace = body["lockerDetailPlace" + i];
+                    if (lockerDetailPlace === undefined) {
+                        lockerDetailPlace = lockerPw = lockerNum = null;
+                    } else {
+                        lockerNum = body["lockerNum" + i];
+                        lockerPw = body["lockerPw" + i];
+                        if (trade_way == 1) {
+                            trade_way = 3;
+                        } else {
+                            trade_way = 2;
+                        }
+                    }
+
+                    var data = {
+                      product_id : product_id,
+                      request_num : request_num,
+                      trade_date : trade_date,
+                      trade_time1 : trade_time[0],
+                      trade_time2 : trade_time[1],
+                      trade_time3 : trade_time[2],
+                      trade_time4 : trade_time[3],
+                      trade_time5 : trade_time[4],
+                      trade_way : trade_way,
+                      directPlace : directPlace,
+                      directDetailPlace : directDetailPlace,
+                      lockerDetailPlace : lockerDetailPlace,
+                      lockerNum : lockerNum,
+                      lockerPw : lockerPw
+                    };
+
+                    SqlQuery = 'INSERT INTO TradeTimePlace SET ?';
+                    client.query(SqlQuery, data, function(err, result){
+                    });
+                }
+            }
+            response.redirect('/sm_main');
+            callback(null);
+        }
+    ];
+    async.series(tasks, function(err, results) {});
 });
 
-app.get('/t_request', function(request, response){
-  fs.readFile('t_request.html', 'utf8', function(error, data){
-    response.send(data);
-  });
+app.get('/t_request', function(request, response) {
+    fs.readFile('t_request.html', 'utf8', function(error, data) {
+        response.send(data);
+    });
 });
 
-app.get('/sm_changeInfo', function(req, res){
-  var sql = 'SELECT * FROM users  WHERE username=?';
-  client.query(sql,loginId[1],function(err, rows, fields){
-    res.render('sm_changeInfo', {rows:rows});
-  });
+app.get('/sm_changeInfo', function(req, res) {
+    var sql = 'SELECT * FROM users  WHERE username=?';
+    client.query(sql, loginId[1], function(err, rows, fields) {
+        res.render('sm_changeInfo', {
+            rows: rows
+        });
+    });
 });
 
-app.get('/test', function(req, res){
-  //var str = loginId.split(":");
-  var sql = 'SELECT * FROM users WHERE username=?';
-  client.query(sql,str[1],function(err, rows, fields){
-    res.render('test',{rows:rows});
-    //res.send(`${rows[3].username}`);
-  });
+app.get('/test', function(req, res) {
+    //var str = loginId.split(":");
+    var sql = 'SELECT * FROM users WHERE username=?';
+    client.query(sql, str[1], function(err, rows, fields) {
+        res.render('test', {
+            rows: rows
+        });
+        //res.send(`${rows[3].username}`);
+    });
 });
 
-app.post('/sm_changeInfo',function(req,res){
+app.post('/sm_changeInfo', function(req, res) {
 
-  return hasher({password:req.body.password}, function(err, pass, salt, hash) {
+    return hasher({
+        password: req.body.password
+    }, function(err, pass, salt, hash) {
 
         var password = hash;
         var salts = salt;
         var login_phone = req.body.phone;
 
-    //users.push(user);
-    var sql = 'UPDATE users SET password=?, salt=?, login_phone=? WHERE username=?';
-    client.query(sql, [password,salts,login_phone,loginId[1]], function(err, rows, fields) {
-        if(err){
-          console.log(err);
-        } else {
-          res.redirect('/');
-        }
+        //users.push(user);
+        var sql = 'UPDATE users SET password=?, salt=?, login_phone=? WHERE username=?';
+        client.query(sql, [password, salts, login_phone, loginId[1]], function(err, rows, fields) {
+            if (err) {
+                console.log(err);
+            } else {
+                res.redirect('/');
+            }
+        });
     });
-});
 
 });
+
+
 app.get('/sm_enter_changeInfo',function(req,res){
   res.render('sm_enter_changeInfo.ejs');
 });

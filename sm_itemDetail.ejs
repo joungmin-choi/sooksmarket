@@ -56,63 +56,57 @@
                                 </br/>
                                 <% }
           } %>
-                                    <br/>
-                                    <table class="table table-hover">
-                                        <tbody class="text-center">
-                                            <tr>
-                                                <td>등록일 : </td>
-                                                <td>
-                                                    <%= date %>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>팔고자 하는 물건 : </td>
-                                                <td>
-                                                    <%= name %>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>사용자 ID : </td>
-                                                <td>
-                                                    <%= seller %>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>가격 : </td>
-                                                <td>
-                                                    <%= price %>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>희망 거래 방법 : </td>
-                                                <td>
-                                                    <% if(way == 1){ %>
-                                                        <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
-                                                        <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>사물함거래</label>
-                                                        <% }else if (way == 2){ %>
-                                                            <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>직거래</label>
-                                                            <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
-                                                            <% }else { %>
-                                                                <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
-                                                                <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
-                                                                <% } %>
 
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>상세내용 : </td>
-                                                <td><textarea class="form-control col-sm-5" rows="5" style="cursor:context-menu; background-color:white; resize: none;" disabled><%= detail %></textarea></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+          <br/>
+          <table class="table table-hover">
+            <tbody class="text-center">
+              <tr>
+                <td>등록일 : </td>
+                <td><%= date %></td>
+              </tr>
+              <tr>
+                <td>팔고자 하는 물건 : </td>
+                <td><%= name %></td>
+              </tr>
+              <tr>
+                <td>사용자 ID : </td>
+                <td><%= seller %></td>
+              </tr>
+              <tr>
+                <td>가격 : </td>
+                <td><%= price %></td>
+              </tr>
+              <tr>
+                <td>희망 거래 방법 : </td>
+                <td>
+                  <% if(way == 1){ %>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>사물함거래</label>
+                  <% }else if (way == 2){ %>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>직거래</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
+                  <% }else { %>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
+                  <% } %>
 
-                                    <button type="button" class="btn btn-default">스크랩</button>
-                                    <button type="button" class="btn btn-primary">구매하기</button>
-                                    <button type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
-                                    <button type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
+                </td>
+                </tr>
+                <tr>
+                  <td>상세내용 : </td>
+                  <td><textarea class="form-control col-sm-5" rows="5" style="cursor:context-menu; background-color:white; resize: none;" disabled><%= detail %></textarea></td>
+                </tr>
+              </tbody>
+            </table>
 
-                </div>
-            </div>
+            <button type="button" class="btn btn-default">스크랩</button>
+            <button type="button" class="btn btn-primary" onclick="location.href='/sm_request/<%= id %>'">구매하기</button>
+            <button type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+            <button type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
+
+          </div>
+        </div>
+
 
             <hr>
 
