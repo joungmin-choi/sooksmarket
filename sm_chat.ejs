@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) {  }
+      .actual_msg{
+        display: block;
+        margin: 3%;
+        padding: 25px 34px;
+        min-width: 160px;
+        min-height: 10px;
+        max-width: 510px;
+        border-radius: 5px;
+        box-shadow: 0px 3px 3px rgba(172, 172, 172, 0.73);
+        line-height: 1.4;
+        word-wrap: break-word;
+        color: #1A1A1A;
+        background-color: rgba(0, 0, 0, 0.11);
+      }
+    </style>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+  <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+
+  <script>
+  $(function(){
+
+	var socket = io();
+  var seller = '<%= seller %>';
+  var customer = '<%= customer %>';
+	var users = '<%= session %>';
+
+  if ((users != seller) || (users != customer)){
+    location.href='/404.html';
+    return false;
+  }else{
+    socket.emit('join', users);
+
+    $('form').submit(function(){
+      socket.emit('chat message', $('#m').val());
+      $('#m').val('');
+      return false;
+    });
+
+    socket.on('chat message', function(data){
+      if (users == seller){
+      $('#messages').append("<div class='actual_msg' style='float:right; background:#66b3ff'><strong style='margin-right: -25%;'>"+data.user+"</strong><br>"+data.msg+"</div>");
+		}else if (users == customer){
+			$('#messages').append("<div class='actual_msg' style='float:left'><strong style='margin-left: -25%;'>"+data.user+"</strong><br>"+data.msg+"</div>");
+		}
+	});
+}
+  });
+  </script>
+
+  </head>
+  <body>
+  <div id="msg">
+    <ul id="messages"></ul>
+    <form action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+  </div>
+
+  </body>
+</html>

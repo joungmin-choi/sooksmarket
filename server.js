@@ -693,7 +693,7 @@ app.post('/sm_request/:id', function(request, response) {
                 }
             }
             var id = request.params.id;
-            var str = '/test/' + id;
+            var str = '/sm_chat/' + id;
             response.redirect(str);
             callback(null);
         }
@@ -702,9 +702,34 @@ app.post('/sm_request/:id', function(request, response) {
 
 });
 
-app.get('/test/:id', function(req, res) {
-    res.render('test.ejs');
+app.get('/sm_chat/:id', function(req, res) {
+  var id = req.params.id;
+  var sql = 'SELECT * FROM TradeInfo WHERE product_id=?';
+  client.query(sql, id, function(err, result) {
+    var object = result[0];
+    var seller = object.seller;
+    var customer = object.customer;
+    console.log(loginId[1]);
+    res.render('sm_chat.ejs', {seller: seller, customer: customer, session: loginId[1]});
+  });
+});
 
+io.on('connection', function(socket) {
+    socket.on('join', function(user) {
+        socket.user = user;
+    });
+
+    socket.on('chat message', function(msg) {
+        io.emit('chat message', {
+            'user': socket.user,
+            'msg': msg
+        });
+    });
+
+});
+
+http.listen(80, function() {
+    console.log('127.0.0.1');
 });
 
 app.get('/sm_changeInfo', function(req, res) {
@@ -1090,23 +1115,4 @@ app.get('/sm_selectTime', function(request, response) {
     ];
 
     async.series(tasks, function(err, results) {});
-});
-
-
-io.on('connection', function(socket) {
-    socket.on('join', function(user) {
-        socket.user = user;
-    });
-
-    socket.on('chat message', function(msg) {
-        io.emit('chat message', {
-            'user': socket.user,
-            'msg': msg
-        });
-    });
-
-});
-
-http.listen(80, function() {
-    console.log('127.0.0.1');
 });
