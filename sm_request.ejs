@@ -25,12 +25,15 @@
     <script src="/bootstrap-3.3.2-dist/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment-with-locales.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.44/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="/node_modules/moment/moment.js"></script>
+    <script type="text/javascript" src="/node_modules/moment/locale/ko.js"></script>
 
     <script type="text/javascript">
         var j = new Array(3);
         var erasedOne = new Array(3);
         var deletionCount = new Array(3);
         var timeAdditionCount = new Array(3);
+        var dayOfWeek = new Array(3);
         var temp = 0;
         var dayAdditionCount = 0;
         var dayDeletionCount = 0;
@@ -51,17 +54,6 @@
             }
         }
 
-        $(function() {
-            $('#datepicker0').datetimepicker({
-                viewMode: 'days',
-                format: 'YYYY년 MM월 DD일'
-            });
-
-            $('#timepicker00').datetimepicker({
-                format: 'LT'
-            });
-        });
-
         function setDate(dayNum) {
             var dateText = new Array();
             var datepicker = new Array();
@@ -78,7 +70,8 @@
             for (var i = 0; i <= dayAdditionCount; i++) {
                 $(datepicker[i]).datetimepicker({
                     viewMode: 'days',
-                    format: 'YYYY년 MM월 DD일'
+                    locale: 'ko',
+                    format: 'YYYY년 MM월 DD일 dddd'
                 });
             }
             $(datepicker[dayNum]).datetimepicker('show');
@@ -199,6 +192,7 @@
             for (t = 0; t <= dayAdditionCount; t++) {
                 for (i = 0; i < j[dayAdditionCount]; i++) {
                     $(timepicker[t][i]).datetimepicker({
+                      locale: 'ko',
                         format: 'LT'
                     });
                 }
@@ -372,6 +366,8 @@
                     dateText[i].focus();
                     return false;
                     break;
+                } else {
+
                 }
 
                 for (j = 0; j <= timeAdditionCount[i]; j++) {

@@ -1,3 +1,4 @@
+var cors = require('cors');
 var fs = require('fs');
 var ejs = require('ejs');
 var mysql = require('mysql');
@@ -32,6 +33,8 @@ client.connect();
 
 //express 서버객체 생성//
 var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 
 //뷰 엔진 설정//
 app.set('views', __dirname);
@@ -58,10 +61,12 @@ app.use(express.static(__dirname));
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use(cors());
+
 //서버 실행
-app.listen(80, function() {
-    console.log('server running at http://127.0.0.1:80');
-});
+// app.listen(80, function() {
+//     console.log('server running at http://127.0.0.1:80');
+// });
 
 //아이디 중복체크 함수
 var idExistence = -1;
@@ -211,6 +216,7 @@ passport.deserializeUser(function(id, done) {
     });
 });
 passport.use(new LocalStrategy(
+
     function(username, password, done) {
         console.log('LocalStrategy 접근');
         var uname = username;
@@ -686,13 +692,20 @@ app.post('/sm_request/:id', function(request, response) {
                     client.query(SqlQuery, data, function(err, result) {});
                 }
             }
-            response.redirect('/sm_main');
+            var id = request.params.id;
+            var str = '/test/' + id;
+            response.redirect(str);
             callback(null);
         }
     ];
     async.series(tasks, function(err, results) {});
+
 });
 
+app.get('/test/:id', function(req, res) {
+    res.render('test.ejs');
+
+});
 
 app.get('/sm_changeInfo', function(req, res) {
     var sql = 'SELECT * FROM users  WHERE username=?';
@@ -1058,4 +1071,42 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit', function(req, r
             res.redirect(str);
         });
 
+});
+
+app.get('/sm_selectTime', function(request, response) {
+    var tasks = [
+        function(callback) {
+            var context = {
+
+            };
+            request.app.render('sm_selectTime.ejs', context, function(err, html) {
+                if (err) {
+                    throw err;
+                }
+                response.end(html);
+            });
+            callback(null);
+        }
+    ];
+
+    async.series(tasks, function(err, results) {});
+});
+
+
+io.on('connection', function(socket) {
+    socket.on('join', function(user) {
+        socket.user = user;
+    });
+
+    socket.on('chat message', function(msg) {
+        io.emit('chat message', {
+            'user': socket.user,
+            'msg': msg
+        });
+    });
+
+});
+
+http.listen(80, function() {
+    console.log('127.0.0.1');
 });
