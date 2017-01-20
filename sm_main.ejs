@@ -17,9 +17,10 @@
       alert('로그인 상태입니다');
       }
     });
-    function a(this){
-
-      alert(this);
+    function(){
+      var ul = document.getElementById("UL");
+      var x = ul.a.div.val();
+      alert(x);
     }
 
     </script>
@@ -32,31 +33,26 @@
     <div class="container">
       <div class="row">
         <div class="col-xs-8 col-xs-offset-2">
-          <div class="input-group">
-            <div class="input-group-btn search-panel">
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                <span id="search_concept">전체보기</span> <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu" role="menu">
-                <li><a href="#/sm_main/top">상의</a></li>
-                <!-- <li><a href="/sm_main_test?id=1&name=홍길동&sex=남&age=34">상의</a></li> -->
-                <li><a href="#/sm_main/bottoms">하의</a></li>
-                <li><a href="#/sm_main/cosmetics">화장품</a></li>
-                <li><a href="#/sm_main/book">책</a></li>
-                <li><a href="#/sm_main/electronic_equipment">전자기기</a></li>
-                <li><a href="#/sm_main/food">음식</a></li>
-                <li><a href="#/sm_main/writing_instrument">필기류</a></li>
-                <li><a href="#/sm_main/transfer_ticket">티켓 양도</a></li>
-                <li class="divider"></li>
-                <li><a href="#/sm_main/etc">기타</a></li>
-              </ul>
-            </div>
-            <input type="hidden" name="search_param" value="all" id="search_param">
-            <input type="text" class="form-control" name="x" placeholder="Search term...">
-            <span class="input-group-btn">
-              <button class="btn btn-default" type="button" onclick="location.href='/sm_main'"><span class="glyphicon glyphicon-search"></span></button>
-            </span>
-          </div>
+            <form class="input-group">
+              <div class="input-group-btn">
+                <select class="btn btn-default selectpicker" style="height: 34px;">
+                    <option>상의</option>
+                    <option>하의</option>
+                    <option>화장품</option>
+                    <option>책</option>
+                    <option>전자기기</option>
+                    <option>음식</option>
+                    <option>필기류</option>
+                    <option>티켓 양도</option>
+                    <option>기타</option>
+                </select>
+              </div>
+              <input type="text" class="form-control" placeholder="Search..." />
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button" onclick="location.href='/sm_main'"><span class="glyphicon glyphicon-search"></span></button>
+              </span>
+        </form>
+
         </div>
       </div>
     </div>
