@@ -26,7 +26,12 @@
     <script type="text/javascript">
     var time = new Array();
 
+
     function cancle(){
+      var finalDate = document.getElementById("finalDate");
+      var finalTime = document.getElementById("finalTime");
+      var finalTradeWay = document.getElementById("finalTradeWay");
+      alert(finalTime.value+"\n"+finalTradeWay.value);
     }
 
     function showHide(i) {
@@ -41,24 +46,31 @@
         }
 
     function disableOther(day, i){
+      var finalDate = document.getElementById("finalDate");
+      var finalTime1 = document.getElementById("finalTime");
+      var finalTradeWay = document.getElementById("finalTradeWay");
       if(i<=5){
         for(var j=1; j<=5; j++){
           time[j] = document.getElementsByName("time"+day+""+j);
         }
         for(var k=1; k<=5; k++){
           if(k==i){
-
+            finalTime.value = time[i][0].value;
           }else{
             time[k][0].checked = false;
           }
         }
       }
-      else if(i==6){
+      else{
         var lockerCheck = document.getElementsByName("locker"+day);
-        lockerCheck[0].checked = false;
-      }else if(i==7){
         var directCheck = document.getElementsByName("direct"+day);
-        directCheck[0].checked = false;
+        if(i==6){
+          lockerCheck[0].checked = false;
+          finalTradeWay.value = directCheck[0].value;
+        }else if(i==7){
+          directCheck[0].checked = false;
+          finalTradeWay.value = lockerCheck[0].value;
+        }
       }
     }
     </script>
@@ -177,7 +189,9 @@
                         <% } %>
                 </div>
                 <div style="display: none;">
-                  날짜 <input type="text" id="finalDate" name="finalDate" value="4">
+                  날짜 <input type="text" id="finalDate" name="finalDate" value="4" />
+                  시간 <input type="text" id="finalTime" name="finalTime" value="5" />
+                  거래방식 <input type="text" id="finalTradeWay" name="finalTradeWay" value="6" />
                 </div>
                 <hr/>
 

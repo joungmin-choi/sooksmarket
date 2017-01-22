@@ -638,7 +638,9 @@ app.post('/sm_request/:id', function(request, response) {
             var timeMaxNum = 5;
             var trade_date, directPlace, directDetailPlace, lockerDetailPlace, lockerNum, lockerPw;
             var trade_time = [];
+            var hour = [];
             var i, j, k;
+
 
             for (i = 0; i < dayMaxNum; i++) {
                 trade_date = body["dateText" + i];
@@ -646,8 +648,13 @@ app.post('/sm_request/:id', function(request, response) {
                 if (trade_date !== undefined) {
                     for (j=0, k=0; k < timeMaxNum; j++, k++) {
                         trade_time[j] = body["timeText" + i + "" + k];
+                        //hour[j] = trade_time[j].substring()
                         if (trade_time[j] === undefined)
                             j--;
+                    }
+
+                    for(k=0; k<j; k++){
+
                     }
 
                     directDetailPlace = body["directDetailPlace" + i];
