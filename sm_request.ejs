@@ -71,7 +71,7 @@
                 $(datepicker[i]).datetimepicker({
                     viewMode: 'days',
                     locale: 'ko',
-                    format: 'YYYY년 MM월 DD일 dddd'
+                    format: 'MM월 DD일 dddd'
                 });
             }
             $(datepicker[dayNum]).datetimepicker('show');
@@ -313,8 +313,8 @@
 
             if (way[0].checked == true) {
                 directText.style.margin = "2%";
-                placeText[0] = "- 장소 : <input type='checkbox' value='school' name='place" + dayNum + "' /> 교내";
-                placeText[1] = " <input type='checkbox' value='outside' name='place" + dayNum + "' /> 교외";
+                placeText[0] = "- 장소 : <input type='checkbox' value='교내' name='place" + dayNum + "' /> 교내";
+                placeText[1] = " <input type='checkbox' value='교외' name='place" + dayNum + "' /> 교외";
                 placeText[2] = "<br/><textarea class='form-control' rows='3' name='directDetailPlace" + dayNum + "' id='directDetailPlace" + dayNum + "' placeholder='ex) 블루베리 카페 앞'></textarea><br/>";
 
 

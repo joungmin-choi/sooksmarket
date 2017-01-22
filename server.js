@@ -587,14 +587,15 @@ app.get('/sm_request/:id', function(request, response) {
 
 app.post('/sm_request/:id', function(request, response) {
 
-    var product_id, seller, customer, request_num, requestor;
+    var product_id, seller, customer, request_num, requestor, trade_way;
     var SqlQuery;
     var tasks = [
         function(callback) {
             product_id = request.params.id;
-            SqlQuery = 'SELECT product_seller FROM ProductInfo WHERE product_id=?';
+            SqlQuery = 'SELECT product_seller,product_way FROM ProductInfo WHERE product_id=?';
             client.query(SqlQuery, [product_id], function(err, result) {
                 seller = result[0].product_seller;
+                trade_way = result[0].product_way;
                 callback(null);
             });
         },
@@ -635,19 +636,18 @@ app.post('/sm_request/:id', function(request, response) {
             var body = request.body;
             var dayMaxNum = 3;
             var timeMaxNum = 5;
-            var trade_date, trade_way, directPlace, directDetailPlace, lockerDetailPlace, lockerNum, lockerPw;
+            var trade_date, directPlace, directDetailPlace, lockerDetailPlace, lockerNum, lockerPw;
             var trade_time = [];
-            var i, j;
-            trade_way = 0;
+            var i, j, k;
 
             for (i = 0; i < dayMaxNum; i++) {
                 trade_date = body["dateText" + i];
 
                 if (trade_date !== undefined) {
-                    for (j = 0; j < timeMaxNum; j++) {
-                        trade_time[j] = body["timeText" + i + "" + j];
+                    for (j=0, k=0; k < timeMaxNum; j++, k++) {
+                        trade_time[j] = body["timeText" + i + "" + k];
                         if (trade_time[j] === undefined)
-                            trade_time[j] = null;
+                            j--;
                     }
 
                     directDetailPlace = body["directDetailPlace" + i];
@@ -655,7 +655,6 @@ app.post('/sm_request/:id', function(request, response) {
                         directPlace = directDetailPlace = null;
                     } else {
                         directPlace = body["place" + i];
-                        trade_way = 1;
                     }
 
                     lockerDetailPlace = body["lockerDetailPlace" + i];
@@ -664,11 +663,6 @@ app.post('/sm_request/:id', function(request, response) {
                     } else {
                         lockerNum = body["lockerNum" + i];
                         lockerPw = body["lockerPw" + i];
-                        if (trade_way == 1) {
-                            trade_way = 3;
-                        } else {
-                            trade_way = 2;
-                        }
                     }
 
                     var data = {
@@ -1073,13 +1067,30 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit', function(req, r
 
 });
 
-app.get('/sm_selectTime', function(request, response) {
-    var tasks = [
-        function(callback) {
-            var context = {
+app.get('/sm_selectTime/:id/:num', function(request, response) {
+    var product_id, request_num, sqlQuery;
+    var results = "";
 
-            };
-            request.app.render('sm_selectTime.ejs', context, function(err, html) {
+    var tasks = [
+
+        function(callback) {
+            product_id = request.params.id;
+            request_num = request.params.num;
+            sqlQuery = 'SELECT * FROM TradeTimePlace WHERE product_id=? AND request_num=?';
+            client.query(sqlQuery, [product_id, request_num], function(err, result) {
+                if (err) {
+                    console.log(err);
+                }
+                results = result;
+                console.log('결과값입니다', results);
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            response.render('sm_selectTime.ejs', {
+                results: results
+            }, function(err, html) {
                 if (err) {
                     throw err;
                 }
@@ -1088,7 +1099,6 @@ app.get('/sm_selectTime', function(request, response) {
             callback(null);
         }
     ];
-
     async.series(tasks, function(err, results) {});
 });
 
