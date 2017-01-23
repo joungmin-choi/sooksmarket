@@ -26,11 +26,11 @@
     <script type="text/javascript">
     var time = new Array();
 
-
     function cancle(){
       var finalDate = document.getElementById("finalDate");
       var finalTime = document.getElementById("finalTime");
       var finalTradeWay = document.getElementById("finalTradeWay");
+      alert(finalDate.value);
       alert(finalTime.value+"\n"+finalTradeWay.value);
     }
 
@@ -48,28 +48,65 @@
     function disableOther(day, i){
       var finalDate = document.getElementById("finalDate");
       var finalTime1 = document.getElementById("finalTime");
-      var finalTradeWay = document.getElementById("finalTradeWay");
+      var days = new Array();
+      var k,j;
+      days[0] = `<%= results[0].trade_date %>`;
+
+      <%
+      if((results.length==2)||(results.length == 3)){%>
+        days[1] = `<%= results[1].trade_date %>`;
+      <% }
+      if(results.length == 3){ %>
+        days[2] = `<%= results[2].trade_date %>`;
+      <% } %>
+
       if(i<=5){
-        for(var j=1; j<=5; j++){
+        for(j=1; j<=5; j++){
           time[j] = document.getElementsByName("time"+day+""+j);
         }
-        for(var k=1; k<=5; k++){
+        for(k=1; k<=5; k++){
           if(k==i){
+            finalDate.value = days[day];
             finalTime.value = time[i][0].value;
           }else{
-            time[k][0].checked = false;
+            if(time[k][0] != undefined){
+              time[k][0].checked = false;
+            }
           }
         }
       }
       else{
+        var finalTradeWay = document.getElementById("finalTradeWay");
         var lockerCheck = document.getElementsByName("locker"+day);
         var directCheck = document.getElementsByName("direct"+day);
         if(i==6){
+          if(lockerCheck[0]!=undefined){
           lockerCheck[0].checked = false;
+          }
           finalTradeWay.value = directCheck[0].value;
         }else if(i==7){
+          if(directCheck[0]!=undefined){
           directCheck[0].checked = false;
+          }
           finalTradeWay.value = lockerCheck[0].value;
+        }
+      }
+      for(k=0; k<=2; k++){
+        if((days[k]!==undefined)&&(k!=day)){
+          for(j=1; j<=5; j++){
+            time[j] = document.getElementsByName("time"+k+""+j);
+            if(time[j][0] != undefined){
+              time[j][0].checked = false;
+            }
+          }
+          lockerCheck = document.getElementsByName("locker"+k);
+          directCheck = document.getElementsByName("direct"+k);
+          if(lockerCheck[0]!=undefined){
+          lockerCheck[0].checked = false;
+          }
+          if(directCheck[0]!=undefined){
+          directCheck[0].checked = false;
+          }
         }
       }
     }
@@ -92,7 +129,7 @@
 
             <form id="eventFrom" method="post" class="form-horizontal" onsubmit="return submitCheck()">
               <label style="font-size:20px;">가능한 날짜 하나 선택</label><br/>
-              <small>※선택한 날짜 하나만 최종 거래 시간으로 확정됩니다.</small>
+              <small>※다른 날짜를 선택하시면 다른 날짜에서의 선택사항은 초기화됩니다.</small>
 
                 <div class="panel-group" id="accordion">
                     <% for(var i=0; i<results.length; i++){ %>
@@ -155,17 +192,20 @@
                                         <br/>
                                         <% if(results[i].directDetailPlace !== null){ %>
                                           <label style="font-weight:normal;">
-                                            <input type="checkbox" name="direct<%=i%>" value="direct" onclick="disableOther(<%=i%>,6);">
+                                            <input type="checkbox" name="direct<%=i%>" value="직거래" onclick="disableOther(<%=i%>,6);">
                                             직거래 (<%= `${results[i].directPlace}` %>)
                                           </label>
                                             <br/>
                                            : <%= `${results[i].directDetailPlace}` %>
                                         <% } %>
 
-                                        <% if(results[i].lockerDetailPlace !== null){ %>
+                                        <% if((results[i].directDetailPlace !== null)&&(results[i].lockerDetailPlace !== null)){ %>
                                           <br/><br/>
+                                        <% } %>
+
+                                        <% if(results[i].lockerDetailPlace !== null){ %>
                                           <label style="font-weight:normal;">
-                                            <input type="checkbox" name="locker<%=i%>" value="locker" onclick="disableOther(<%=i%>,7);">
+                                            <input type="checkbox" name="locker<%=i%>" value="사물함거래" onclick="disableOther(<%=i%>,7);">
                                             사물함거래
                                           </label>
                                           <br/>
@@ -189,9 +229,9 @@
                         <% } %>
                 </div>
                 <div style="display: none;">
-                  날짜 <input type="text" id="finalDate" name="finalDate" value="4" />
-                  시간 <input type="text" id="finalTime" name="finalTime" value="5" />
-                  거래방식 <input type="text" id="finalTradeWay" name="finalTradeWay" value="6" />
+                  날짜 <input type="text" id="finalDate" name="finalDate" value="nodate" />
+                  시간 <input type="text" id="finalTime" name="finalTime" value="notime" />
+                  거래방식 <input type="text" id="finalTradeWay" name="finalTradeWay" value="noway" />
                 </div>
                 <hr/>
 
