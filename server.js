@@ -98,7 +98,7 @@ app.get('/', function(req, res) {
     var main_photo = [];
     var pk_id = [];
 
-    if (flag != undefined) {
+    if (flag !== undefined) {
         async.series([
                 // 1st
                 function(callback) {
@@ -158,7 +158,7 @@ app.get('/sm_main', function(req, res) {
     var main_photo = [];
     var pk_id = [];
 
-    if (flag != undefined) {
+    if (flag !== undefined) {
         async.series([
                 // 1st
                 function(callback) {
@@ -203,7 +203,7 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(id, done) {
-    console.log('deserializeUser', id);
+    //console.log('deserializeUser', id);
     loginId = id.split(":");
     var sql = 'SELECT * FROM users WHERE authId=?';
     client.query(sql, [id], function(err, results) {
@@ -587,14 +587,15 @@ app.get('/sm_request/:id', function(request, response) {
 
 app.post('/sm_request/:id', function(request, response) {
 
-    var product_id, seller, customer, request_num, requestor;
+    var product_id, seller, customer, request_num, requestor, trade_way;
     var SqlQuery;
     var tasks = [
         function(callback) {
             product_id = request.params.id;
-            SqlQuery = 'SELECT product_seller FROM ProductInfo WHERE product_id=?';
+            SqlQuery = 'SELECT product_seller,product_way FROM ProductInfo WHERE product_id=?';
             client.query(SqlQuery, [product_id], function(err, result) {
                 seller = result[0].product_seller;
+                trade_way = result[0].product_way;
                 callback(null);
             });
         },
@@ -635,19 +636,71 @@ app.post('/sm_request/:id', function(request, response) {
             var body = request.body;
             var dayMaxNum = 3;
             var timeMaxNum = 5;
-            var trade_date, trade_way, directPlace, directDetailPlace, lockerDetailPlace, lockerNum, lockerPw;
+            var trade_date, directPlace, directDetailPlace, lockerDetailPlace, lockerNum, lockerPw;
             var trade_time = [];
-            var i, j;
-            trade_way = 0;
+            var hour = [];
+            var min = [];
+            var temp = [];
+            var i, j, k,t, tempH, tempM;
+
 
             for (i = 0; i < dayMaxNum; i++) {
                 trade_date = body["dateText" + i];
 
                 if (trade_date !== undefined) {
-                    for (j = 0; j < timeMaxNum; j++) {
-                        trade_time[j] = body["timeText" + i + "" + j];
-                        if (trade_time[j] === undefined)
-                            trade_time[j] = null;
+                    for (j=0, k=0; k < timeMaxNum; j++, k++) {
+                        trade_time[j] = body["timeText" + i + "" + k];
+                        //hour[j] = trade_time[j].substring()
+                        if (trade_time[j] === undefined){
+                            j--;
+                        }else{
+                            hour[j] = parseInt(trade_time[j].substring(0,2));
+                            min[j] = parseInt(trade_time[j].substring(3,5));
+                        }
+                    }
+
+                    //오름차순 정렬(시간 정렬)
+                    for(k=1; k<j; k++){
+                      tempH = hour[k];
+                      tempM = min[k];
+                      for(t=k; t>0; t--){
+                        if(hour[t-1]>tempH){
+                          hour[t]=hour[t-1];
+                          min[t]=min[t-1];
+                          if(t==1){
+                            hour[t-1]=tempH;
+                            min[t-1]=tempM;
+                            break;
+                          }
+                        }else{
+                          hour[t]=tempH;
+                          min[t]=tempM;
+                          break;
+                        }
+                      }
+                    }
+
+                    //분 정렬
+                    for(k=0; k<j; k++){
+                      for(t=k+1; t<j; t++){
+                        if(hour[k]==hour[t]){
+                          if(min[k]>min[t]){
+                            tempM = min[k];
+                            min[k] = min[t];
+                            min[t] = tempM;
+                          }
+                        }
+                      }
+                    }
+
+                    for(k=0; k<j; k++){
+                      if(hour[k]<10){
+                        hour[k] = "0"+hour[k];
+                      }
+                      if(min[k]<10){
+                        min[k] = "0"+min[k];
+                      }
+                      trade_time[k] = hour[k]+":"+min[k];
                     }
 
                     directDetailPlace = body["directDetailPlace" + i];
@@ -655,7 +708,6 @@ app.post('/sm_request/:id', function(request, response) {
                         directPlace = directDetailPlace = null;
                     } else {
                         directPlace = body["place" + i];
-                        trade_way = 1;
                     }
 
                     lockerDetailPlace = body["lockerDetailPlace" + i];
@@ -664,11 +716,6 @@ app.post('/sm_request/:id', function(request, response) {
                     } else {
                         lockerNum = body["lockerNum" + i];
                         lockerPw = body["lockerPw" + i];
-                        if (trade_way == 1) {
-                            trade_way = 3;
-                        } else {
-                            trade_way = 2;
-                        }
                     }
 
                     var data = {
@@ -691,6 +738,11 @@ app.post('/sm_request/:id', function(request, response) {
                     SqlQuery = 'INSERT INTO TradeTimePlace SET ?';
                     client.query(SqlQuery, data, function(err, result) {});
                 }
+                for(t=0; t<5; t++){
+                  trade_time[t]="";
+                  min[t] = hour[t] = tempM = tempH = 0;
+                }
+                directPlace = directDetailPlace = lockerDetailPlace = lockerNum = lockerPw = "";
             }
             var id = request.params.id;
             var str = '/sm_chat/' + id;
@@ -1018,7 +1070,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) {
                     comment_date: m.format("YYYY-MM-DD HH:mm"),
                     parent_id: pid,
                     child_id: child_id_max,
-                }
+                };
                 var sql1 = 'INSERT INTO comments SET ?';
                 client.query(sql1, comment, function(err, result) {
                     if (err) {
@@ -1098,13 +1150,31 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit', function(req, r
 
 });
 
-app.get('/sm_selectTime', function(request, response) {
-    var tasks = [
-        function(callback) {
-            var context = {
+app.get('/sm_selectTime/:id/:num', function(request, response) {
+    var product_id, request_num, sqlQuery;
+    var results = "";
 
-            };
-            request.app.render('sm_selectTime.ejs', context, function(err, html) {
+    var tasks = [
+
+        function(callback) {
+            product_id = request.params.id;
+            request_num = request.params.num;
+            sqlQuery = 'SELECT * FROM TradeTimePlace WHERE product_id=? AND request_num=? ORDER BY trade_date ASC';
+            client.query(sqlQuery, [product_id, request_num], function(err, result) {
+                if (err) {
+                    console.log(err);
+                }
+                results = result;
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            response.render('sm_selectTime.ejs', {
+                results: results,
+                id: product_id,
+                num: request_num
+            }, function(err, html) {
                 if (err) {
                     throw err;
                 }
@@ -1113,6 +1183,132 @@ app.get('/sm_selectTime', function(request, response) {
             callback(null);
         }
     ];
-
     async.series(tasks, function(err, results) {});
+});
+
+app.post('/sm_selectTime/:id/:num', function(request, response) {
+  var body = request.body;
+  var product_id, request_num, sqlQuery;
+  var trade_date, trade_time, trade_way, trade_place, seller, customer, id;
+
+  var tasks = [
+    function(callback){
+      product_id = request.params.id;
+      request_num = request.params.num;
+      trade_date = body.finalDate;
+      trade_time = body.finalTime;
+      trade_way = body.finalTradeWay;
+
+      if(trade_way=="사물함거래"){
+        sqlQuery = 'SELECT lockerDetailPlace, lockerNum, lockerPw FROM TradeTimePlace WHERE product_id=? AND request_num=? AND trade_date=?';
+        client.query(sqlQuery, [product_id, request_num, trade_date], function(err, result) {
+            if (err) {
+                console.log(err);
+            }else{
+              trade_place = result[0].lockerDetailPlace +" "+ result[0].lockerNum;
+              if(result[0].lockerPw!==null){
+                trade_place += " (비번: "+ result[0].lockerPw + ")";
+              }
+          }
+          callback(null,1);
+        });
+      }
+      else{
+        sqlQuery = 'SELECT directPlace, directDetailPlace FROM TradeTimePlace WHERE product_id=? AND request_num=? AND trade_date=?';
+        client.query(sqlQuery, [product_id, request_num, trade_date], function(err, result) {
+            if (err) {
+              console.log(err);
+            }else{
+              trade_place = result[0].directPlace + " " + result[0].directDetailPlace;
+            }
+            callback(null,1);
+        });
+      }
+    },
+
+    function(callback){
+      sqlQuery = 'SELECT seller, customer FROM TradeInfo WHERE product_id=? AND request_num=?';
+      client.query(sqlQuery, [product_id, request_num], function(err, result){
+        if(err){
+          console.log(err);
+        }else{
+          seller = result[0].seller;
+          customer = result[0].customer;
+        }
+        callback(null,2);
+      });
+
+    },
+
+    function(callback){
+      sqlQuery = 'SELECT MAX(id) AS maxId FROM FinalTrade';
+      client.query(sqlQuery, function(err, result){
+        if(result[0].maxId === null){
+          id = 1;
+        }else{
+          id = result[0].maxId + 1;
+        }
+        callback(null,3);
+      });
+    },
+
+    function(callback){
+      console.log("id:",id);
+      var data = {
+        id : id,
+        product_id : product_id,
+        trade_date : trade_date,
+        trade_time : trade_time,
+        trade_way : trade_way,
+        trade_place : trade_place,
+        seller : seller,
+        customer : customer
+      };
+      SqlQuery = 'INSERT INTO FinalTrade SET ?';
+      client.query(SqlQuery, data, function(err, result) {
+        callback(null,4);
+      });
+
+    }
+  ];
+
+  async.series(tasks, function(err, results) {
+  });
+});
+
+app.get('/sm_rejectTrade/:id/:num', function(request, response){
+  var product_id, sqlQuery, product_name, request_num;
+
+  var tasks = [
+    function(callback){
+      product_id = request.params.id;
+      request_num = request.params.num;
+      sqlQuery = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
+      client.query(sqlQuery, [product_id], function(err, result){
+        if(err){
+          console.log(err);
+        }else{
+          product_name = result[0].product_name;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      var context = {
+        name : product_name,
+        id: product_id,
+        num: request_num
+      };
+      response.render('sm_rejectTrade.ejs',context, function(err, html){
+        if(err){
+          throw err;
+        }
+        response.end(html);
+        callback(null);
+      });
+    }
+  ];
+
+  async.series(tasks, function(err,results){});
 });

@@ -55,26 +55,25 @@
         }
 
         function setDate(dayNum) {
-            var dateText = new Array();
-            var datepicker = new Array();
+            var dateText;
+            var datepicker;
 
-            for (var i = 0; i <= dayAdditionCount; i++) {
-                dateText[i] = document.getElementById("dateText" + i);
-                datepicker[i] = '#datepicker' + i;
+            dateText = document.getElementById("dateText" + dayNum);
+            datepicker = '#datepicker' + dayNum;
+
+
+            if (dateText.value != "") {
+                dateText.value = "";
             }
 
-            if (dateText[dayNum].value != "") {
-                dateText[dayNum].value = "";
-            }
 
-            for (var i = 0; i <= dayAdditionCount; i++) {
-                $(datepicker[i]).datetimepicker({
-                    viewMode: 'days',
-                    locale: 'ko',
-                    format: 'YYYY년 MM월 DD일 dddd'
-                });
-            }
-            $(datepicker[dayNum]).datetimepicker('show');
+            $(datepicker).datetimepicker({
+                viewMode: 'days',
+                locale: 'ko',
+                format: 'MM월 DD일 dddd'
+            });
+
+            $(datepicker).datetimepicker('show');
         }
 
         function showPlusBtn(dayNum) {
@@ -94,28 +93,22 @@
         function addTime(dayNum) {
             var i = 0;
             var t = 0;
-            var PlusBtn = new Array();
+            var PlusBtn;
             var timeDiv = new Array();
             var divStr = new Array();
             var str = "";
 
-            for (i = 0; i <= dayAdditionCount; i++) {
-                PlusBtn[i] = document.getElementById("plusBtn" + i);
+            PlusBtn = document.getElementById("plusBtn" + dayNum);
+
+
+            timeDiv[0] = "";
+            for (t = 1; t < 5; t++) {
+                timeDiv[t] = document.getElementById("timeDiv" + dayNum + "" + t);
             }
 
-            for (i = 0; i <= dayAdditionCount; i++) {
-                timeDiv[i] = new Array();
-            }
 
-            for (i = 0; i <= dayAdditionCount; i++) {
-                timeDiv[i][0] = "";
-                for (t = 1; t < 5; t++) {
-                    timeDiv[i][t] = document.getElementById("timeDiv" + i + "" + t);
-                }
-            }
-
-            divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:50%;'>";
-            divStr[1] = "<div class='input-group date' id='timepicker" + dayNum + "" + j[dayNum] + "' onclick='resetTime(" + dayNum + "," + j[dayNum] + ");' style='width: 99%;' >";
+            divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:60%;'>";
+            divStr[1] = "<div class='input-group date' id='timepicker" + dayNum + "" + j[dayNum] + "' onclick='resetTime(" + dayNum + "," + j[dayNum] + ");' style='width: 96%;' >";
             divStr[2] = "<input type='text' class='form-control' name='timeText" + dayNum + "" + j[dayNum] + "' id='timeText" + dayNum + "" + j[dayNum] + "' />";
             divStr[3] = "<span class='input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span></div></div>";
             divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' onclick='deleteTime(" + dayNum + "," + j[dayNum] + ");'>삭제</button></span>";
@@ -125,9 +118,9 @@
             }
 
             if (erasedOne[dayNum][0] == 0) {
-                timeDiv[dayNum][j[dayNum]].innerHTML = str;
+                timeDiv[j[dayNum]].innerHTML = str;
                 if (j[dayNum] == 4) {
-                    PlusBtn[dayNum].innerHTML = "";
+                    PlusBtn.innerHTML = "";
                 }
                 j[dayNum]++;
                 timeAdditionCount[dayNum]++;
@@ -139,8 +132,8 @@
                     j[dayNum] = t;
                     str = "";
 
-                    divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:50%;'>";
-                    divStr[1] = "<div class='input-group date' id='timepicker" + dayNum + "" + j[dayNum] + "' onclick='resetTime(" + dayNum + "," + j[dayNum] + ");' style='width: 99%;' >";
+                    divStr[0] = "<label class='col-xs-3 control-label text-center' >  </label><div class='col-xs-7' style='width:60%;'>";
+                    divStr[1] = "<div class='input-group date' id='timepicker" + dayNum + "" + j[dayNum] + "' onclick='resetTime(" + dayNum + "," + j[dayNum] + ");' style='width: 96%;' >";
                     divStr[2] = "<input type='text' class='form-control' name='timeText" + dayNum + "" + j[dayNum] + "' id='timeText" + dayNum + "" + j[dayNum] + "' />";
                     divStr[3] = "<span class='input-group-addon'><span class='glyphicon glyphicon-calendar'></span></span></div></div>";
                     divStr[4] = "<span><button type='button' class='btn btn-default btn-sm' onclick='deleteTime(" + dayNum + "," + j[dayNum] + ");'>삭제</button></span>";
@@ -149,7 +142,7 @@
                         str += divStr[i];
                     }
 
-                    timeDiv[dayNum][t].innerHTML += str;
+                    timeDiv[t].innerHTML += str;
                     erasedOne[dayNum][t] = 0;
                     deletionCount[dayNum]--;
                     timeAdditionCount[dayNum]++;
@@ -163,44 +156,29 @@
             }
 
             if (timeAdditionCount[dayNum] == 4) {
-                PlusBtn[dayNum].innerHTML = "";
+                PlusBtn.innerHTML = "";
             }
         }
 
         function resetTime(dayNum, timeNum) {
             var i = 0;
             var t = 0;
-            var timeText = new Array();
-            var timepicker = new Array();
+            var timeText;
+            var timepicker;
 
-            for (i = 0; i <= dayAdditionCount; i++) {
-                timeText[i] = new Array(); //2차원 배열 선언
-                timepicker[i] = new Array();
+            timeText = document.getElementById("timeText" + dayNum + "" + timeNum);
+            timepicker = "#timepicker" + dayNum + "" + timeNum;
+
+            if (timeText.value != "") {
+                timeText.value = "";
             }
 
-            for (t = 0; t <= dayAdditionCount; t++) {
-                for (i = 0; i < j[dayAdditionCount]; i++) {
-                    timeText[t][i] = document.getElementById("timeText" + t + "" + i);
-                    timepicker[t][i] = "#timepicker" + t + "" + i;
-                }
-            }
+            $(timepicker).datetimepicker({
+                  locale: 'ko',
+                  format: 'HH:mm'
+            });
 
-            if (timeText[dayNum][timeNum].value != "") {
-                timeText[dayNum][timeNum].value = "";
-            }
-
-            for (t = 0; t <= dayAdditionCount; t++) {
-                for (i = 0; i < j[dayAdditionCount]; i++) {
-                    $(timepicker[t][i]).datetimepicker({
-                      locale: 'ko',
-                        format: 'LT'
-                    });
-                }
-            }
-
-            $(timepicker[dayNum][timeNum]).datetimepicker('show');
-
-
+            $(timepicker).datetimepicker('show');
 
         }
 
@@ -236,19 +214,19 @@
                 dayDivStr[i] = new Array();
             }
 
-            dayDivStr[0][0] = "<div class='form-group'><button type='button' class='btn btn-danger' onclick='deleteDate(" + dayAdditionCount +
+            dayDivStr[0][0] = dayAdditionCount+"<div class='form-group'><button type='button' class='btn btn-danger' onclick='deleteDate(" + dayAdditionCount +
                 ");' style='float:right;'>삭제</button><br/><br/><br/><label class='col-xs-3 control-label text-center'>● 날짜 : </label>";
             dayDivStr[0][1] = "<div class='col-xs-7'><div class='input-group date' id='datepicker" + dayAdditionCount + "' onclick='setDate(" + dayAdditionCount + ");'>  ";
             dayDivStr[0][2] = "<input type='text' class='form-control' name='dateText" + dayAdditionCount + "' id='dateText" + dayAdditionCount + "' />";
             dayDivStr[0][3] = "<span class='input-group-addon' ><span class='glyphicon glyphicon-calendar' ></span></span></div></div></div>";
-            dayDivStr[1][0] = "<div class='form-group' style='margin-left:7%;'><label class='col-xs-3 control-label text-center'>- 시간 : </label>";
-            dayDivStr[1][1] = "<div class='col-xs-7' style='width:50%;'><div class='input-group date' id='timepicker" + dayAdditionCount + "0' onclick='resetTime(" + dayAdditionCount + ",0);' style='width: 99%;'>";
+            dayDivStr[1][0] = "<div class='form-group' ><label class='col-xs-3 control-label text-center'>- 시간 : </label>";
+            dayDivStr[1][1] = "<div class='col-xs-7' style='width:60%;'><div class='input-group date' id='timepicker" + dayAdditionCount + "0' onclick='resetTime(" + dayAdditionCount + ",0);' style='width: 96%;'>";
             dayDivStr[1][2] = "<input type='text' class='form-control' name='timeText" + dayAdditionCount + "0' id='timeText" + dayAdditionCount + "0' /><span class='input-group-addon' onclick='showPlusBtn(" + dayAdditionCount + ");'>";
             dayDivStr[1][3] = "<span class='glyphicon glyphicon-calendar'></span></span></div></div><span id='plusBtn" + dayAdditionCount + "'></span></div>";
             for (i = 0; i <= 3; i++) {
-                dayDivStr[2][i] = "<div class='form-group' id= 'timeDiv" + dayAdditionCount + "" + (i + 1) + "' style= 'margin-left:7%;'></div>";
+                dayDivStr[2][i] = "<div class='form-group' id= 'timeDiv" + dayAdditionCount + "" + (i + 1) + "'></div>";
             }
-            dayDivStr[3][0] = "<div class='form-group' style='margin-left:7%;'><label class='col-xs-3 control-label text-center'>- 방법 : </label>";
+            dayDivStr[3][0] = "<div class='form-group' ><label class='col-xs-3 control-label text-center'>- 방법 : </label>";
             <% if(way==1){ %>
             dayDivStr[3][1] = "<div class='col-xs-5' style='width: 60%; display:block;'>";
             dayDivStr[3][2] = "<input type='checkbox' value='직거래' name='dway" + dayAdditionCount + "' onclick='writeTradePlace(" + dayAdditionCount + ");' />";
@@ -299,10 +277,11 @@
             } else if ((dayNum == 1) && (dayDeletionCount == 2)) {
                 dayDeletionCount = 0;
                 dayAdditionCount = 0;
-            } else if (dayNum == 1) {
+            } else if ((dayNum == 1)&&(dayDeletionCount==0)) {
+                dayAdditionCount = 0;
                 dayDeletionCount = 1;
-            } else if (dayNum == 2) {
-                dayDeletionCount = 2;
+            } else if ((dayNum == 2)&&(dayDeletionCount==0)) {
+                dayAdditionCount = 1;
             }
         }
 
@@ -313,8 +292,8 @@
 
             if (way[0].checked == true) {
                 directText.style.margin = "2%";
-                placeText[0] = "- 장소 : <input type='checkbox' value='school' name='place" + dayNum + "' /> 교내";
-                placeText[1] = " <input type='checkbox' value='outside' name='place" + dayNum + "' /> 교외";
+                placeText[0] = "- 장소 : <input type='checkbox' value='교내' name='place" + dayNum + "' /> 교내";
+                placeText[1] = " <input type='checkbox' value='교외' name='place" + dayNum + "' /> 교외";
                 placeText[2] = "<br/><textarea class='form-control' rows='3' name='directDetailPlace" + dayNum + "' id='directDetailPlace" + dayNum + "' placeholder='ex) 블루베리 카페 앞'></textarea><br/>";
 
 
@@ -494,10 +473,10 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-left:7%;">
+                <div class="form-group" >
                     <label class="col-xs-3 control-label text-center">- 시간 : </label>
-                    <div class="col-xs-7" style="width:50%;">
-                        <div class='input-group date' id='timepicker00' onclick='resetTime(0,0);' style="width: 99%;">
+                    <div class="col-xs-7" style="width:60%;">
+                        <div class='input-group date' id='timepicker00' onclick='resetTime(0,0);' style="width: 96%;">
                             <input type='text' class="form-control" name="timeText00" id="timeText00" />
                             <span class="input-group-addon" onclick="showPlusBtn(0);">
                         <span class="glyphicon glyphicon-calendar"></span>
@@ -507,16 +486,16 @@
                     <span id="plusBtn0"></span>
                 </div>
 
-                <div class="form-group" id="timeDiv01" style="margin-left:7%; "></div>
+                <div class="form-group" id="timeDiv01" ></div>
 
-                <div class="form-group" id="timeDiv02" style="margin-left:7%; "></div>
+                <div class="form-group" id="timeDiv02" ></div>
 
-                <div class="form-group" id="timeDiv03" style="margin-left:7%; "></div>
+                <div class="form-group" id="timeDiv03" ></div>
 
-                <div class="form-group" id="timeDiv04" style="margin-left:7%; "></div>
+                <div class="form-group" id="timeDiv04" ></div>
 
                 <!--전체 페이지 완성되면, 해당 방법 받아와서 그 방법만 보이게 해야함!-->
-                <div class="form-group" style="margin-left:7%;">
+                <div class="form-group" >
                     <label class="col-xs-3 control-label text-center">- 방법 : </label>
                     <div class="col-xs-5" style="width: 60%; display:block;">
                         <%
