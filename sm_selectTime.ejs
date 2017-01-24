@@ -173,15 +173,17 @@
 
 <body>
     <% include ./sm_top_navigator %>
-        <!-- 바디 달력 창 -->
+
         <div class="container">
 
             <h2><strong> 최종 거래 시간 선택 </strong></h2>
+            <div class="alert alert-info" role="alert">
             <small>
               구매자가 제시한 날짜와 시간, 거래 장소를 하나만 신중하게 선택해 주세요. 날짜별로 사용자가 제시한 시간과 장소가 다를 수 있습니다.
-              <br/>※가능한 시간이 없으시다면 "시간 변경" 버튼을 눌러 가능하신 날짜와 시간을 선택해주세요.
-              <br/>※거래를 파기하고 싶으시다면, "거래 파기" 버튼을 눌러주세요.
+              <br/><br/>※가능한 시간이 없으시다면 <strong>"시간 변경"</strong> 버튼을 눌러 가능하신 날짜와 시간을 선택해주세요.
+              <br/>※거래를 파기하고 싶으시다면, <strong>"거래 취소"</strong> 버튼을 눌러주세요.
             </small>
+          </div>
             <hr>
 
             <form id="eventFrom" method="post" class="form-horizontal" onsubmit="return submitCheck()">
@@ -268,7 +270,7 @@
                                           <br/>
                                           - 위치 : <%= `${results[i].lockerDetailPlace}` %><br/>
                                           - 번호 : <%= `${results[i].lockerNum}` %><br/>
-                                          <% if(results[i].lockerPw !== null){ %>
+                                          <% if((results[i].lockerPw !== null)||(results[i].lockerPw != " ")){ %>
                                             - 비번 : <%= `${results[i].lockerPw}` %>
                                             <% } %>
                                           <% } %>
@@ -294,10 +296,10 @@
 
                 <div class="form-group">
                     <div  style="text-align:center;">
-                        <button type="submit" class="btn btn-primary">거래 확정</button>
-                        <button type="button" class="btn btn-success">시간 변경</button>
-                        <button type="button" class="btn btn-danger">거래 파기</button>
-                        <button type="button" class="btn btn-default" onclick="submitCheck();"> 취소</button>
+                        <button type="submit" class="btn btn-primary" style="font-size:13px;">거래 확정</button>
+                        <button type="button" class="btn btn-success" style="font-size:13px;" onclick="location.href='/sm_request/<%=id%>'">시간 변경</button>
+                        <button type="button" class="btn btn-danger" style="font-size:13px;" onclick="location.href='/sm_rejectTrade/<%=id%>/<%=num%>'">거래 취소</button>
+                        <button type="button" class="btn btn-default" style="font-size:13px;">돌아가기</button>
                     </div>
                 </div>
 
@@ -306,7 +308,7 @@
 
 
         <hr>
-        <!-- 바디 달력 버튼 -->
+
         <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 
 </body>

@@ -1146,7 +1146,9 @@ app.get('/sm_selectTime/:id/:num', function(request, response) {
 
         function(callback) {
             response.render('sm_selectTime.ejs', {
-                results: results
+                results: results,
+                id: product_id,
+                num: request_num
             }, function(err, html) {
                 if (err) {
                     throw err;
@@ -1247,6 +1249,43 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
 
   async.series(tasks, function(err, results) {
   });
+});
+
+app.get('/sm_rejectTrade/:id/:num', function(request, response){
+  var product_id, sqlQuery, product_name, request_num;
+
+  var tasks = [
+    function(callback){
+      product_id = request.params.id;
+      request_num = request.params.num;
+      sqlQuery = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
+      client.query(sqlQuery, [product_id], function(err, result){
+        if(err){
+          console.log(err);
+        }else{
+          product_name = result[0].product_name;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      var context = {
+        name : product_name,
+        id: product_id,
+        num: request_num
+      };
+      response.render('sm_rejectTrade.ejs',context, function(err, html){
+        if(err){
+          throw err;
+        }
+        response.end(html);
+        callback(null);
+      });
+    }
+  ];
+
+  async.series(tasks, function(err,results){});
 });
 
 
