@@ -77,17 +77,17 @@
                 });
 
                 $('form').submit(function() {
-                    alert('폼 버튼 클릭되었습니다:)');
+                    //alert('폼 버튼 클릭되었습니다:)');
                     socket.emit('chat message', $('#text').val());
                     $('#text').val('');
                     return false;
                 });
 
                 socket.on('first', function(data) {
-                    alert('first 클라이언트에서 받음');
-                    alert(data.msg.length);
-                    alert(users);
-                    alert(data.user);
+                    //alert('first 클라이언트에서 받음');
+                    //alert(data.msg.length);
+                    //alert(users);
+                    //alert(data.user);
                     if (users == data.user) {
                         for (i = 0; i < data.msg.length; i++) {
                           if(data.msg[i].msg_id == users){
@@ -101,7 +101,7 @@
                 });
 
                 socket.on('chat message', function(data) {
-                  alert('chat message를 클라이언트에서 받음');
+                  //alert('chat message를 클라이언트에서 받음');
                     if(data.user == users){
                       $('#messages').append("<li class='actual_msg' style='text-align:left; float:right background:#66b3ff'><strong>" + data.user + "</strong><br>" + data.msg + "</li>");
                     }

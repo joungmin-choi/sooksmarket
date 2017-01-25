@@ -776,16 +776,16 @@ app.get('/sm_chat/:id', function(req, res) {
 io.on('connection', function(socket) {
     var result = [];
     var roomname;
-    console.log('1 connection이 이루어졌습니다');
+    //console.log('1 connection이 이루어졌습니다');
 
     socket.on('join', function(data) {
-       console.log('join을 서버에서 받았습니다')
+       //console.log('join을 서버에서 받았습니다')
         async.series([
                 function(callback) {
 
-                    console.log('2-1 socket.on의 join [서버에서 받음]');
+                    //console.log('2-1 socket.on의 join [서버에서 받음]');
                     socket.user = data.userid;
-                    console.log('2-2 socket.on의 join 받아온값 : ', data);
+                    //console.log('2-2 socket.on의 join 받아온값 : ', data);
                     //console.log('socket.on의 join socket : ', socket);
                     roomname = data.room;
                     socket.join(data.room);
@@ -806,7 +806,7 @@ io.on('connection', function(socket) {
                         'user': socket.user,
                         'msg': result
                     });
-                    console.log('5 io.emit의 first [클라이언트로 보냄]');
+                    //console.log('5 io.emit의 first [클라이언트로 보냄]');
                     callback(null, result);
                 }
             ],
@@ -816,8 +816,8 @@ io.on('connection', function(socket) {
     });
 
     socket.on('chat message', function(msg) {
-        console.log('4 socket.on의 chat message [서버에서 받음]');
-        console.log('4', msg);
+        //console.log('4 socket.on의 chat message [서버에서 받음]');
+        //console.log('4', msg);
         var m = moment();
         var chat = {
             msg_id: socket.user,
