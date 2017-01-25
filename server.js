@@ -703,24 +703,84 @@ app.post('/sm_request/:id', function(request, response) {
 });
 
 app.get('/sm_chat/:id', function(req, res) {
-  var id = req.params.id;
-  var sql = 'SELECT * FROM TradeInfo WHERE product_id=?';
-  client.query(sql, id, function(err, result) {
-    var object = result[0];
-    var seller = object.seller;
-    var customer = object.customer;
-    console.log(loginId[1]);
-    res.render('sm_chat.ejs', {seller: seller, customer: customer, session: loginId[1]});
-  });
+    var id = req.params.id;
+    var sql = 'SELECT * FROM TradeInfo WHERE product_id=?';
+    console.log('1번');
+    client.query(sql, id, function(err, result) {
+        var object = result[0];
+        var seller = object.seller;
+        var customer = object.customer;
+        console.log(loginId[1]);
+        console.log('2번');
+        res.render('sm_chat.ejs', {
+            product_id: id,
+            seller: seller,
+            customer: customer,
+            session: loginId[1]
+        });
+    });
 });
 
 io.on('connection', function(socket) {
-    socket.on('join', function(user) {
-        socket.user = user;
+    var result = [];
+    var roomname;
+    console.log('1 connection이 이루어졌습니다');
+
+    socket.on('join', function(data) {
+       console.log('join을 서버에서 받았습니다')
+        async.series([
+                function(callback) {
+
+                    console.log('2-1 socket.on의 join [서버에서 받음]');
+                    socket.user = data.userid;
+                    console.log('2-2 socket.on의 join 받아온값 : ', data);
+                    //console.log('socket.on의 join socket : ', socket);
+                    roomname = data.room;
+                    socket.join(data.room);
+                    var sql = 'SELECT * FROM chat_msg WHERE msg_room=? ORDER BY msg_date ASC';
+                    client.query(sql, roomname, function(err, results) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log('쿼리값:', results);
+                            result = results;
+                        }
+                        callback(null, result);
+                    });
+
+                },
+                function(callback) {
+                    io.emit('first', {
+                        'user': socket.user,
+                        'msg': result
+                    });
+                    console.log('5 io.emit의 first [클라이언트로 보냄]');
+                    callback(null, result);
+                }
+            ],
+            function(err, result) {
+
+            });
     });
 
     socket.on('chat message', function(msg) {
-        io.emit('chat message', {
+        console.log('4 socket.on의 chat message [서버에서 받음]');
+        console.log('4', msg);
+        var m = moment();
+        var chat = {
+            msg_id: socket.user,
+            msg: msg,
+            msg_date: m.format("YYYY-MM-DD HH:mm"),
+            msg_room: roomname
+        };
+        var sql = 'INSERT INTO chat_msg SET ?';
+        client.query(sql, chat, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500);
+            }
+        });
+        io.in(roomname).emit('chat message', {
             'user': socket.user,
             'msg': msg
         });
@@ -917,7 +977,6 @@ app.post('/sm_enter_changeInfo', function(req, res) {
         var user = results[0];
         if (user === undefined) {
             res.redirect('sm_main');
-            //redirect('/')
         }
         return hasher({
             password: req.body.password,
@@ -955,7 +1014,6 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) {
             },
 
             function(callback) {
-                //console.log('2번',parent_id_max);
                 id = req.params.id;
 
                 var comment = {

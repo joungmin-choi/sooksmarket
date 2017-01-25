@@ -1,96 +1,130 @@
 <!doctype html>
 <html>
-  <head>
+
+<head>
     <title>Socket.IO chat</title>
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      #text{
-        display:inline-block;
-        margin-left: 1vw;
-        max-width: 90vw;
-        height: auto;
-      }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-      #messages{
-        width: 100%;
-        height:90vh;
-        overflow-y:scroll;
-        padding-left: 15px;
-        padding-right: 15px;
-        padding-bottom: 15px;
-      }
-      #messages li{
-        clear: both;
-        margin-bottom: 10px;
-        text-decoration: none;
-        list-style-type: none;
-        padding: 5px 10px;
-        margin: 20px 0px 0px 20px;
-      }
-      .actual_msg{
-        float:left;
-        display: inline-block;
-        margin: 3%;
-        padding: 25px 34px;
-        min-width: 160px;
-        min-height: 10px;
-        max-width: calc(40vw);
-        border-radius: 5px;
-        box-shadow: 0px 3px 3px rgba(172, 172, 172, 0.73);
-        line-height: 1.4;
-        word-wrap: break-word;
-        color: #1A1A1A;
-        background-color: #b3b3b3;
-      }
+        #text {
+            display: inline-block;
+            margin-left: 1vw;
+            max-width: 90vw;
+            height: auto;
+        }
+
+        #messages {
+            width: 100%;
+            height: 90vh;
+            overflow-y: scroll;
+            padding-left: 15px;
+            padding-right: 15px;
+            padding-bottom: 15px;
+        }
+
+        #messages li {
+            clear: both;
+            margin-bottom: 10px;
+            text-decoration: none;
+            list-style-type: none;
+            padding: 5px 10px;
+            margin: 20px 0px 0px 20px;
+        }
+
+        .actual_msg {
+            float: left;
+            display: inline-block;
+            margin: 3%;
+            padding: 25px 34px;
+            min-width: 160px;
+            min-height: 10px;
+            max-width: calc(80vw);
+            border-radius: 5px;
+            box-shadow: 0px 3px 3px rgba(172, 172, 172, 0.73);
+            line-height: 1.4;
+            word-wrap: break-word;
+            color: #1A1A1A;
+            background-color: #b3b3b3;
+        }
     </style>
-  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-  <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
-  <script>
-  $(function(){
-    var socket = io();
-    var seller = '<%= seller %>';
-    var customer = '<%= customer %>';
-	  var users = '<%= session %>';
+    <script>
+        $(function() {
+            var socket = io();
+            var seller = '<%= seller %>';
+            var customer = '<%= customer %>';
+            var users = '<%= session %>';
+            var product_id = '<%= product_id %>';
 
-    if ((users != seller) && (users != customer)){
-      location.href='/404.html';
-      return false;
-    }else{
-      socket.emit('join', users);
+            if ((users != seller) && (users != customer)) {
+                location.href = '/404.html';
+                return false;
+            } else {
+                alert('join [서버로 전송]');
+                socket.emit('join', {
+                    'userid': users,
+                    'room': product_id
+                });
 
-      $('form').submit(function(){
-        socket.emit('chat message', $('#text').val());
-        $('#text').val('');
-        return false;
-      });
+                $('form').submit(function() {
+                    alert('폼 버튼 클릭되었습니다:)');
+                    socket.emit('chat message', $('#text').val());
+                    $('#text').val('');
+                    return false;
+                });
 
-      socket.on('chat message', function(data){
-        if (data.user == seller){
-          $('#messages').append("<li class='actual_msg' style='text-align:left; float:right; background:#66b3ff'><strong>"+data.user+"</strong><br>"+data.msg+"</li>");
-        }else if (data.user == customer){
-          $('#messages').append("<li class='actual_msg' style='text-align:left; float:left'><strong>"+data.user+"</strong><br>"+data.msg+"</li>");
-		    }
-	    });
-    }
-  });
-  </script>
+                socket.on('first', function(data) {
+                    alert('first 클라이언트에서 받음');
+                    alert(data.msg.length);
+                    alert(users);
+                    alert(data.user);
+                    if (users == data.user) {
+                        for (i = 0; i < data.msg.length; i++) {
+                          if(data.msg[i].msg_id == users){
+                            $('#messages').append('<li class="actual_msg" style="background: #eee; float:right;"><b>' + data.msg[i].msg_id + "</b>   " + data.msg[i].msg);
+                          }
+                          else{
+                            $('#messages').append('<li class="actual_msg" style="background: #eee; float:left;"><b>' + data.msg[i].msg_id + "</b>   " + data.msg[i].msg);
+                          }
+                        }
+                    }
+                });
 
-  </head>
-  <body>
-  <div id="msg">
-    <ul id="messages"></ul>
-    <form action="">
-      <div>
-        <input type="text" class="form-control" name="name" id="text"  placeholder="내용을 입력해주세요.">
-        <button class="btn btn-warning">확인</button>
+                socket.on('chat message', function(data) {
+                  alert('chat message를 클라이언트에서 받음');
+                    if(data.user == users){
+                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:right background:#66b3ff'><strong>" + data.user + "</strong><br>" + data.msg + "</li>");
+                    }
+                    else {
+                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:left'><strong>" + data.user + "</strong><br>" + data.msg + "</li>");
+                    }
+                });
+            }
+        });
+    </script>
+
+</head>
+
+<body>
+    <div id="msg">
+        <ul id="messages"></ul>
+        <form action="">
+            <div>
+                <input type="text" class="form-control" name="name" id="text" placeholder="내용을 입력해주세요.">
+                <button class="btn btn-warning">확인</button>
+            </div>
+        </form>
     </div>
-    </form>
-  </div>
+</body>
 
-  </body>
 </html>
