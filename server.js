@@ -587,15 +587,16 @@ app.get('/sm_request/:id', function(request, response) {
 
 app.post('/sm_request/:id', function(request, response) {
 
-    var product_id, seller, customer, request_num, requestor, trade_way;
+    var product_id, seller, customer, request_num, requestor, trade_way, product_name;
     var SqlQuery;
     var tasks = [
         function(callback) {
             product_id = request.params.id;
-            SqlQuery = 'SELECT product_seller,product_way FROM ProductInfo WHERE product_id=?';
+            SqlQuery = 'SELECT product_seller,product_way,product_name FROM ProductInfo WHERE product_id=?';
             client.query(SqlQuery, [product_id], function(err, result) {
                 seller = result[0].product_seller;
                 trade_way = result[0].product_way;
+                product_name = result[0].product_name;
                 callback(null);
             });
         },
@@ -739,18 +740,54 @@ app.post('/sm_request/:id', function(request, response) {
                     client.query(SqlQuery, data, function(err, result) {});
                 }
                 for(t=0; t<5; t++){
-                  trade_time[t]="";
+                  trade_time[t]=null;
                   min[t] = hour[t] = tempM = tempH = 0;
                 }
                 directPlace = directDetailPlace = lockerDetailPlace = lockerNum = lockerPw = "";
             }
-            var id = request.params.id;
-            var str = '/sm_chat/' + id;
-            response.redirect(str);
             callback(null);
+        },
+
+        function(callback){
+          var str=[];
+          var msg="";
+
+          str[0] = "<div style='background: #eee; text-align:center;'><div style='height:25px;background-color:white;text-align:center;margin:0 auto;'>";
+          str[1] = product_name+"</div><br/><strong>구매를 요청합니다.</strong></div>";
+          str[2] = "<button type='button' class='btn btn-success' style='margin-top:2%;'";
+          str[3] = "onclick="+"\"location.href='/sm_selectTime/"+product_id+"/"+request_num+"'"+"\">";
+          str[4] = "<strong>거래 시간 선택하기</strong></button>";
+
+          for(var i=0; i<str.length; i++){
+            msg += str[i];
+          }
+
+          var m = moment();
+          var data = {
+            msg_id : loginId[1],
+            msg : msg,
+            msg_date : m.format("YYYY-MM-DD HH:mm:ss"),
+            msg_room : product_id
+          };
+          SqlQuery = 'INSERT INTO chat_msg SET ?';
+          client.query(SqlQuery, data, function(err, result) {
+            if(err){
+              console.log(err);
+            }
+            callback(null,1);
+          });
+        },
+
+        function(callback){
+          var id = request.params.id;
+          var str = '/sm_chat/' + id;
+          response.redirect(str);
+          callback(null,2);
         }
     ];
-    async.series(tasks, function(err, results) {});
+    async.series(tasks, function(err, results) {
+      console.log("결과 :",results);
+    });
 
 });
 
@@ -822,7 +859,7 @@ io.on('connection', function(socket) {
         var chat = {
             msg_id: socket.user,
             msg: msg,
-            msg_date: m.format("YYYY-MM-DD HH:mm"),
+            msg_date: m.format("YYYY-MM-DD HH:mm:ss"),
             msg_room: roomname
         };
         var sql = 'INSERT INTO chat_msg SET ?';
@@ -902,6 +939,7 @@ app.get('/sm_changeDetail/:id', function(request, response) {
                     before_photo.push(object.photo1);
                     before_photo.push(object.photo2);
                     before_photo.push(object.photo3);
+                    console.log(before_photo);
 
                     callback(null, result);
                 });
@@ -1002,6 +1040,7 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
         ],
         // callback (final)
         function(err) {
+          console.log(request.params.id);
             var update = 'UPDATE ProductInfo SET product_name=?, product_price=?, photo1=?, photo2=?, photo3=?, product_way=?, product_detail=? where product_id= ?';
             client.query(update, [body.name, body.price, outputPath[0], outputPath[1], outputPath[2], value, detail, request.params.id], function() {
                 var photo_split = (outputPath[0]).substring(1);
@@ -1248,6 +1287,7 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
   var body = request.body;
   var product_id, request_num, sqlQuery;
   var trade_date, trade_time, trade_way, trade_place, seller, customer, id;
+  var product_name, product_price;
 
   var tasks = [
     function(callback){
@@ -1326,7 +1366,52 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
       client.query(SqlQuery, data, function(err, result) {
         callback(null,4);
       });
+    },
 
+    function(callback){
+      sqlQuery = 'SELECT product_name,product_price FROM ProductInfo WHERE product_id=?';
+      client.query(sqlQuery, [product_id], function(err, result){
+        if(err){
+          console.log(err);
+        }else{
+          product_name = result[0].product_name;
+          product_price = result[0].product_price;
+        }
+        callback(null,5);
+      });
+    },
+
+    function(callback){
+      var msg="";
+      var str=[];
+
+      str[0] = "<br/><strong>[최종거래 확정]</strong><br/><br/>";
+      str[1] = product_name;
+      str[2] = "<br/><br/>- 가격: "+product_price;
+      str[3] = "<br/>- 날짜: "+trade_date+" "+trade_time;
+      str[4] = "<br/>- "+trade_way+"<br/>- 위치:"+trade_place;
+
+      for(var i=0; i<str.length; i++){
+        msg += str[i];
+      }
+
+      var m = moment();
+      var data = {
+        msg_id : loginId[1],
+        msg : msg,
+        msg_date : m.format("YYYY-MM-DD HH:mm:ss"),
+        msg_room : product_id
+      };
+      sqlQuery = 'INSERT INTO chat_msg SET ?';
+      client.query(sqlQuery, data, function(err, result) {
+        callback(null,6);
+      });
+    },
+
+    function(callback){
+      var link = '/sm_chat/' + product_id;
+      response.redirect(link);
+      callback(null,7);
     }
   ];
 

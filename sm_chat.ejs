@@ -70,7 +70,7 @@
                 location.href = '/404.html';
                 return false;
             } else {
-                alert('join [서버로 전송]');
+                //alert('join [서버로 전송]');
                 socket.emit('join', {
                     'userid': users,
                     'room': product_id
@@ -91,10 +91,10 @@
                     if (users == data.user) {
                         for (i = 0; i < data.msg.length; i++) {
                           if(data.msg[i].msg_id == users){
-                            $('#messages').append('<li class="actual_msg" style="background: #eee; float:right;"><b>' + data.msg[i].msg_id + "</b>   " + data.msg[i].msg);
+                            $('#messages').append('<li class="actual_msg" style="background: #eee; float:right; "><b>' + data.msg[i].msg_id + "</b><br/>   " + data.msg[i].msg);
                           }
                           else{
-                            $('#messages').append('<li class="actual_msg" style="background: #eee; float:left;"><b>' + data.msg[i].msg_id + "</b>   " + data.msg[i].msg);
+                            $('#messages').append('<li class="actual_msg" style="background: #eee; float:left; "><b>' + data.msg[i].msg_id + "</b><br/>   " + data.msg[i].msg);
                           }
                         }
                     }
@@ -103,10 +103,10 @@
                 socket.on('chat message', function(data) {
                   //alert('chat message를 클라이언트에서 받음');
                     if(data.user == users){
-                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:right background:#66b3ff'><strong>" + data.user + "</strong><br>" + data.msg + "</li>");
+                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:right; background:#66b3ff;'><strong>" + data.user + "</strong><br/><br/>" + data.msg + "</li>");
                     }
                     else {
-                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:left'><strong>" + data.user + "</strong><br>" + data.msg + "</li>");
+                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:left'><strong>" + data.user + "</strong><br/><br/>" + data.msg + "</li>");
                     }
                 });
             }
