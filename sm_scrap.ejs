@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <% include ./sm_head %>
+
+    <title>scrap</title>
+
+    <style>
+    a:link {text-decoration: none;}
+    a:visited {text-decoration: none; color: #000066;}
+    div.thumbnail:hover { border: 1px solid #777; }
+
+    #snackbar {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 2px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1;
+      left: 50%;
+      bottom: 30px;
+      font-size: 17px;
+    }
+
+    #snackbar.show {
+      visibility: visible;
+      -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @-webkit-keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @-webkit-keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+
+    @keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+    </style>
+
+    <script>
+
+    var scrap = function(i) {
+      id="scrap" + i;
+      var element = document.getElementById(id);
+      var x = document.getElementById("snackbar");
+      var scrapImg;
+      var scrapName = document.getElementById("name"+i).outerText;
+
+      x.className = "show";
+
+      if(element.outerText == "☆"){
+        scrapImg = (element.innerHTML = "★");
+        element.style.color = "#ff6666";
+        element.style.fontSize = '135%';
+
+        x.innerHTML = "스크랩되었습니다."
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+      }else{
+        scrapImg = (element.innerHTML = "☆");
+        element.style.color = "#ff6666";
+        element.style.fontSize = '135%';
+
+        x.innerHTML = "스크랩이 해제되었습니다."
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+      }
+
+
+      $.post("/sm_main/"+i, {scrapName: scrapName, scrapImg: scrapImg});
+
+    };
+
+
+    </script>
+</head>
+
+<body>
+    <!-- 네이게이션 상단 부분 -->
+    <% include ./sm_top_navigator %>
+
+    <div class="container">
+
+        <!-- 본문 1-->
+        <div class="row">
+          <div class="col-md-3">
+                <p class="lead"><strong>Shop Name</strong></p>
+                <div class="list-group">
+                    <a href="#" class="list-group-item">Category 1</a>
+                    <a href="#" class="list-group-item">Category 2</a>
+                    <a href="#" class="list-group-item">Category 3</a>
+                </div>
+            </div>
+
+            <div id="snackbar">스크랩되었습니다.</div>
+
+            <% for (i=((`${result.length}`)-1), flag=0; i>=0 ; i--, flag=0){%>
+
+              <div class="col-lg-4 col-sm-6 col-xs-6 text-center">
+                  <div class="thumbnail">
+                    <p style="float:left; margin-left: 0.5%">
+                      <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%" onclick="scrap(<%= i %>)">
+                        ★
+                      </a>
+                    </p>
+                    <a href="/sm_itemDetail/<%= result[i].product_id %>">
+                      <% if(result[i].scrap_photo != ""){ %>
+                        <img class="img-responsive img-center" src="<%= result[i].scrap_photo %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                      <% } else{ %>
+                        <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                        <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
+                      <% } %>
+
+                      <h3 id="name<%= i %>" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
+                        <%= result[i].scrap_name %>
+                      </h3>
+                      <small><%= result[i].scrap_seller %></small>
+                    </a>
+                  </div>
+                </div>
+              <% } %>
+
+        </div>
+
+    </div>
+
+    <!-- 하단부 -->
+
+    <% include ./sm_footer %>
+
+
+
+
+
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+
+
+
+</html>

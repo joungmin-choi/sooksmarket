@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include ./sm_head %>
+
+  <style>
+  textarea{
+    cursor:context-menu;
+    background-color:white;
+    resize: none;
+  }
+  </style>
+
+
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="row">
+      <span>
+        <h2 style="display:inline">신고기록</h2>
+      </span>
+      <hr/>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <table class="table table-bordered table-striped table-hover">
+        <tbody>
+          <tr>
+            <td>신고자 ID</td>
+            <td><%= row[0].userID %></td>
+          </tr>
+          <tr>
+            <td>신고하고싶은 ID</td>
+            <td><%= row[0].complainID %></td>
+          </tr>
+          <tr>
+            <td>상세내용</td>
+            <td>
+              <textarea class="form-control col-sm-5" rows="5" style="cursor:context-menu; background-color:white; resize: none;" disabled><%= row[0].detail %></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td>등록일</td>
+            <td><%= row[0].date %></td>
+          </tr>
+        </tbody>
+      </table>
+      <center>
+        <button type="button" class="btn btn-primary" style="margin-top:5%;margin-right:3%">승낙</button>
+        <button type="button" class="btn btn-warning" style="margin-top:5%">
+          <!-- [trash img 출처] http://bootsnipp.com/snippets/featured/round-icon-badges -->
+          <span class="glyphicon glyphicon-trash"></span>
+        </button>
+      </center>
+    </div>
+  </div>
+
+
+</body>
+
+</html>

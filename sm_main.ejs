@@ -9,6 +9,48 @@
     a:link {text-decoration: none;}
     a:visited {text-decoration: none; color: #000066;}
     div.thumbnail:hover { border: 1px solid #777; }
+
+    #snackbar {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 2px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1;
+      left: 50%;
+      bottom: 30px;
+      font-size: 17px;
+    }
+
+    #snackbar.show {
+      visibility: visible;
+      -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @-webkit-keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @-webkit-keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+
+    @keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
     </style>
 
     <script>
@@ -17,11 +59,47 @@
       alert('로그인 상태입니다');
       }
     });
-    function(){
-      var ul = document.getElementById("UL");
-      var x = ul.a.div.val();
-      alert(x);
+
+    function confirmation(){
+      var category = document.getElementById("category").value;
+      var searchText = document.getElementById("text").value;
+
+      document.getElementById("category").value = category;
+      document.getElementById("text").value =searchText;
+
+      return false;
     }
+
+    var scrap = function(i) {
+      id="scrap" + i;
+      var element = document.getElementById(id);
+      var x = document.getElementById("snackbar");
+      var scrapImg;
+      var scrapName = document.getElementById("name"+i).outerText;
+
+      x.className = "show";
+
+      if(element.outerText == "☆"){
+        scrapImg = (element.innerHTML = "★");
+        element.style.color = "#ff6666";
+        element.style.fontSize = '135%';
+
+        x.innerHTML = "스크랩되었습니다."
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+      }else{
+        scrapImg = (element.innerHTML = "☆");
+        element.style.color = "#ff6666";
+        element.style.fontSize = '135%';
+
+        x.innerHTML = "스크랩이 해제되었습니다."
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+      }
+
+
+      $.post("/sm_main/"+i, {scrapName: scrapName, scrapImg: scrapImg});
+
+    };
+
 
     </script>
   </head>
@@ -29,30 +107,31 @@
   <body>
     <% include ./sm_top_navigator %>
 
-
     <div class="container">
       <div class="row">
         <div class="col-xs-8 col-xs-offset-2">
-            <form class="input-group">
-              <div class="input-group-btn">
-                <select class="btn btn-default selectpicker" style="height: 34px;">
-                    <option>상의</option>
-                    <option>하의</option>
-                    <option>화장품</option>
-                    <option>책</option>
-                    <option>전자기기</option>
-                    <option>음식</option>
-                    <option>필기류</option>
-                    <option>티켓 양도</option>
-                    <option>기타</option>
-                </select>
-              </div>
-              <input type="text" class="form-control" placeholder="Search..." />
-              <span class="input-group-btn">
-                <button class="btn btn-default" type="button" onclick="location.href='/sm_main'"><span class="glyphicon glyphicon-search"></span></button>
-              </span>
-        </form>
-
+          <form id="form" name="form" class="input-group" action="" method="get" onsubmit="return confirmation()">
+            <div class="input-group-btn">
+              <select class="btn btn-default selectpicker" id="category" name="category" style="height: 34px;">
+                <option value="전체 검색">전체 검색</option>
+                <option value="상의">상의</option>
+                <option value="하의">하의</option>
+                <option value="화장품">화장품</option>
+                <option value="책">책</option>
+                <option value="전자기기">전자기기</option>
+                <option value="음식">음식</option>
+                <option value="필기류">필기류</option>
+                <option value="티켓 양도">티켓 양도</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <input type="text" id="text" name="text" class="form-control" placeholder="Search..." />
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="submit">
+                <span class="glyphicon glyphicon-search"></span>
+              </button>
+            </span>
+          </form>
         </div>
       </div>
     </div>
@@ -76,11 +155,28 @@
 
         </div>
         <!-- 1-->
-        <% for (i=((name.length)-1); i>=0 ; i--){%>
+        <div id="snackbar">스크랩되었습니다.</div>
+
+
+        <% for (i=((name.length)-1), flag=0; i>=0 ; i--, flag=0){%>
 
           <div class="col-lg-4 col-sm-6 col-xs-6 text-center">
+
             <div class="thumbnail">
-              <a href="/sm_itemDetail/<%= PK[i] %>" >
+              <p style="float:left; margin-left: 0.5%">
+                <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%" onclick="scrap(<%= i %>)">
+                <% for(j=0; j<(scrap.length); j++){
+                  if(i == scrap[j]){
+                    flag = 1; %>
+                    ★
+                  <% }
+                 } %>
+                 <% if (flag != 1){ %>
+                   ☆
+                 <% } %>
+                </a>
+              </p>
+              <a href="/sm_itemDetail/<%= PK[i] %>">
                 <% if(photo[i] != ""){ %>
                   <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
                 <% } else{ %>
@@ -88,7 +184,7 @@
                   <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
                 <% } %>
 
-                <h3 id="name" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
+                <h3 id="name<%= i %>" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
                   <%= name[i] %>
                 </h3>
                 <small><%= id[i] %></small>
