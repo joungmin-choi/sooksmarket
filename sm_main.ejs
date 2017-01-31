@@ -78,14 +78,15 @@
         </div>
         <!-- 1-->
         <% for (i=((name.length)-1); i>=0 ; i--){%>
+          <!-- <div class="col-lg-4 col-sm-6 col-xs-6 text-center"> -->
 
-          <div class="col-lg-4 col-sm-6 col-xs-6 text-center">
+          <div class="col-xs-6 col-md-3 text-center">
             <div class="thumbnail">
               <a href="/sm_itemDetail/<%= PK[i] %>" >
                 <% if(photo[i] != ""){ %>
-                  <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                  <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" style="height:180px; width: 300px; margin-top:2%"/>
                 <% } else{ %>
-                  <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                  <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:180px; width: 300px; margin-top:2%"/>
                   <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
                 <% } %>
 
