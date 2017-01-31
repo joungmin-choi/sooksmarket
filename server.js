@@ -1693,3 +1693,7 @@ app.get('/sm_suggestDetail/:num', function(req, res){
     res.render('sm_suggestDetail.ejs', {row: row});
   });
 });
+
+app.get('/sm_tradeState', function(req, res){
+  res.render('sm_tradeState.ejs');
+});
