@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <% include ./sm_head %>
+
+    <script>
+    function confirmation(){
+      var complainID = document.getElementById("complainID");
+      var detail = document.getElementById("detail");
+      if(complainID.value == ""){
+        alert("ID를 입력해주세요.");
+        complainID.focus();
+        return false;
+      }
+      else if (detail.value == ""){
+        alert("내용을 입력해주세요.");
+        detail.focus();
+        return false;
+      }
+      else{
+        var retVal = confirm("신고하시겠습니까?");
+        if( retVal == true ){
+          alert('신고되었습니다.');
+          form.submit();
+          return true;
+        }else{
+          return false;
+        }
+      }
+    }
+
+    function cancel(){
+      var complainID = document.getElementById("complainID");
+      var detail = document.getElementById("detail");
+      complainID.value = "";
+      detail.value = "";
+    }
+    </script>
+</head>
+
+<body>
+    <% include ./sm_top_navigator %>
+
+    <div class="container">
+      <p class="lead"><strong>신고하기</strong></p>  <hr>
+
+        <!-- 본문 1-->
+        <div class="row">
+          <div class="col-md-2">
+                <div class="list-group">
+                    <a href="#" class="list-group-item">Category 1</a>
+                    <a href="#" class="list-group-item">Category 2</a>
+                    <a href="#" class="list-group-item">Category 3</a>
+                </div>
+            </div>
+
+            <div class="col-md-10">
+
+
+              <form action="/sm_complain" id="eventFrom" method="post" class="form-horizontal" onsubmit="return confirmation()">
+
+                  <div class="form-group">
+                      <label class="col-xs-3 control-label text-center">사용자 ID : </label>
+                      <div class="col-xs-7">
+                          <input type="text" class="form-control" name="userID" value="<%= userID %>" style="cursor:context-menu" disabled="true"/>
+                      </div>
+                  </div>
+
+                  <div class="form-group">
+                      <label class="col-xs-3 control-label text-center">신고할 ID : </label>
+                      <div class="col-xs-7">
+                          <input type="text" class="form-control" name="complainID" id="complainID" />
+                      </div>
+                  </div>
+
+                  <div class="form-group">
+                      <label class="col-xs-3 control-label text-center">내용 : </label>
+                      <div class="col-xs-7">
+                        <textarea type="text" id="detail" class="form-control" name="detail" rows="5" style="resize: none;"></textarea>
+                      </div>
+                  </div>
+
+                  <div class="form-group">
+                      <div class="col-xs-5 col-xs-offset-3">
+                          <button type="submit" class="btn btn-warning">신고하기 </button>
+                          <button type="button" class="btn btn-default" onclick="cancel()">취소</button>
+                      </div>
+                  </div>
+              </form>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <% include ./sm_footer %>
+
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+
+
+
+</html>
