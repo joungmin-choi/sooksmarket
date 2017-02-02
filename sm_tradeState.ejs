@@ -4,55 +4,71 @@
 <head>
   <% include ./sm_head %>
   <style>
-    #sha {
-      color: black;
-       text-shadow: #99FFCC 0px 0px 10px 10px;
-    }
+
   </style>
+
 </head>
 
 <body>
   <!-- 네이게이션 상단 부분 -->
   <% include ./sm_top_navigator %>
+  <script>
+    function moveTo(id, request_num){
+      alert(id+""+request_num);
+      var link = '/sm_tradeStateDetail/'+ id + '/' + request_num;
+      location.href=link;
+    }
 
-  <div class="container">
-    <h2><p id="title" class="lead text-center">거래 상태</p></h2>
-      <div class="row">
-        <table class="table table-hover">
+  </script>
+
+  <div class="container" style="height:480px;">
+    <h2 style="margin-left:2%;"><strong> 나의 거래 내역 </strong></h2>
+    <small style="margin-left:2%;">거래 물품들을 최근 순서대로 확인 할 수 있습니다.</small>
+    <hr/>
+      <div class="row" style="width:94%; margin-left:3%;">
+        <table class="table table-hover table-striped">
           <thead class="text-center">
-            <tr>
-              <td> </td>
-              <td>상태</td>
-              <td>물품</td>
+            <tr style="background:#fff2cc;">
+              <td class="numId" style="width:5%;"><strong>No.</strong></td>
+              <td class="column1" style="width:15%;"> </td>
+              <td class="product" style="width:50%;"><strong>물품</strong></td>
+              <td class="state" style="width:30%;"><strong>상태</strong></td>
             </tr>
           </thead>
           <tbody class="text-center">
-            <tr>
-              <td>구매</td>
-              <td>거래완료</td>
-              <td>티셔츠</td>
+            <% for(var i=0; i<results.length; i++){ %>
+            <tr onclick="moveTo(<%= `${results[i].product_id}` %>, <%= `${results[i].request_num}` %>);">
+              <td><strong><%= i+1 %></strong></td>
+
+              <% if(id == results[i].customer){ %>
+                <td>구매</td>
+              <% }else{ %>
+                <td>판매</td>
+              <% } %>
+              <td><a style="font-weight:bold;"><%= `${results[i].product_name}` %></a></td>
+
+              <% switch (results[i].state) {
+                case 1: %> <td>거래 <br/>신청 중</td>
+                        <% break;
+                case 2: %> <td>시간<br/>조율 중 </td>
+                        <% break;
+                case 3: %> <td>최종 거래 확정 </td>
+                        <% break;
+                case 4: %> <td>거래 완료</td>
+                        <% break;
+              } %>
+
             </tr>
-            <tr>
-              <td>판매</td>
-              <td>준비중</td>
-              <td>준비중</td>
-            </tr>
-            <tr>
-              <td>sample</td>
-              <td>준비중</td>
-              <td>준비중</td>
-            </tr>
-            <tr>
-              <td>sample</td>
-              <td>준비중</td>
-              <td>준비중</td>
-            </tr>
+            <% } %>
           </tbody>
         </table>
       </div>
 
   </div>
-
-
-
+  <hr>
+  <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 </body>
+<!-- Footer -->
+
+<% include ./sm_footer %>
+</html>
