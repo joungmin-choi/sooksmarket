@@ -22,8 +22,6 @@
       }
     }
 
-    function dropInfo() {
-      alert("버튼1을 누르셨습니다.");}
 
     // $(document).ready(function(){
     //   if("<%= `${admin}` %>" == "<%= `${session}` %>"){
@@ -80,7 +78,8 @@
         </thead>
         <tbody>
           <% for (i=0; i<`${rows.length}`; i++) { %>
-              <tr>
+            <% if (`${rows[i].flag}` == 1){ %>
+              <tr id="showId<%= i %>" class="danger">
                 <td style="text-align:center"><%= rows[i].userID %></td>
                 <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                   <a href="" onClick="window.open('/sm_complainDetail/<%= rows[i].auto %>','popup','scrollbars=no, resizable=no, width=800,height=600')">
@@ -90,22 +89,43 @@
                 <td style="text-align:center"><%= rows[i].date %></td>
                 <td>
                   <center>
-                    <button type="button" class="btn btn-primary" style="margin-right:5%">승낙</button>
-                    <button type="button" class="btn btn-warning" id="drop" onclick="dropInfo();">
+                    <button type="button" class="btn btn-primary" style="margin-right:5%" onclick="location.href='/sm_complainOK/<%= i %>/?auto='+<%= rows[i].auto %>+''">승낙</button>
+                    <!-- <button type="button" class="btn btn-warning" id="drop" onclick="dropInfo(<%= i %>);"> -->
                       <!-- [trash img 출처] http://bootsnipp.com/snippets/featured/round-icon-badges -->
-                      <span class="glyphicon glyphicon-trash"></span>
-                    </button>
+                      <!-- <span class="glyphicon glyphicon-trash"></span>
+                    </button> -->
                   </center>
                 </td>
 
               </tr>
+            <% }
+            else { %>
+              <tr id="showId<%= i %>">
+                <td style="text-align:center"><%= rows[i].userID %></td>
+                <td style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                  <a href="" onClick="window.open('/sm_complainDetail/<%= rows[i].auto %>','popup','scrollbars=no, resizable=no, width=800,height=600')">
+                    <%= rows[i].detail %>
+                  </a>
+                </td>
+                <td style="text-align:center"><%= rows[i].date %></td>
+                <td>
+                  <center>
+                    <button type="button" class="btn btn-primary" style="margin-right:5%" onclick="location.href='/sm_complainOK/<%= i %>/?auto='+<%= rows[i].auto %>+''">승낙</button>
+                    <!-- <button type="button" class="btn btn-warning" id="drop" onclick="dropInfo(<%= i %>);"> -->
+                      <!-- [trash img 출처] http://bootsnipp.com/snippets/featured/round-icon-badges -->
+                      <!-- <span class="glyphicon glyphicon-trash"></span>
+                    </button> -->
+                  </center>
+                </td>
+
+              </tr>
+            <% } %>
           <% } %>
         </tbody>
     </table>
 
     </div>
   </div>
-
   <% include ./sm_footer %>
 
   <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>

@@ -91,45 +91,14 @@ var checkUserId = function(id, callback) {
 app.get('/', function(req, res) {
 
     var flag = req.user && req.user.displayName;
-    console.log(1);
-    console.log(flag);
-    var main_name = [];
-    var main_id = [];
-    var main_detail = [];
-    var main_photo = [];
-    var pk_id = [];
 
     if (flag !== undefined) {
-        async.series([
-                // 1st
-                function(callback) {
-                    client.query('SELECT * FROM ProductInfo', function(err, result) {
-                        //console.log(result);
-                        for (var i in result) {
-                            var object = result[i];
-                            main_name.push(object.product_name);
-                            main_id.push(object.product_seller);
-                            main_detail.push(object.product_detail);
-                            main_photo.push(object.photo1);
-                            pk_id.push(object.product_id);
-                            //console.log(pk_id);
-                        }
-                        callback(null);
-                    });
-
-                }
-            ],
-            // callback (final)
-            function(err) {
-                //res.render('sm_main', {loginon:1, name: main_name, id: main_id, detail: main_detail, photo: main_photo, PK: pk_id});
-                res.redirect('/sm_main');
-            });
+      res.redirect('/sm_main');
     } else {
         res.render('index', {
             loginon: 0
         });
     }
-
 
 });
 
@@ -152,25 +121,39 @@ app.get('/sm_logout', function(req, res) {
 
 app.get('/sm_main', function(req, res) {
   var queryData = url.parse(req.url, true).query;
-  //console.log(queryData); -> <category: '기타', text: 'a^aa'>
-  var category = req.query.category;
-  var searchText = req.query.text;
+  //console.log(queryData); //-> <category: '기타', text: 'a^aa'>
+  var category = queryData.category;
+  var searchText = queryData.text;
 
   var flag = req.user && req.user.displayName;
-  var main_name = [];
-  var main_id = [];
-  var main_photo = [];
-  var pk_id = [];
   var scrap = [];
+  var rows = [];
+
+  var on = 0;
+  var allowDate; //신고가 풀리는 날
   var sql;
 
   if (flag !== undefined) {
     async.series([
       function(callback){
+        sql = 'SELECT * FROM ComplainIdHistory WHERE complainID=? AND date(date)>=date(now())';
+        client.query(sql, [flag], function(err, result){
+          if(result[0] !== undefined){
+            on = 1;
+            allowDate = result[0].date;
+            //console.log(on);
+          }else{
+            on = 0;
+            //console.log(on);
+          }
+          callback(null);
+        });
+      },
+      function(callback){
         sql = 'SELECT * FROM ScrapInfo WHERE user=? ORDER BY order_num DESC';
         client.query(sql, [loginId[1]], function(err, result){
           for (var i in result) {
-            scrap.push(result[i].order_num);
+            scrap.push(result[i]);
             // console.log(scrap);
           }
           callback(null);
@@ -181,13 +164,7 @@ app.get('/sm_main', function(req, res) {
           if (category === '전체 검색'){
             sql = 'SELECT * FROM ProductInfo WHERE product_name LIKE ?';
             client.query(sql, ['%' + searchText + '%'], function(err, result) {
-              for (var i in result) {
-                var object = result[i];
-                main_name.push(object.product_name);
-                main_id.push(object.product_seller);
-                main_photo.push(object.photo1);
-                pk_id.push(object.product_id);
-              }
+              rows = result;
               callback(null);
             });
           }
@@ -195,25 +172,13 @@ app.get('/sm_main', function(req, res) {
             if (searchText !== ''){
               sql = 'SELECT * FROM ProductInfo WHERE product_category=? AND product_name LIKE ?';
               client.query(sql, [category, '%' + searchText + '%'], function(err, result) {
-                for (var i in result) {
-                  var object = result[i];
-                  main_name.push(object.product_name);
-                  main_id.push(object.product_seller);
-                  main_photo.push(object.photo1);
-                  pk_id.push(object.product_id);
-                }
+                rows = result;
                 callback(null);
               });
             }else{
               sql = 'SELECT * FROM ProductInfo WHERE product_category=?';
               client.query(sql, [category], function(err, result) {
-                for (var i in result) {
-                  var object = result[i];
-                  main_name.push(object.product_name);
-                  main_id.push(object.product_seller);
-                  main_photo.push(object.photo1);
-                  pk_id.push(object.product_id);
-                }
+                rows = result;
                 callback(null);
               });
             }
@@ -221,13 +186,7 @@ app.get('/sm_main', function(req, res) {
         }
         else{
           client.query('SELECT * FROM ProductInfo', function(err, result) {
-            for (var i in result) {
-              var object = result[i];
-              main_name.push(object.product_name);
-              main_id.push(object.product_seller);
-              main_photo.push(object.photo1);
-              pk_id.push(object.product_id);
-            }
+            rows = result;
             callback(null);
           });
         }
@@ -236,10 +195,9 @@ app.get('/sm_main', function(req, res) {
     function(err) {
       res.render('sm_main.ejs', {
         loginon: 1,
-        name: main_name,
-        id: main_id,
-        photo: main_photo,
-        PK: pk_id,
+        on: on,
+        allowDate: allowDate,
+        rows: rows,
         scrap: scrap
       });
     });
@@ -259,6 +217,7 @@ app.post('/sm_main/:id', function(req,res){
   var photo = [];
   var seller = [];
   var p_id = [];
+  var category = [];
 
  //console.log(req.params.id);
   if(scrapImg === "★"){
@@ -268,13 +227,15 @@ app.post('/sm_main/:id', function(req,res){
           photo = result[0].photo1;
           seller = result[0].product_seller;
           p_id = result[0].product_id;
+          category = result[0].product_category;
           callback(null);
         });
       }
     ],
     function(err){
-      var sql = 'INSERT INTO ScrapInfo (user, scrap_name, scrap_photo, scrap_seller, product_id, order_num) VALUES (?,?,?,?,?,?)';
-      client.query(sql, [loginId[1], scrapName, photo, seller, p_id, req.params.id], function() {
+      var date = getTimeStamp();
+      var sql = 'INSERT INTO ScrapInfo (user, scrap_name, scrap_photo, scrap_seller, product_id, order_num, category) VALUES (?,?,?,?,?,?,?)';
+      client.query(sql, [loginId[1], scrapName, photo, seller, p_id, date, category], function() {
           res.redirect('/');
       });
     });
@@ -293,6 +254,7 @@ passport.serializeUser(function(user, done) {
 
 passport.deserializeUser(function(id, done) {
     //console.log('deserializeUser', id);
+    console.log("1");
     loginId = id.split(":");
     var sql = 'SELECT * FROM users WHERE authId=?';
     client.query(sql, [id], function(err, results) {
@@ -503,7 +465,11 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var detail_id = request.params.id; //console.log(request.params.id);  // 1
     var comments = [];
 
-    async.series([
+    if(loginId[1] == undefined){
+      response.redirect('/');
+    }
+    else{
+      async.series([
             // 1st
             function(callback) {
                 client.query('SELECT * FROM ProductInfo WHERE product_id=?', [detail_id], function(err, result) {
@@ -553,7 +519,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
             });
             //response.send(rows);
         });
-
+    }
 });
 
 app.get('/sm_addItems', function(request, response) {
@@ -1793,7 +1759,7 @@ app.get('/sm_scrap', function(req,res){
 
 app.get('/sm_complain', function(req, res){
   var flag = 0;
-  var sql = 'SELECT * FROM Login WHERE login_id=?';
+  var sql = 'SELECT * FROM users WHERE username=?';
   client.query(sql, [loginId[1]], function(err, result){
     if(result.length > 0){
       res.render('sm_complain.ejs', {userID:loginId[1]});
@@ -1815,7 +1781,7 @@ app.post('/sm_complain', function(req, res){
 
   async.series([
     function(callback) {
-      var sql = 'SELECT * FROM Login WHERE login_name LIKE ?';
+      var sql = 'SELECT * FROM users WHERE username LIKE ?';
       client.query(sql, [complainID], function(err, result) {
         if(result !== ''){
           flag = 1;
@@ -1828,8 +1794,8 @@ app.post('/sm_complain', function(req, res){
   function(err, flag) {
     if(flag == 1){
       var time = getTimeStamp();
-      var sql = 'INSERT INTO complainInfo (userID, complainID, detail, date) VALUES (?,?,?,?)';
-      client.query(sql, [userID, complainID, detail, time], function() {
+      var sql = 'INSERT INTO complainInfo (userID, complainID, detail, date, flag) VALUES (?,?,?,?,?)';
+      client.query(sql, [userID, complainID, detail, time, 0], function() {
           res.render('sm_complain.ejs', {userID:loginId[1]});
       });
     }
@@ -1846,6 +1812,8 @@ app.get('/sm_complainList', function(req, res){
     var queryData = url.parse(req.url, true).query;
     var category = req.query.category;
     var searchText = req.query.text;
+
+    var flag = 0; //승낙버튼 처리 안한 경우
 
     async.series([
       function(callback){
@@ -1894,9 +1862,104 @@ app.get('/sm_complainDetail/:num', function(req, res){
   });
 });
 
+
+function ProhibitAccessTime() {
+    var d = new Date();
+    var month = (d.getMonth() + 1)+1;
+    var year = d.getFullYear();
+
+    if (month == 13){
+      month = d.getMonth(d.setMonth((d.getMonth() + 1)+1));  // 한 달 동안 사용 못 함
+      year = year+1;
+    }
+
+    var string =
+        leadingZeros(year, 4) + '-' +
+        leadingZeros(month, 2) + '-' +
+        leadingZeros(d.getDate(), 2);
+
+    return string;
+}
+
+var sendMessage = function(email, callback) {
+    var mailOptions = {
+        from: '숙스마켓 <miniymay101@gmail.com>',
+        to: email,
+        subject: '[숙스마켓] 아래와 같은 이유로 당신은 한달간 사용이 정지됩니다.',
+        text: '다음과 같은 이유로 사용 정지!!'
+    };
+
+    smtpTransport.sendMail(mailOptions, function(error, response) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log("Message sent : " + response.message);
+        }
+        smtpTransport.close();
+        callback();
+    });
+};
+
+app.get('/sm_complainOK/:id', function(req, res) {
+  var row = [];
+  var OK = 0;
+
+  var queryData = url.parse(req.url, true).query;
+  var auto = req.query.auto;
+  //console.log(auto);
+
+  async.series([
+    function(callback){
+      var str = 'SELECT * FROM complainInfo WHERE auto=?';
+      client.query(str, [auto], function(err, result){
+        row = result[0];
+        callback(null);
+      });
+    },
+    function(callback){
+      var str = 'UPDATE complainInfo SET flag=? WHERE auto=?';
+      client.query(str, [1, auto], function(err, result) {
+        callback(null);
+      });
+    },
+    function(callback){
+      var str = 'SELECT * FROM ComplainIdHistory WHERE complainID=?';
+      client.query(str, [row.complainID], function(err, result){
+        if(result[0] !== undefined){ // 이미 있을 때
+          OK = 1;
+        }
+        callback(null);
+      });
+    },
+    function(callback){
+      if(OK !== 0){ // 이미 history DB에 있으면
+        callback(null);
+      }
+      else{
+        var email = "eclips0123@naver.com";
+        sendMessage(email, function() {
+          console.log("메일보냄");
+        });
+
+        var time = ProhibitAccessTime();
+        var str = 'INSERT INTO ComplainIdHistory (complainID, date, reason) VALUES (?,?,?)';
+        client.query(str, [row.complainID, time, row.detail], function(err, result){
+          callback(null);
+        });
+      }
+    }
+  ],
+  function(err){
+    client.query('SELECT * FROM complainInfo ORDER BY auto DESC', function(err, result) {
+       res.render('sm_complainList.ejs', {admin: 'sy', session: loginId[1], rows: result});
+    });
+  });
+
+});
+
 app.get('/sm_suggest', function(req, res){
   var flag = 0;
-  var sql = 'SELECT * FROM Login WHERE login_id=?';
+  var sql = 'SELECT * FROM users WHERE username=?';
   client.query(sql, [loginId[1]], function(err, result){
     if(result.length > 0){
       res.render('sm_suggest.ejs', {userID:loginId[1]});
@@ -1935,6 +1998,118 @@ app.get('/sm_suggestDetail/:num', function(req, res){
   client.query(sql, [req.params.num], function(err, row){
     res.render('sm_suggestDetail.ejs', {row: row});
   });
+});
+
+app.get('/category/:id', function(req, res){
+  var option = req.params.id;
+  var queryData = url.parse(req.url, true).query;
+  var searchText = queryData.text;
+
+  var flag = req.user && req.user.displayName;
+  var scrap = [];
+  var rows = [];
+
+  var on = 0;
+  var allowDate; //신고가 풀리는 날
+  var photo = [];
+
+  if (flag !== undefined) {
+    async.series([
+      function(callback){
+        var sql = 'SELECT * FROM ComplainIdHistory WHERE complainID=? AND date(date)>=date(now())';
+        client.query(sql, [flag], function(err, result){
+          if(result[0] !== undefined){
+            on = 1;
+            allowDate = result[0].date;
+          }else{
+            on = 0;
+          }
+          callback(null);
+        });
+      },
+
+      function(callback){
+        var sql = 'SELECT * FROM ScrapInfo WHERE user=? AND category=? ORDER BY order_num DESC';
+        client.query(sql, [loginId[1], option], function(err, result){
+          for (var i in result) {
+            scrap.push(result[i]);
+          }
+          callback(null);
+        });
+      },
+
+      function(callback){
+        if ((searchText !== '') && (searchText !== undefined)){
+          var sql = 'SELECT * FROM ProductInfo WHERE product_category=? AND product_name LIKE ?';
+          client.query(sql, [option, '%' + searchText + '%'], function(err, result) {
+            rows = result;
+            for(var i in result){
+              photo.push((result[i].photo1).substring(1));
+            }
+            callback(null);
+          });
+        }else{
+          client.query('SELECT * FROM ProductInfo WHERE product_category=?', [option], function(err, result){
+            for(var i in result){
+              photo.push((result[i].photo1).substring(1));
+            }
+            rows = result;
+            callback(null);
+          });
+        }
+      }
+    ],
+    function(err) {
+      res.render('category.ejs', {
+        loginon: 1,
+        on: on,
+        allowDate: allowDate,
+        rows: rows,
+        scrap: scrap,
+        photo:photo,
+        option: option
+      });
+    });
+
+  } else {
+    res.render('index', {
+      loginon: 0
+    });
+  }
+
+});
+///category/
+app.post('/category/:id', function(req,res){
+  scrapImg = req.body.scrapImg;
+  scrapName = req.body.scrapName;
+  var photo = [];
+  var seller = [];
+  var p_id = [];
+
+ //console.log(req.params.id);
+  if(scrapImg === "★"){
+    async.series([
+      function(callback){
+        client.query('SELECT * FROM ProductInfo WHERE product_name=?', [scrapName], function(err, result){
+          photo = result[0].photo1;
+          seller = result[0].product_seller;
+          p_id = result[0].product_id;
+          callback(null);
+        });
+      }
+    ],
+    function(err){
+      var sql = 'INSERT INTO ScrapInfo (user, scrap_name, scrap_photo, scrap_seller, product_id, order_num) VALUES (?,?,?,?,?,?)';
+      client.query(sql, [loginId[1], scrapName, photo, seller, p_id, req.params.id], function() {
+          res.redirect('/');
+      });
+    });
+
+  }else if(scrapImg === "☆"){
+    client.query('DELETE FROM ScrapInfo WHERE user=? AND scrap_name=?', [loginId[1], scrapName], function() {
+        res.redirect('/');
+    });
+  }
 });
 
 app.get('/sm_tradeState', function(request, response){
@@ -2019,6 +2194,5 @@ app.get('/sm_tradeStateDetail/:id/:num', function(request, response){
       });
     }
   ];
-
   async.series(tasks, function(err,results){});
 });
