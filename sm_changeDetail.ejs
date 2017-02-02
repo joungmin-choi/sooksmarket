@@ -42,6 +42,22 @@
       document.getElementById('file').value = "";
     }
   }
+
+  $(document).ready(function(){
+    // $('#selectbox').change(function(){
+    //     alert( $('#selectbox option:selected').val() );
+    // });
+    var select = document.getElementById("category");
+var option_value = select.options[select.<%= category %>].value;
+
+
+    element.style.color = "#ff6666";
+  });
+
+  function categoryChange(){
+
+  }
+
   </script>
 
 
@@ -78,8 +94,17 @@
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">카테고리 :</label>
             <div class="col-sm-5">
-              <select class="form-control" id="category" name="category" disabled="true" style="cursor:context-menu;">
-                <option><%= category %></option>
+              <select class="form-control" id="category" name="category" style="cursor:context-menu;" onclick="category()" onchange="categoryChange()">
+                <!-- <option selected disabled><%= category %></option> -->
+
+                <option value="옷">옷</option>
+                <option value="화장품">화장품</option>
+                <option value="책">책</option>
+                <option value="전자기기">전자기기</option>
+                <option value="음식">음식</option>
+                <option value="필기류">필기류</option>
+                <option value="티켓 양도">티켓 양도</option>
+                <option value="기타">기타</option>
               </select>
             </div>
           </div>
