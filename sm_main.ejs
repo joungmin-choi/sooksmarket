@@ -180,12 +180,12 @@
 
         </div>
         <!-- 1-->
+
         <div id="snackbar">스크랩되었습니다.</div>
 
         <% for (i=((`${rows.length}`)-1), flag=0; i>=0 ; i--, flag=0){%>
 
-          <div class="col-lg-4 col-sm-6 col-xs-6 text-center">
-
+          <div class="col-xs-6 col-md-3 text-center">
             <div class="thumbnail">
               <p style="float:left; margin-left: 0.5%">
                 <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%" onclick="scrap(<%= i %>)">
@@ -205,7 +205,7 @@
                 <% if(rows[i].photo1 != ""){ %>
                   <img class="img-responsive img-center" src="<%= rows[i].photo1 %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
                 <% } else{ %>
-                  <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                  <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:180px; width: 300px; margin-top:2%"/>
                   <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
                 <% } %>
 

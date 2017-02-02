@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>거래 완료</title>
+
+
+    <!-- Bootstrap core CSS -->
+    <link href="/bootstrap-3.3.2-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker.min.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="/css/round.css" rel="stylesheet">
+
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="/bootstrap-3.3.2-dist/js/bootstrap.min.js"></script>
+
+    <style>
+    .star_rating {font-size:0; letter-spacing:-4px;}
+    .star_rating a {
+      font-size:22px;
+      letter-spacing:0;
+      display:inline-block;
+      margin-left:5px;
+      color:#ccc;
+      text-decoration:none;
+    }
+
+    .star_rating a:first-child {margin-left:0;}
+
+
+
+    </style>
+
+    <script type="text/javascript">
+
+      function writeReason(j){
+        var reasonDiv = document.getElementById("reasonDiv");
+        if(j==2){
+        reasonDiv.innerHTML = '<textarea class="form-control" rows="2" placeholder="거래가 실패한 이유를 작성해주세요." name="reason" id="reason" style="width:60%;margin:0 auto;"></textarea>';
+        }
+        else if(j==1){
+          reasonDiv.innerHTML = '';
+        }
+      }
+
+      function rating(j){
+        var star = new Array();
+        var i;
+        var ratingScore = document.getElementById("ratingScore");
+        ratingScore.value = j;
+
+        for(i=1; i<=5; i++){
+          star[i] = document.getElementById("star"+i);
+        }
+
+        for(i=1; i<=j; i++){
+          star[i].style.color="#777";
+        }
+
+        for(i=j+1; i<=5; i++){
+          star[i].style.color="#ccc";
+        }
+      }
+
+      function submitCheck(){
+        var radioBtn = document.getElementsByName("isCompleted");
+        var ratingScore = document.getElementById("ratingScore");
+        var form = document.getElementById("eventFrom");
+
+        if((radioBtn[0].checked == false)&&(radioBtn[1].checked == false)){
+          alert("거래 성사 여부를 선택해주세요!");
+          return false;
+        }
+        else if(radioBtn[1].checked == true){
+          var reasonTxt = document.getElementById("reason");
+          if(reasonTxt.value == ""){
+            alert("거래 실패 이유를 작성해주세요.");
+            reasonTxt.focus();
+            return false;
+          }
+        }
+        else if(ratingScore.value == "") {
+          alert("별점을 매겨주세요!");
+          return false;
+        }
+
+        form.submit();
+        return true;
+
+      }
+    </script>
+
+</head>
+
+<body>
+    <% include ./sm_top_navigator %>
+
+        <div class="container" >
+
+            <h2><strong> 거래 완료하기 </strong></h2>
+
+            <hr>
+
+            <form id="eventFrom" method="post" class="form-horizontal" onsubmit="return submitCheck()">
+
+              <div class="alert alert-info" role="alert" style="width:90%; margin: 0 auto;">
+                <strong>물품 : </strong><%= product_name %> </br>
+                <strong>판매자 ID : </strong><%= seller %> <br/>
+                <strong>구매자 ID : </strong><%= customer %>
+              </div>
+
+
+              <div class="form-group">
+                <hr/>
+
+                <label style="font-size:15px; margin-left:10%; background-color:#eee; width:80%; text-align:center;">
+                  거래가 성사 되었습니까?
+                </label><br/>
+                  <label class="radio-inline" style="width:45%; text-align:right; margin-right:5%;" onclick="writeReason(1);">
+                    <input type="radio" name="isCompleted" id="yesRadioBtn" value="예" /> 예
+                  </label>
+                  <label class="radio-inline" style="width:45%; text-align:left;" onclick="writeReason(2);">
+                    <input type="radio" name="isCompleted" id="noRadioBtn" value="아니요" /> 아니요
+                  </label><br/><br/>
+                  <div id="reasonDiv">
+
+                  </div>
+                  <br/>
+
+                  <label style="font-size:15px; margin-left:10%; background-color:#eee; width:80%; text-align:center;">
+                    상대방에 대해 별점을 매겨주세요.
+                  </label><br/>
+                  <label class="star_rating" style="font-size:25px; margin-left:10%; width:80%; text-align:center;">
+                    <a id="star1" onclick="rating(1);">★</a>
+                    <a id="star2" onclick="rating(2);">★</a>
+                    <a id="star3" onclick="rating(3);">★</a>
+                    <a id="star4" onclick="rating(4);">★</a>
+                    <a id="star5" onclick="rating(5);">★</a>
+                  </label><br/><br/>
+
+                  <div class="alert alert-success" role="alert" style="width:83%; margin: 0 auto; text-align:center;">
+                    <strong>5개 :</strong> 거래 시간 잘 지킴 & 상품 상태 Good<br/>
+                    <strong>4개 :</strong> 10분 이상 지각 & 상품 상태 Good<br/>
+                    <strong>3개 :</strong> 거래 시간 잘 지킴 & 상품 상태 Bad<br/>
+                    <strong>2개 :</strong> 10분 이상 지각 & 상품 상태 Bad<br/>
+                    <strong>1개 :</strong> 거래가 이루어지지 않음.
+                  </div><br/><br/>
+
+                  <label style="font-size:15px; margin-left:10%; background-color:#eee; width:80%; text-align:center;">
+                    상대방에 대한 후기를 남겨주세요. (선택)
+                  </label><br/><br/>
+                  <textarea class="form-control" rows="4" placeholder='구체적으로 작성해주세요!' name="comment" id="comment" style="width:70%;margin:0 auto;"></textarea>
+
+                <br/><br/>
+
+              </div>
+
+                <div class="form-group">
+                    <div style="text-align:center;">
+                        <button type="submit" class="btn btn-primary">거래 완료</button>
+                        <button type="button" class="btn btn-default" onclick="location.href='/'"> 돌아가기</button>
+                    </div>
+                </div>
+
+                <div style="display: none;">
+                  별점 <input type="text" id="ratingScore" name="ratingScore" />
+                </div>
+
+            </form>
+        </div>
+        <hr>
+
+        <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+
+</body>
+<!-- Footer -->
+<% include ./sm_footer %>
+
+</html>
