@@ -254,7 +254,7 @@ passport.serializeUser(function(user, done) {
 
 passport.deserializeUser(function(id, done) {
     //console.log('deserializeUser', id);
-    console.log("1");
+    //console.log("1");
     loginId = id.split(":");
     var sql = 'SELECT * FROM users WHERE authId=?';
     client.query(sql, [id], function(err, results) {
