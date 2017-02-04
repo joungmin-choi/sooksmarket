@@ -61,6 +61,32 @@
     </style>
 
     <script>
+    window.onload = function(){
+      <% if(haveCompletion ==1){ %>
+        var trade_date = `<%= tradeInfo[0].trade_date %>`;
+        var trade_time = `<%= tradeInfo[0].trade_time %>`;
+
+        var date = new Array();
+        var time = new Array();
+        date[0] = parseInt(trade_date.substring(0,2))-1;
+        date[1] = parseInt(trade_date.substring(4,6));
+        time[0] = parseInt(trade_time.substring(0,2));
+        time[1] = parseInt(trade_time.substring(3,5));
+
+        var tradeTime = new Date(2017, date[0], date[1], time[0], time[1], 0);
+        var presentTime = new Date();
+
+        if(presentTime >= tradeTime){
+          var str = `<%= tradeInfo[0].product_name %>`+'의 거래 완료 페이지가 작성되지 않았습니다.\n지금 작성하시겠습니까?';
+          var check = confirm(str);
+
+          if(check){
+            var link = '/sm_tradeStateDetail/'+`<%= product_id %>`+'/'+`<%= request_num %>`;
+            location.href=link;
+          }
+        }
+      <% } %>
+    }
 
     function confirmation(){
       var category = document.getElementById("category").value;

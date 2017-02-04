@@ -132,6 +132,10 @@ app.get('/sm_main', function(req, res) {
   var on = 0;
   var allowDate; //신고가 풀리는 날
   var sql;
+  var haveCompletion=0;
+  var product_id, request_num, tradeInfo;
+
+  product_id = request_num = 0;
 
   if (flag !== undefined) {
     async.series([
@@ -190,17 +194,66 @@ app.get('/sm_main', function(req, res) {
             callback(null);
           });
         }
-      }
-    ],
-    function(err) {
+      },
+
+      function(callback){
+        sql = 'SELECT * FROM CompletionInfo WHERE username=?';
+        client.query(sql, [loginId[1]], function(err, result){
+          if(err){throw err;}
+
+          console.log(1);
+
+          if(result.length===0){
+            haveCompletion = product_id = request_num = tradeInfo = 0;
+          }else {
+            for (var j=0; j<result.length; j++){
+              if(result[j].haveCompletion == 1){
+                product_id = result[j].product_id;
+                haveCompletion = 1;
+                break;
+              }
+            }
+          }
+          callback(null);
+        });
+      },
+
+      function(callback){
+
+        if(haveCompletion == 1){
+          sql = 'SELECT * FROM FinalTrade WHERE product_id=?';
+          client.query(sql, [product_id], function(err, result){
+            tradeInfo = result;
+            console.log(3);
+          });
+
+          sql = 'SELECT MAX(request_num) as maxRequestNum FROM TradeInfo WHERE product_id=?';
+          client.query(sql, [product_id], function(err, result){
+            request_num = result[0].maxRequestNum;
+            console.log(4);
+            callback(null);
+          });
+        }else{
+        callback(null);
+        }
+      },
+
+    function(callback) {
+      console.log(haveCompletion);
       res.render('sm_main.ejs', {
         loginon: 1,
         on: on,
         allowDate: allowDate,
         rows: rows,
-        scrap: scrap
+        scrap: scrap,
+        tradeInfo : tradeInfo,
+        product_id : product_id,
+        request_num : request_num,
+        haveCompletion : haveCompletion
       });
-    });
+      callback(null);
+    }
+  ],function(err, results){});
 
   } else {
     res.render('index', {
@@ -787,6 +840,9 @@ app.post('/sm_request/:id', function(request, response) {
                     } else {
                         lockerNum = body["lockerNum" + i];
                         lockerPw = body["lockerPw" + i];
+                        if(lockerPw === ''){
+                          lockerPw = null;
+                        }
                     }
 
                     var data = {
@@ -1581,6 +1637,38 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
     },
 
     function(callback){
+      sqlQuery = 'SELECT MAX(id) as maxId FROM CompletionInfo';
+      client.query(sqlQuery, function(err, result){
+        if(result[0].maxId === null){
+          id = 1;
+        }else{
+          id = result[0].maxId + 1;
+        }
+      });
+
+      data = {
+        id : id,
+        username : seller,
+        product_id : product_id,
+        haveCompletion : 1
+      };
+      sqlQuery = 'INSERT INTO CompletionInfo SET ?';
+      client.query(sqlQuery, data, function(err, result){
+      });
+
+      data = {
+        id : id,
+        username : customer,
+        product_id : product_id,
+        haveCompletion : 1
+      };
+
+      client.query(sqlQuery, data, function(err, result){
+        callback(null);
+      });
+    },
+
+    function(callback){
       var msg="";
       var str=[];
 
@@ -1715,7 +1803,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response){
   async.series(tasks, function(err,results){});
 });
 
-app.get('/sm_completeTrade/:id', function(request, response){
+app.get('/sm_completeTrade/:id/:num', function(request, response){
   var product_id, sqlQuery, product_name, seller, customer;
 
   var tasks=[
@@ -1734,7 +1822,8 @@ app.get('/sm_completeTrade/:id', function(request, response){
       var context = {
         seller : seller,
         customer : customer,
-        product_name : product_name
+        product_name : product_name,
+        username : loginId[1]
       };
 
       response.render('sm_completeTrade.ejs',context, function(err, html){
@@ -1749,6 +1838,135 @@ app.get('/sm_completeTrade/:id', function(request, response){
   ];
 
   async.series(tasks, function(err,results){});
+});
+
+app.post('/sm_completeTrade/:id/:num', function(request, response){
+  var product_id, id, username, isCompleted, starScore, review, product_name, reason, trader;
+  var body, sqlQuery, request_num, isDone;
+
+  isDone = 0;
+  body = request.body;
+
+  var tasks = [
+    function(callback){
+      product_id = request.params.id;
+      request_num = request.params.num;
+      username = loginId[1];
+
+      sqlQuery = 'SELECT product_name, seller, customer FROM FinalTrade WHERE product_id=?';
+      client.query(sqlQuery, [product_id], function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        product_name = result[0].product_name;
+        if(result[0].seller == username){
+          trader = result[0].customer;
+        }else{
+          trader = result[0].seller;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      sqlQuery = 'SELECT MAX(id) as maxId FROM TradeReview';
+      client.query(sqlQuery, function(err, result){
+        if(result[0].maxId === null){
+          id = 1;
+        }else{
+          id = result[0].maxId + 1;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      starScore = body.ratingScore;
+      review = body.comment;
+      isCompleted = body.isCompleted;
+      if(isCompleted == '아니요'){
+        reason = null;
+      }else{
+        reason = body.reason;
+      }
+
+      if(review === ''){
+        review = null;
+      }
+
+      sqlQuery = 'INSERT INTO TradeReview SET ?';
+
+      var data = {
+        id : id,
+        product_id : product_id,
+        product_name :product_name,
+        trader : trader,
+        isCompleted : isCompleted,
+        starScore : starScore,
+        review : review,
+        reason_of_no : reason,
+        username : username
+      };
+
+      client.query(sqlQuery, data, function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+      });
+
+      sqlQuery = 'UPDATE CompletionInfo SET haveCompletion=? WHERE product_id=? AND username=?';
+      client.query(sqlQuery, [0, product_id, username], function(err, result){
+        if(err){throw err;}
+        callback(null);
+      });
+    },
+
+    function(callback){
+      sqlQuery = 'SELECT username FROM TradeReview WHERE product_id=?';
+      client.query(sqlQuery, [product_id], function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        if(result.length == 2){
+          isDone = 1;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      if(isDone == 1){
+        sqlQuery = 'DELETE FROM TradeTimePlace WHERE product_id=?';
+        client.query(sqlQuery, [product_id], function(err, result){
+          if(err){throw err;}
+        });
+
+        sqlQuery = 'DELETE FROM chat_msg WHERE product_id=?';
+        client.query(sqlQuery, [product_id], function(err, result){
+          if(err){throw err;}
+        });
+
+        sqlQuery = 'UPDATE TradeInfo SET state=? WHERE product_id=?';
+        client.query(sqlQuery, [4, product_id], function(err, result){
+          if(err){throw err;}
+          callback(null);
+        });
+      }else{
+        callback(null);
+      }
+    },
+
+    function (callback) {
+      var link = '/sm_tradeStateDetail/' + product_id + '/' + request_num;
+      response.redirect(link);
+      callback(null);
+    }
+  ];
+
+  async.series(tasks, function(err, results){});
 });
 
 app.get('/sm_scrap', function(req,res){
@@ -2113,7 +2331,7 @@ app.post('/category/:id', function(req,res){
 });
 
 app.get('/sm_tradeState', function(request, response){
-  var sqlQuery;
+  var sqlQuery, haveCompletion;
   var sessionId = loginId[1];
   var searchResults = [];
   var isExisted = 0;
@@ -2161,7 +2379,7 @@ app.get('/sm_tradeState', function(request, response){
 
 app.get('/sm_tradeStateDetail/:id/:num', function(request, response){
   var product_id, request_num, results, sessionId;
-  var sqlQuery;
+  var sqlQuery, finalTradeInfo;
   var context;
 
   var tasks = [
@@ -2182,9 +2400,41 @@ app.get('/sm_tradeStateDetail/:id/:num', function(request, response){
     },
 
     function(callback){
+      if(results[0].state == 3){
+        sqlQuery = 'SELECT * FROM FinalTrade WHERE product_id=?';
+        client.query(sqlQuery, [product_id], function(err, result){
+          if(err){
+            console.log(err);
+            throw err;
+          }
+          finalTradeInfo = result;
+          callback(null);
+        });
+      }else{
+        finalTradeInfo = 0;
+        callback(null);
+      }
+    },
+
+    function(callback){
+      sqlQuery = 'SELECT haveCompletion FROM CompletionInfo WHERE username=? AND product_id=?';
+      client.query(sqlQuery, [sessionId, product_id], function(err, result){
+        if(err){throw err;}
+        if(result.length === 0){
+          haveCompletion = 0;
+        }else{
+          haveCompletion = result[0].haveCompletion;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
       context = {
         results : results,
-        id : sessionId
+        id : sessionId,
+        final : finalTradeInfo,
+        haveCompletion : haveCompletion
       };
       response.render('sm_tradeStateDetail.ejs',context,function(err,html){
         if(err)
