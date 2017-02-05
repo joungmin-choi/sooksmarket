@@ -554,6 +554,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var detail_photo = [];
     var detail_id = request.params.id; //console.log(request.params.id);  // 1
     var comments = [];
+    var sqlQuery, avgRating;
 
     if(loginId[1] == undefined){
       response.redirect('/');
@@ -584,6 +585,20 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 });
             },
 
+            function(callback){
+              sqlQuery = 'SELECT AVG(starScore) AS avgStar FROM TradeReview WHERE trader=?';
+              client.query(sqlQuery, [detail_seller], function(err, result){
+                if(err){throw err;}
+
+                if(result.length>0){
+                  avgRating = result[0].avgStar;
+                }else{
+                  avgRating = 0;
+                }
+                callback(null);
+              });
+            },
+
             function(callback) {
                 var sql = 'SELECT * FROM comments WHERE product_id=? ORDER BY parent_id DESC,  child_id ASC';
                 client.query(sql, detail_id, function(err, rows, fields) {
@@ -605,7 +620,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 detail: detail_detail,
                 seller: detail_seller,
                 date: detail_date,
-                photo: detail_photo
+                photo: detail_photo,
+                avgRating : avgRating
             });
             //response.send(rows);
         });
@@ -915,11 +931,18 @@ app.post('/sm_request/:id', function(request, response) {
           var str=[];
           var msg="";
 
-          str[0] = "<div style='background: white; text-align:center;'><div style='height:25px;background-color:white;text-align:center;margin:0 auto;'>";
-          str[1] = product_name+"</div><br/><strong>구매를 요청합니다.</strong></div>";
-          str[2] = "<button type='button' class='btn btn-success' style='margin-top:2%;'";
+
+          if(state == 2){
+            str[0] = "<br/><div style='height:25px;text-align:center;margin:0 auto;'>";
+            str[1] = "<strong>시간을 변경하고 싶습니다.</strong>";
+          }else{
+            str[0] = "<div style='text-align:center;'><div style='height:25px;text-align:center;margin:0 auto;'>";
+            str[1] = product_name+"</div><br/><strong>구매를 요청합니다.</strong>";
+          }
+
+          str[2] = "<br/><button type='button' class='btn btn-success' style='margin-top:2%;'";
           str[3] = "onclick='selectTime(\""+loginId[1]+"\",\""+request_num+"\");'>";
-          str[4] = "<strong>거래 시간 선택하기</strong></button>";
+          str[4] = "<strong>거래 시간 선택하기</strong></button></div>";
 
           for(var i=0; i<str.length; i++){
             msg += str[i];
@@ -1016,7 +1039,79 @@ app.get('/sm_chat/:id', function(req, res) {
     async.series(tasks, function(err,results){});
 });
 
-app.post('/sm_chat/:id', function(request, response){
+io.on('connection', function(socket) {
+    var result = [];
+    var roomname;
+    //console.log('1 connection이 이루어졌습니다');
+
+    socket.on('join', function(data) {
+       //console.log('join을 서버에서 받았습니다')
+        async.series([
+                function(callback) {
+
+                    //console.log('2-1 socket.on의 join [서버에서 받음]');
+                    socket.user = data.userid;
+                    //console.log('2-2 socket.on의 join 받아온값 : ', data);
+                    //console.log('socket.on의 join socket : ', socket);
+                    roomname = data.room;
+                    socket.join(data.room);
+                    var sql = 'SELECT * FROM chat_msg WHERE msg_room=? ORDER BY msg_date ASC';
+                    client.query(sql, roomname, function(err, results) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            result = results;
+                        }
+                        callback(null, result);
+                    });
+
+                },
+                function(callback) {
+                    io.emit('first', {
+                        'user': socket.user,
+                        'msg': result
+                    });
+                    //console.log('5 io.emit의 first [클라이언트로 보냄]');
+                    callback(null, result);
+                }
+            ],
+            function(err, result) {
+
+            });
+    });
+
+    socket.on('chat message', function(msg) {
+        //console.log('4 socket.on의 chat message [서버에서 받음]');
+        //console.log('4', msg);
+        var m = moment();
+        var msg_date = m.format("YYYY-MM-DD HH:mm:ss");
+        var chat = {
+            msg_id: socket.user,
+            msg: msg,
+            msg_date: msg_date,
+            msg_room: roomname
+        };
+        var sql = 'INSERT INTO chat_msg SET ?';
+        client.query(sql, chat, function(err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500);
+            }
+        });
+        io.in(roomname).emit('chat message', {
+            'user': socket.user,
+            'msg': msg,
+            'date':msg_date
+        });
+    });
+
+});
+
+http.listen(80, function() {
+    console.log('127.0.0.1');
+});
+
+app.get('/sm_chat/:id/reject', function(request, response){
   var product_id, sqlQuery;
 
   var tasks = [
@@ -1087,76 +1182,6 @@ app.post('/sm_chat/:id', function(request, response){
 
 });
 
-io.on('connection', function(socket) {
-    var result = [];
-    var roomname;
-    //console.log('1 connection이 이루어졌습니다');
-
-    socket.on('join', function(data) {
-       //console.log('join을 서버에서 받았습니다')
-        async.series([
-                function(callback) {
-
-                    //console.log('2-1 socket.on의 join [서버에서 받음]');
-                    socket.user = data.userid;
-                    //console.log('2-2 socket.on의 join 받아온값 : ', data);
-                    //console.log('socket.on의 join socket : ', socket);
-                    roomname = data.room;
-                    socket.join(data.room);
-                    var sql = 'SELECT * FROM chat_msg WHERE msg_room=? ORDER BY msg_date ASC';
-                    client.query(sql, roomname, function(err, results) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            result = results;
-                        }
-                        callback(null, result);
-                    });
-
-                },
-                function(callback) {
-                    io.emit('first', {
-                        'user': socket.user,
-                        'msg': result
-                    });
-                    //console.log('5 io.emit의 first [클라이언트로 보냄]');
-                    callback(null, result);
-                }
-            ],
-            function(err, result) {
-
-            });
-    });
-
-    socket.on('chat message', function(msg) {
-        //console.log('4 socket.on의 chat message [서버에서 받음]');
-        //console.log('4', msg);
-        var m = moment();
-        var chat = {
-            msg_id: socket.user,
-            msg: msg,
-            msg_date: m.format("YYYY-MM-DD HH:mm:ss"),
-            msg_room: roomname
-        };
-        var sql = 'INSERT INTO chat_msg SET ?';
-        client.query(sql, chat, function(err, result) {
-            if (err) {
-                console.log(err);
-                res.status(500);
-            }
-        });
-        io.in(roomname).emit('chat message', {
-            'user': socket.user,
-            'msg': msg
-        });
-    });
-
-});
-
-http.listen(80, function() {
-    console.log('127.0.0.1');
-});
-
 app.get('/sm_changeInfo', function(req, res) {
     var sql = 'SELECT * FROM users  WHERE username=?';
     client.query(sql, loginId[1], function(err, rows, fields) {
@@ -1199,6 +1224,12 @@ app.get('/sm_itemDetail/:id/delete', function(request, response) {
 app.get('/sm_changeDetail/:id', function(request, response) {
     var id = request.params.id; //console.log(request.params.id);  // 1
     var before_photo = [];
+    var photoState = [];
+    var i;
+
+    for(i=0; i<3; i++){
+      photoState[i] = -1;
+    }
 
     async.series([
             function(callback) { // 1st
@@ -1212,9 +1243,18 @@ app.get('/sm_changeDetail/:id', function(request, response) {
                     before_category = object.product_category;
 
                     before_photo = [];
-                    before_photo.push(object.photo1);
-                    before_photo.push(object.photo2);
-                    before_photo.push(object.photo3);
+                    if(object.photo1 !== ""){
+                      before_photo.push((object.photo1).substring(1));
+                      photoState[0] = 0;
+                    }
+                    if(object.photo2 !== ""){
+                      before_photo.push((object.photo2).substring(1));
+                      photoState[1] = 0;
+                    }
+                    if(object.photo3 !== ""){
+                      before_photo.push((object.photo3).substring(1));
+                      photoState[2] = 0;
+                    }
                     console.log(before_photo);
 
                     callback(null, result);
@@ -1223,6 +1263,7 @@ app.get('/sm_changeDetail/:id', function(request, response) {
         ],
 
         function(err, result) { // callback (final)
+
             response.render('sm_changeDetail.ejs', {
                 id: id,
                 name: before_name,
@@ -1230,7 +1271,8 @@ app.get('/sm_changeDetail/:id', function(request, response) {
                 photo: before_photo,
                 way: before_way,
                 category: before_category,
-                detail: before_detail
+                detail: before_detail,
+                photoState : photoState
             });
         });
 });
@@ -1836,7 +1878,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response){
 
       reject_reason = body.reason;
 
-      str[0] = "<br/><strong>[거래를 취소합니다]</strong><br/><br/>";
+      str[0] = "<strong>[거래를 취소합니다]</strong><br/><br/>";
       str[1] = product_name;
       str[2] = "<br/><br/>- 사유 :<br/>"+reject_reason;
       str[3] = "<br/><br/><small><em>※상대방께서는 아래의 거래 취소 확인 버튼을 눌러주세요! 눌러주셔야 거래 취소가 완료됩니다!</em></small>";

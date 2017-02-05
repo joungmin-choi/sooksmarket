@@ -11,6 +11,16 @@
             input[type="checkbox"][disabled] {
                 cursor: context-menu;
             }
+
+            .star{
+              font-size: 15px;
+              color: #ffa500;
+            }
+
+            .not{
+              font-size: :15px;
+              color: #cccccc;
+            }
         </style>
         <script>
             $(document).ready(function() {
@@ -67,8 +77,23 @@
                 <td><%= name %></td>
               </tr>
               <tr>
-                <td>사용자 ID : </td>
-                <td><%= seller %></td>
+                <td>판매자 ID : </td>
+                <td>
+                  <%= seller %>
+                  <% if(avgRating != 0){
+                      if(avgRating >= 4.7){ %>
+                        <br/><label class="star">★★★★★</label>
+                    <% }else if((avgRating>=3.7)&&(avgRating<4.7)){ %>
+                        <br/><label class="star">★★★★</label><label class="not">★</label>
+                    <% }else if((avgRating>=2.7)&&(avgRating<3.7)){ %>
+                        <br/><label class="star">★★★</label><label class="not">★★</label>
+                    <% }else if((avgRating>=1.7)&&(avgRating<2.7)){ %>
+                        <br/><label class="star">★★</label><label class="not">★★★</label>
+                    <% }else if((avgRating>=1)&&(avgRating<1.7)){ %>
+                        <br/><label class="star">★</label><label class="not">★★★★</label>
+                    <% } %>
+                  <% } %>
+                </td>
               </tr>
               <tr>
                 <td>가격 : </td>
