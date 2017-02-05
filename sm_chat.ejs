@@ -125,7 +125,8 @@
             var msg_date;
 
             if ((users != seller) && (users != customer)) {
-                location.href = '/404.html';
+                alert("존재하지 않는 채팅방입니다!");
+                location.href = '/sm_main';
                 return false;
             } else {
                 //alert('join [서버로 전송]');

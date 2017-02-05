@@ -472,21 +472,17 @@ app.get('/authenticateSookmyung', function(request, response) {
         email  = request.query.email;
         var sqlQuery = 'SELECT * FROM users WHERE login_email=?';
         client.query(sqlQuery,[email], function(err, result){
-          console.log("e", email);
-          console.log(result);
           if(err){throw err;}
           if(result.length > 0){
             isExisted = 1;
           }else{
             isExisted = 0;
           }
-          console.log("1", isExisted);
           callback(null);
         });
       },
 
       function(callback){
-        console.log("2", isExisted);
         if(isExisted == 1){
           context = {
             userCode : -1,
@@ -1991,6 +1987,9 @@ app.post('/sm_completeTrade/:id/:num', function(request, response){
     },
 
     function(callback){
+      var m = moment();
+      var writtenTime = m.format("MM월 DD일");
+
       starScore = body.ratingScore;
       review = body.comment;
       isCompleted = body.isCompleted;
@@ -2015,7 +2014,8 @@ app.post('/sm_completeTrade/:id/:num', function(request, response){
         starScore : starScore,
         review : review,
         reason_of_no : reason,
-        username : username
+        username : username,
+        date : writtenTime
       };
 
       client.query(sqlQuery, data, function(err, result){
@@ -2554,4 +2554,74 @@ app.get('/sm_tradeStateDetail/:id/:num', function(request, response){
     }
   ];
   async.series(tasks, function(err,results){});
+});
+
+app.get('/sm_review', function(request, response){
+  var sqlQuery, sqlResults, context;
+
+  var tasks = [
+    function(callback){
+      sqlQuery = 'SELECT trader, starScore, review, username, date FROM TradeReview ORDER BY id DESC';
+      client.query(sqlQuery, function(err, result){
+        if(err){throw err;}
+        sqlResults = result;
+        callback(null);
+      });
+    },
+
+    function(callback){
+      context = {
+        results : sqlResults,
+        notExist: 0
+      };
+      response.render('sm_review.ejs',context,function(err,html){
+        if(err)
+          throw err;
+        response.end(html);
+        callback(null);
+      });
+    }
+  ];
+
+  async.series(tasks, function(err, result){});
+});
+
+
+app.get('/sm_review/search/:id', function(request, response){
+  var searchId, sqlQuery, sqlResults;
+  var notExist = 0;
+
+  var tasks = [
+    function(callback){
+      searchId = request.params.id;
+      sqlQuery = 'SELECT trader, starScore, review, username, date FROM TradeReview WHERE trader=? ORDER BY id DESC';
+
+      client.query(sqlQuery, [searchId], function(err, result){
+        if(err){throw err;}
+
+        if(result.length > 0){
+          sqlResults = result;
+        }else{
+          notExist = 1;
+          sqlResults = 0;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      context = {
+        results : sqlResults,
+        notExist: notExist
+      };
+      response.render('sm_review.ejs',context,function(err,html){
+        if(err)
+          throw err;
+        response.end(html);
+        callback(null);
+      });
+    }
+  ];
+
+  async.series(tasks, function(err, result){});
 });

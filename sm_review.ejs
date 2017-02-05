@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+
+<head>
+  <% include ./sm_head %>
+  <style>
+  .star{
+    font-size: 15px;
+    color: #ffa500;
+  }
+
+  .not{
+    font-size: :15px;
+    color: #cccccc;
+  }
+  </style>
+
+</head>
+
+<body>
+  <!-- 네이게이션 상단 부분 -->
+  <% include ./sm_top_navigator %>
+  <script>
+  window.onload = function(){
+    if(<%= notExist %> == 1){
+      alert("해당 ID에 대한 후기가 없습니다.");
+      location.href='/sm_review';
+    }
+  }
+
+   function submitCheck(){
+     var searchText = document.getElementById("searchText");
+     if(searchText.value == ''){
+       alert("검색할 아이디를 입력해주세요!");
+       searchText.focus();
+       return false;
+     }else{
+       var link = '/sm_review/search/'+searchText.value;
+       location.href = link;
+     }
+   }
+  </script>
+
+  <div class="container" style="height:480px;">
+    <h2 style="margin-left:3%;"><img src="/img/online-shop.png" width="37" style="margin-left:5%;" />
+      <strong> 후기 게시판 </strong></h2>
+    <small style="margin-left:10%;">사용자들의 후기를 확인해보세요 :)</small>
+    <hr/>
+      <div class="row" style="width:94%; margin-left:3%;">
+
+
+          <div class="col-xs-12 col-md-6 col-md-offset-3">
+          <form id="form" name="form" class="input-group" method="get">
+            <div class="input-group-btn">
+              <select class="btn btn-default selectpicker" id="category" name="category" style="height: 34px;">
+                <option value="id">ID</option>
+              </select>
+            </div>
+            <input type="text" id="searchText" name="searchText" class="form-control" placeholder="아이디를 검색하세요.." />
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button" onclick="submitCheck();">
+                <span class="glyphicon glyphicon-search"></span>
+              </button>
+            </span>
+          </form>
+        </div>
+
+        <div class="col-xs-12 col-md-10 col-md-offset-1">
+          <br/>
+        <table class="table table-hover table-striped">
+          <thead class="text-center">
+            <tr style="border-bottom:1px solid black;">
+              <td style="width:15%;"><strong>No.</strong></td>
+              <td><strong>후기</strong></td>
+            </tr>
+          </thead>
+          <tbody>
+            <% if(notExist != 1){ %>
+            <% for(var i=0; i<results.length; i++){ %>
+            <tr>
+              <td style="text-align:center;"><%= i+1 %></td>
+              <td>
+                <label>
+                  <%= `${results[i].trader}` %>
+                </label>
+
+                  <% switch (results[i].starScore) {
+                    case 1: %> <label class="star">★</label><label class="not">★★★★</label>
+                            <% break;
+                    case 2: %> <label class="star">★★</label><label class="not">★★★</label>
+                            <% break;
+                    case 3: %> <label class="star">★★★</label><label class="not">★★</label>
+                            <% break;
+                    case 4: %> <label class="star">★★★★</label><label class="not">★</label>
+                            <% break;
+                    case 5: %> <label class="star">★★★★★</label>
+                            <% break;
+                  } %>
+                  <br/>
+                  <% if(results[i].review != null){ %>
+                    <%= `${results[i].review}` %><br/>
+                  <% } %>
+                  <small style="color:grey;"><%= `${results[i].date}` %></small><br/>
+                  <label style="float:right;font-weight:normal;">
+                    by : <%= `${results[i].username}` %>
+                  </label>
+
+              </td>
+            </tr>
+            <% }} %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <hr>
+  <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+<!-- Footer -->
+
+<% include ./sm_footer %>
+</html>

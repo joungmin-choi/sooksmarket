@@ -79,7 +79,9 @@
               <tr>
                 <td>판매자 ID : </td>
                 <td>
-                  <%= seller %>
+                  <a href="/sm_review/search/<%= seller %>" title="후기 보기" style="">
+                    <%= seller %>
+                  </a>
                   <% if(avgRating != 0){
                       if(avgRating >= 4.7){ %>
                         <br/><label class="star">★★★★★</label>
