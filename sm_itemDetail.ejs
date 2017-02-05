@@ -13,6 +13,7 @@
             }
         </style>
         <script>
+        var deleteBtnFlag=0;
             $(document).ready(function() {
                 $('._edit').hide();
                 $('.re').hide();
@@ -25,7 +26,34 @@
                   $('.' + id).removeAttr("disabled");
                   $('#_'+id).show();
                   });
+
+                $('#button_buy').click(function(){
+                  $('#button_buy').removeAttr("disabled");
+                  $('#button_reserver').attr("disabled",true);
+                });
+
+                if(deleteBtnFlag == 1){
+                  $('#button_delete').removeAttr("disabled");
+                }
             });
+
+            function reserve(){
+              if(`${<%= reserve_ordernumber %>}`){
+              var reserve_count = `${<%= reserve_ordernumber %>}`;
+              alert(" 당신은 "+reserve_count+"번째 대기자 입니다 :)");
+              location.href='/sm_request/<%= id %>/reserve';
+            } else {
+              alert("현재 대기자가 없습니다.");
+            }
+          };
+
+          function buy(){
+            deleteBtnFlag=1;
+            location.href='/sm_request/<%= id %>';
+          }
+
+
+
         </script>
 
 </head>
@@ -87,7 +115,6 @@
                     <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
                     <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
                   <% } %>
-
                 </td>
                 </tr>
                 <tr>
@@ -99,12 +126,13 @@
 
             <button type="button" class="btn btn-default">스크랩</button>
             <% if (session_id != seller){ %>
-              <button type="button" class="btn btn-primary" onclick="location.href='/sm_request/<%= id %>'">구매하기</button>
+              <button id="button_buy" type="button" class="btn btn-primary" onclick="buy();'">구매하기</button>
+              <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기</button>
             <% } %>
 
             <% if (session_id == seller){ %>
               <button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>
-              <button type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+              <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
               <button type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
             <% } %>
 
@@ -139,7 +167,6 @@
                           </form>
                             <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
                             <button class="edit" id="edit<%=i %>">수정</button>
-
                         <% } %>
                             <button class=reply id=reply<%=i %> >답글</button>
                             <div id=reply_element class=re>
@@ -170,27 +197,12 @@
                               </form>
                               <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
                               <button class="edit" id="edit<%=i %>">수정</button>
-
                             <% } %>
 
                       </div>
                   </div>
             <%  }
               } %>
-
-                    <!-- Comment -->
-                    <!-- <div class="media">
-          <a class="pull-left" href="#">
-            <img class="media-object" src="http://placehold.it/64x64" alt="">
-          </a>
-          <div class="media-body">
-            <h4 class="media-heading">Start Bootstrap
-              <small>August 25, 2014 at 9:30 PM</small>
-            </h4>Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-          </div>
-        </div> -->
-
-
 
                     <!-- Footer -->
                     <% include ./sm_footer %>

@@ -277,6 +277,9 @@ app.post('/sm_main/:id', function(req,res){
       client.query(sql, [loginId[1], scrapName, photo, seller, p_id, req.params.id], function() {
           res.redirect('/');
       });
+
+
+
     });
 
   }else if(scrapImg === "☆"){
@@ -502,6 +505,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var detail_photo = [];
     var detail_id = request.params.id; //console.log(request.params.id);  // 1
     var comments = [];
+    var reserve_count;
+    var sql;
 
     async.series([
             // 1st
@@ -530,13 +535,25 @@ app.get('/sm_itemDetail/:id', function(request, response) {
 
             function(callback) {
                 console.log(':', detail_id);
-                var sql = 'SELECT * FROM comments WHERE product_id=? ORDER BY parent_id DESC,  child_id ASC';
+                sql = 'SELECT * FROM comments WHERE product_id=? ORDER BY parent_id DESC,  child_id ASC';
                 client.query(sql, detail_id, function(err, rows, fields) {
                     console.log('결과물입니다:', rows);
                     comments = rows;
                     callback(null);
                 });
-            }
+            },
+
+            function(callback){
+              sql='SELECT reserve_count FROM product_reserve WHERE product_id=?';
+              client.query(sql, [detail_id], function(err, result){
+                if(err){
+                  console.log(err);
+                } else {
+                  reserve_count=result[0].reserve_count;
+                  callback(null,0);
+                }
+              });
+            },
         ],
 
         // callback (final)
@@ -551,7 +568,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 detail: detail_detail,
                 seller: detail_seller,
                 date: detail_date,
-                photo: detail_photo
+                photo: detail_photo,
+                reserve_ordernumber: reserve_count
             });
             //response.send(rows);
         });
@@ -567,6 +585,17 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     var way = body.way;
     var category = body.category;
     var detail = body.detail;
+    var productId;
+    var imageFile = request.files.file;
+    var length = request.files.file.length;
+
+    var name = new Array();
+    var path = new Array();
+    var type = new Array();
+    var outputPath = new Array();
+
+    var tasks = [
+        function(callback) {
 
     if (way == '직거래') {
         value = 1;
@@ -582,13 +611,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     }
 
     // 파일이 업로드되면 files 속성이 전달됨
-    var imageFile = request.files.file;
-    var length = request.files.file.length;
 
-    var name = new Array();
-    var path = new Array();
-    var type = new Array();
-    var outputPath = new Array();
 
     if (!(length > 0) && (request.files.file.size === 0)) { // 파일 0개
         outputPath[0] = "";
@@ -627,7 +650,6 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
         }
     }
 
-    var productId;
     client.query('SELECT * FROM ProductInfo', function(err, result) {
         var length = result.length;
         if (length === 0) {
@@ -637,17 +659,38 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
             productId = (result[length - 1].product_id) + 1;
             console.log(productId);
         }
+        callback(null,1);
     });
     console.log(outputPath);
-    var time = getTimeStamp();
-    client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time], function() {
-        response.redirect('/');
-    });
+},
+function(callback){
+  var reserver={
+    flag : 0,
+    product_id : productId,
+    reserve_count : 1
+  };
+  var reserveSql='INSERT INTO product_reserve SET ?';
+  client.query(reserveSql,reserver,function(err,result){
+    if(err){
+      console.log(err);
+    }
+    callback(null,2);
+  });
+},
+function(callback){
+  var time = getTimeStamp();
+  client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time], function() {
+      response.redirect('/');
+      callback(null,3);
+  });
+}
+];
+async.series(tasks, function(err, results) {});
 });
 
 
 app.get('/sm_request/:id', function(request, response) {
-    var product_id, product_way;
+    var product_id, product_way, reserve_count;
     var tasks = [
         function(callback) {
             product_id = request.params.id;
@@ -657,6 +700,7 @@ app.get('/sm_request/:id', function(request, response) {
                 callback(null, product_way);
             });
         },
+
         function(callback) {
             var context = {
                 id: product_id,
@@ -1532,6 +1576,10 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
         msg += str[i];
       }
 
+
+
+
+
       var m = moment();
       var data = {
         msg_id : loginId[1],
@@ -1843,4 +1891,36 @@ app.get('/sm_suggestDetail/:num', function(req, res){
 
 app.get('/sm_tradeState', function(req, res){
   res.render('sm_tradeState.ejs');
+});
+
+app.get('/sm_request/:id/reserve',function(req,res){
+  var product_id = req.params.id;
+  var reserve_count;
+  var sql;
+    var tasks = [
+        function(callback){
+          sql='SELECT reserve_count FROM product_reserve WHERE product_id=?';
+          client.query(sql, [product_id], function(err, result){
+            if(err){
+              console.log(err);
+            } else {
+              reserve_count=result[0].reserve_count+1;
+              callback(null,0);
+            }
+          });
+        },
+        function(callback) {
+          sql='UPDATE product_reserve SET reserve_count=? WHERE product_id=?';
+          client.query(sql, [reserve_count ,product_id], function(err, rows,fields){
+            if(err){
+              console.log(err);
+            } else {
+              var link = '/sm_itemDetail/'+product_id;
+              res.redirect(link);
+              callback(null,1);
+            }
+          });
+        }
+      ];
+      async.series(tasks, function(err, results) {});
 });

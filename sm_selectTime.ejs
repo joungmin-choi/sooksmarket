@@ -19,6 +19,8 @@
 
     <!-- Custom styles for this template -->
     <link href="/css/round.css" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 
     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script src="/bootstrap-3.3.2-dist/js/bootstrap.min.js"></script>
@@ -133,7 +135,6 @@
             }
           }
         }
-
       }
 
       if(isTimeChecked == 0){
@@ -163,6 +164,8 @@
         alert("거래 방법을 하나만 선택해주세요!");
         return false;
       }
+
+      socket.emit('chat message', 22);
 
       form.submit();
       return true;
