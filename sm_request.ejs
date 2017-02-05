@@ -214,7 +214,7 @@
                 dayDivStr[i] = new Array();
             }
 
-            dayDivStr[0][0] = dayAdditionCount+"<div class='form-group'><button type='button' class='btn btn-danger' onclick='deleteDate(" + dayAdditionCount +
+            dayDivStr[0][0] = "<div class='form-group'><button type='button' class='btn btn-danger' onclick='deleteDate(" + dayAdditionCount +
                 ");' style='float:right;'>삭제</button><br/><br/><br/><label class='col-xs-3 control-label text-center'>● 날짜 : </label>";
             dayDivStr[0][1] = "<div class='col-xs-7'><div class='input-group date' id='datepicker" + dayAdditionCount + "' onclick='setDate(" + dayAdditionCount + ");'>  ";
             dayDivStr[0][2] = "<input type='text' class='form-control' name='dateText" + dayAdditionCount + "' id='dateText" + dayAdditionCount + "' />";

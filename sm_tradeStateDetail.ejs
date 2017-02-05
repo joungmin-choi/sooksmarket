@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+
+<head>
+  <% include ./sm_head %>
+  <style>
+    .detail{
+      background-color: #f2ffcc;
+    }
+
+    .input{
+      background-color: #efeff5;
+    }
+  </style>
+
+</head>
+
+<body>
+  <!-- 네이게이션 상단 부분 -->
+  <% include ./sm_top_navigator %>
+  <script>
+
+  </script>
+
+  <div class="container">
+    <h3 style="text-align:center;"><strong> 거래 세부 사항 </strong></h3>
+    <hr />
+      <div class="row">
+        <div class="col-xs-12 col-md-6 col-md-offset-3" style="border:1px solid white;">
+
+        <table class="table">
+          <thead class="text-center">
+            <tr>
+              <td class="detail" style="width:30%; border:3px solid white;"><strong>물품</strong></td>
+              <td class="input" style="border:3px solid white;" colspan="2"><%= `${results[0].product_name}` %></td>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            <tr>
+              <% if(id == results[0].seller){ %>
+                <td class="detail" style="width:30%;border:3px solid white;"><strong>구매자 ID</strong></td>
+                <td class="input" style="width:40%; "><%= `${results[0].customer}` %></td>
+              <% }else{ %>
+                <td class="detail" style="width:30%;border:3px solid white;"><strong>판매자 ID</strong></td>
+                <td class="input" style="width:40%; "><%= `${results[0].seller}` %></td>
+              <% } %>
+              <td class="input" style="">
+                <button type="button" class="btn btn-success" style="font-size:10px;" onclick="location.href='/sm_chat/<%= `${results[0].product_id}` %>'">채팅하기</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="detail" style="width:30%; border:3px solid white;"><strong>가격</strong></td>
+              <td class="input" style="border:3px solid white;" colspan="2"><%= `${results[0].product_price}` %></td>
+            </tr>
+          </tbody>
+        </table>
+        <div id="finalTradeInfo">
+        </div>
+        <div style="border:1px solid black;">
+        </div>
+      </div>
+      </div>
+
+  </div>
+
+</body>
+</html>
