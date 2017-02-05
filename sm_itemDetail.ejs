@@ -35,6 +35,10 @@
                 if(deleteBtnFlag == 1){
                   $('#button_delete').removeAttr("disabled");
                 }
+
+                if(`${<%= delete_btn %>}`== 0){
+                  $('#button_delete').attr("disabled",true);
+                }
             });
 
             function reserve(){
@@ -48,7 +52,6 @@
           };
 
           function buy(){
-            deleteBtnFlag=1;
             location.href='/sm_request/<%= id %>';
           }
 
@@ -127,7 +130,7 @@
             <center>
             <button type="button" class="btn btn-default">스크랩</button>
             <% if (session_id != seller){ %>
-              <button id="button_buy" type="button" class="btn btn-primary" onclick="buy();'">구매하기</button>
+              <button id="button_buy" type="button" class="btn btn-primary" onclick="location.href='/sm_request/<%= id %>'">구매하기</button>
               <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기</button>
             <% } %>
 

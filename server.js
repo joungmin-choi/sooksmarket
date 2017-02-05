@@ -469,6 +469,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var comments = [];
     var reserve_count;
     var sql;
+    var btn_delete;
 
     if(loginId[1] == undefined){
       response.redirect('/');
@@ -518,6 +519,18 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 }
               });
             },
+
+            function(callback){
+              sql='SELECT delete_btn FROM btn_state WHERE product_id=?';
+              client.query(sql,[detail_id],function(err,result){
+                if(err){
+                  console.log(err);
+                } else {
+                  btn_delete=result[0].delete_btn;
+                  callback(null,0);
+                }
+              });
+            }
         ],
 
         // callback (final)
@@ -533,7 +546,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 seller: detail_seller,
                 date: detail_date,
                 photo: detail_photo,
-                reserve_ordernumber: reserve_count
+                reserve_ordernumber: reserve_count,
+                delete_btn : btn_delete
             });
             //response.send(rows);
         });
@@ -559,7 +573,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     var outputPath = new Array();
 
     var tasks = [
-        function(callback) {
+    function(callback) {
 
     if (way == '직거래') {
         value = 1;
@@ -642,10 +656,23 @@ function(callback){
   });
 },
 function(callback){
+  var state={
+    product_id : productId,
+    delete_btn : 1
+  };
+  var stateSql='INSERT INTO btn_state SET ?';
+  client.query(stateSql,state,function(err,result){
+    if(err){
+      console.log(err);
+    }
+    callback(null,3);
+  });
+},
+function(callback){
   var time = getTimeStamp();
   client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time], function() {
       response.redirect('/');
-      callback(null,3);
+      callback(null,4);
   });
 }
 ];
@@ -663,6 +690,16 @@ app.get('/sm_request/:id', function(request, response) {
                 product_way = result[0].product_way;
                 callback(null, product_way);
             });
+        },
+
+        function(callback){
+          var updatestateSql = 'UPDATE btn_state SET delete_btn=0 WHERE product_id=?';
+          client.query(updatestateSql, [product_id],function(err,result){
+            if (err) {
+                console.log(err);
+            }
+            callback(null);
+          });
         },
 
         function(callback) {
@@ -2275,4 +2312,20 @@ app.get('/sm_request/:id/reserve',function(req,res){
         }
       ];
       async.series(tasks, function(err, results) {});
+});
+
+app.get('/sm_request/:id/cancel',function(req,res){
+  var product_id = req.params.id;
+    var tasks = [
+      function(callback){
+        var updatestateSql = 'UPDATE btn_state SET delete_btn=1 WHERE product_id=?';
+        client.query(updatestateSql, [product_id],function(err,result){
+          if (err) {
+              console.log(err);
+          }
+          callback(null);
+        });
+      }
+    ];
+    async.series(tasks, function(err, results) {});
 });
