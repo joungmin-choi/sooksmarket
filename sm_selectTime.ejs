@@ -165,9 +165,7 @@
       }
 
       var socket = io();
-      alert('chat message를 클라이언트에서 보냄');
       socket.emit('chat message', 22);
-      alert("1");
 
       form.submit();
       return true;

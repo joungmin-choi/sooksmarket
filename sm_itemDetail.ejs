@@ -15,11 +15,14 @@
             .star{
               font-size: 15px;
               color: #ffa500;
+              font-family: arial;
             }
 
             .not{
               font-size: :15px;
               color: #cccccc;
+              font-family: arial;
+            }
 
             #area{
               height: 80px;
@@ -184,7 +187,7 @@
 
 
             <% if (session_id == seller){ %>
-              <button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>
+              <!--<button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>-->
               <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
               <button type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
             <% } %>
