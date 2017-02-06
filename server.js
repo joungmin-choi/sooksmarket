@@ -766,7 +766,7 @@ function(callback){
     flag : 0,
     product_id : productId,
     session_id : null,
-    reserve_count : 1
+    reserve_count : 0
   };
   var reserveSql='INSERT INTO product_reserve SET ?';
   client.query(reserveSql,reserver,function(err,result){

@@ -56,7 +56,7 @@
                     $('#button_delete').attr("disabled",true);
                     $('#button_buy').attr("disabled",true);
                   } else {
-                     //$('#button_reserve').attr("disabled",true);
+                     $('#button_reserve').attr("disabled",true);
                   }
             });
 
@@ -80,8 +80,6 @@
                 location.href='/sm_request/<%= id %>/reserve/<%= session_id%>';
               }
           };
-
-
 
 
 
@@ -249,12 +247,12 @@
                           <h4 class="media-heading"><%= rows[i].session_id %>
                           <small><%= rows[i].comment_date %></small>
                           </h4>
-                          <textarea name="comment" class="edit<%=i %>" disabled><%= rows[i].comment_detail  %></textarea>
+                          <textarea name="comment" class="edit<%=i %> form-control" disabled><%= rows[i].comment_detail  %></textarea>
                           <% if(rows[i].session_id === session_id ) { %>
-                            <button class="_edit" id="_edit<%=i %>" type="submit">수정 완료</button>
+                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" type="submit">수정 완료</button>
                               </form>
                               <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
-                              <button class="edit" id="edit<%=i %>">수정</button>
+                              <button class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
                             <% } %>
 
                       </div>
