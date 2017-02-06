@@ -25,6 +25,7 @@
     <script src="/bootstrap-3.3.2-dist/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.2/moment-with-locales.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.44/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script type="text/javascript" src="/node_modules/moment/moment.js"></script>
     <script type="text/javascript" src="/node_modules/moment/locale/ko.js"></script>
 
@@ -438,6 +439,12 @@
                 }
                 <% } %>
             }
+
+            var socket = io();
+            var str = "소켓 테스트";
+            alert('chat message를 클라이언트에서 보냄');
+            socket.emit('chat message', "a");
+            alert("1");
 
             form.submit();
             return true;

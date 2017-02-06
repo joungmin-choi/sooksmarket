@@ -21,7 +21,6 @@
     <link href="/css/round.css" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-
     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script src="/bootstrap-3.3.2-dist/js/bootstrap.min.js"></script>
 
@@ -165,7 +164,10 @@
         return false;
       }
 
+      var socket = io();
+      alert('chat message를 클라이언트에서 보냄');
       socket.emit('chat message', 22);
+      alert("1");
 
       form.submit();
       return true;

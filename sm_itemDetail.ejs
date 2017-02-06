@@ -11,6 +11,20 @@
             input[type="checkbox"][disabled] {
                 cursor: context-menu;
             }
+            #area{
+              height: 80px;
+              margin-bottom: 2%;
+              background-color: aliceblue;
+            }
+
+            ._edit{
+              margin-bottom: 1%;
+            }
+
+            .btn-warning{
+              background-color: mediumblue;
+              border-color: mediumblue;
+            }
         </style>
         <script>
 
@@ -36,16 +50,16 @@
             });
 
             function reserve(){
-              var session_id = `<%= session_id %>`;
-              var reserveMember = `<%= reserveMember %>`;
-              var reserveMember_length= `<%= reserveMember.length %>`;
               var flag=0;
-
-              for (i=0; i < reserveMember_length; i++){
-                if(session_id == `<%= reserveMember[i].session_id %>`){
-                  flag=1;
-                }
-              }
+              var session_id = `<%= session_id %>`;
+              var reserveMembers = new Array();
+              <% for(var i=0; i<reserveMember.length; i++){ %>
+                <% if(session_id == reserveMember[i].session_id){ %>
+                    flag =1;
+                  <% } %>
+              <% } %>
+              // reserveMembers = `<%= reserveMember %>`;
+              // var reserveMember_length= `<%= reserveMember.length %>`;
 
               if(flag == 1){
                 alert("당신은 이미 대기상태 입니다")
@@ -150,13 +164,13 @@
 
             <hr>
 
-            <div class="write_comment">
-                <h5>댓글을 남겨주세요:)</h5>
-                <form action='/sm_itemDetail/<%= id %>/comments' method='post' role="form">
+            <div class="">
+                <h5>상품 후기를 남겨주세요 :)</h5>
+                <form class="" action='/sm_itemDetail/<%= id %>/comments' method='post' role="form">
                     <div class="form-group">
                         <textarea class="form-control" rows="3" name="comment_detail"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+                    <button type="submit" class="btn btn-warning btn-sm">보내기</button>
                 </form>
             </div>
 
@@ -169,21 +183,21 @@
                         <h4 class="media-heading"><%= rows[i].session_id %>
                         <small><%= rows[i].comment_date %></small>
                         </h4>
-                      <textarea name="comment" class="edit<%=i %>" disabled><%= rows[i].comment_detail  %></textarea>
+                      <textarea id="area" name="comment" class="edit<%=i %> form-control" disabled><%= rows[i].comment_detail  %></textarea>
                         <% if(rows[i].session_id === session_id ) { %>
-                            <button class="_edit" id="_edit<%=i %>" >수정 완료</button>
+                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" >수정 완료</button>
                           </form>
                             <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
-                            <button class="edit" id="edit<%=i %>">수정</button>
+                            <button class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
                         <% } %>
-                            <button class=reply id=reply<%=i %> >답글</button>
-                            <div id=reply_element class=re>
+                            <button class="reply btn btn-warning btn-xs" id=reply<%=i %> >답글</button>
+                            <div id=reply_element class="re">
                                 <h5>댓글을 남겨주세요:)</h5>
                                 <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply' method='post' role="form">
                                     <div class="form-group">
                                         <textarea class="form-control" rows="3" name="each_comment_detail"></textarea>
                                     </div>
-                                    <button type="submit" class="btn btn-default btn-xs">보내기</button>
+                                    <button type="submit" class="btn btn-default btn-sm">보내기</button>
                                 </form>
                             </div>
                     </div>
@@ -211,7 +225,6 @@
                   </div>
             <%  }
               } %>
-
                     <!-- Footer -->
                     <% include ./sm_footer %>
 
