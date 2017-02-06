@@ -42,6 +42,7 @@
       alert('최대 3개까지 가능합니다.');
       document.getElementById('file').value = "";
     }
+    document.getElementById("hidden").value = "1";
   }
 
   function change(){
@@ -55,6 +56,7 @@
       var fileDIV = document.getElementById("fileDIV");
       fileDIV.style.display = "block";
     }
+    document.getElementById("hidden").value = "2";
   }
   </script>
 
@@ -104,6 +106,7 @@
             </div>
 
             <div class="col-sm-5 text-center">
+              <input type="hidden" name="hidden" id="hidden" value="0" />
               <div class="thumbnail" id="imgDIV" style="padding-bottom:5%">
                 <% for (i=0; i< photo.length; i++){ %>
                   <div id="div<%= i %>" >
@@ -147,7 +150,7 @@
           <div class="form-group"> <!--has-success has-feedback-->
             <div class="text-center">
               <input type="submit" value="등록하기" class="btn btn-primary" onclick="location.href='/sm_changeDetail/<%= id %>'" >
-              <input type="reset" value="취소하기" class="btn btn-danger" >
+              <input type="reset" value="취소하기" class="btn btn-danger" onclick="location.href='/sm_itemDetail/<%= id %>'">
             </div>
           </div>
 
