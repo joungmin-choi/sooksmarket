@@ -3,40 +3,12 @@
 <head>
   <% include ./sm_head %>
 
-  <style>
-  .thumbnail button{
-    margin: 2%;
-  }
-  .filebox label {
-    margin:-1%;
-   }
- .filebox input[type="file"] { /* 파일 필드 숨기기 */
-    position: absolute;
-    clip:rect(0,0,0,0);
- }
-  </style>
-
   <script>
-  var flag = 0; // 하나도 업로드를 안하면 0, 그렇지 않으면 1
-  var changeFile = new Array();  // 변경하면 1, 아니면 0
-  var counter = <%= photo.length %>;
-  var add = 0;
-  var photoState = new Array();
-
-  window.onload = function(){
-    <% for(var i=0; i<3; i++){ %>
-      photoState[i] = <%= photoState[i] %>;
-    <% } %>
-  }
-
-
-
   function submitCheck(){
     var target = document.getElementById("target");
     var price = document.getElementById("price");
     var form = document.getElementById("form");
     var way = document.getElementsByName("way");
-
     if(target.value==""){
       alert("상품명을 입력하세요.");
       return false;
@@ -54,146 +26,36 @@
       return false;
     }
     else{
-      for(i=0; i< 3; i++){
-        var hidden = document.getElementById("hidden"+i);
-        hidden.value = changeFile[i];
-      }
-
       form.submit();
       return true;
-
     }
-
   }
 
   $(document).ready(function(){
     $("#category").val("<%= `${category}` %>").attr("selected", "selected");
 
-
-    for(i=0; i< 3; i++){
-      changeFile[i] = 0;
-    }
   });
 
-
-
-  function previewFiles(i) {
-
-    var preview = document.querySelector('#preview'+i);
-    var files   = document.querySelector('#file'+i).files;
-
-    function readAndPreview(file) {
-
-      // `file.name` 형태의 확장자 규칙에 주의하세요
-      if ( /\.(jpe?g|png|gif)$/i.test(file.name) ) {
-        var reader = new FileReader();
-
-        reader.addEventListener("load", function () {
-          var imgId="img" + i;
-          var imgObject = document.getElementById(imgId);
-
-          var image = new Image();
-          image.className = "img-responsive img-center img-thumbnail img";
-          image.id = imgId;
-          image.height = 100;
-          image.title = file.name;
-          image.src = this.result;
-          image.style = "height:180px; width: 300px; margin-top:2%";
-
-          preview.removeChild( imgObject );
-          preview.appendChild( image );
-
-          changeFile[i] = 1;
-
-        }, false);
-
-        reader.readAsDataURL(file);
-      }
-
+  function Upload(target) {
+    var files = target.files;
+    if(files.length>3){
+      alert('최대 3개까지 가능합니다.');
+      document.getElementById('file').value = "";
     }
-
-    if (files) {
-      [].forEach.call(files, readAndPreview);
-    }
-
-  };
-
-  var deleteThum = function(i) {
-    var thum = document.getElementById("div"+i);
-
-    // var thum = document.getElementById("div"+i);
-    // while (thum.firstChild) {
-    //   thum.removeChild(thum.firstChild);
-    // }
-    // counter--;
-
-  };
-
-function countNum(){
-  if (counter >= 3){
-    alert("최대 3개의 이미지를 추가하실 수 있습니다.");
-    event.stopPropagation();
-    event.returnValue = false;
   }
-}
 
-  function addImg() {
+  function change(){
+    if (confirm("확인 버튼을 누르시면 저장된 이미지가 삭제됩니다.\n그래도 진행하시겠습니까?") == true) {
+      var changeBtn = document.getElementById("changeBtn");
+      changeBtn.style.display = "none";
 
-      var preview = document.querySelector('#preview'+counter);
-      var files   = document.querySelector('#add').files;
+      var imgDIV = document.getElementById("imgDIV");
+      imgDIV.style.display = "none";
 
-      function readAndPreview(file) {
-        var divId = document.getElementById("div"+counter);
-        divId.style.display = 'block';
-
-        // `file.name` 형태의 확장자 규칙에 주의하세요
-        if ( /\.(jpe?g|png|gif)$/i.test(file.name) ) {
-          var reader = new FileReader();
-
-          reader.addEventListener("load", function () {
-            var imgId="img" + counter;
-            var imgObject = document.getElementById(imgId);
-
-            var image = new Image();
-            image.className = "img-responsive img-center img-thumbnail img";
-            image.id = imgId;
-            image.height = 100;
-            image.title = file.name;
-            image.src = this.result;
-            image.style = "height:180px; width: 300px; margin-top:2%";
-
-            preview.removeChild( imgObject );
-            preview.appendChild( image );
-
-            changeFile[counter]=1;
-            photoState[counter] = 1;
-            counter++;
-
-          }, false);
-
-          reader.readAsDataURL(file);
-        }
-
-      }
-
-      if (files) {
-        [].forEach.call(files, readAndPreview);
-      }
-  };
-
-
-
-  // function changeFile(i){
-  //   var imgId="img" + i;
-  //   var imgObject = document.getElementById(imgId);
-  //   var img_src = $(imgObject).attr("src");
-  //
-  //   <input type="file" name="myfile"/>
-  //   //$.post("/changeFile", {img_src: img_src});
-  //
-  //   //alert($(element).attr("src"));
-  // }
-
+      var fileDIV = document.getElementById("fileDIV");
+      fileDIV.style.display = "block";
+    }
+  }
   </script>
 
 
@@ -230,15 +92,8 @@ function countNum(){
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">카테고리 :</label>
             <div class="col-sm-5">
-              <select class="form-control" id="category" name="category" style="cursor:context-menu;" onclick="category()">
-                <option value="옷">옷</option>
-                <option value="화장품">화장품</option>
-                <option value="책">책</option>
-                <option value="전자기기">전자기기</option>
-                <option value="음식">음식</option>
-                <option value="필기류">필기류</option>
-                <option value="티켓 양도">티켓 양도</option>
-                <option value="기타">기타</option>
+              <select class="form-control" id="category" name="category" disabled="true" style="cursor:context-menu;">
+                <option><%= category %></option>
               </select>
             </div>
           </div>
@@ -246,60 +101,25 @@ function countNum(){
 
             <div class="col-sm-3 control-label">
               <label for="" class="control-label">사진 :</label>
-              <p>
-                <button type="button" class="filebox btn btn-default btn-primary" onclick="countNum()">
-                  <label for="add">+</label>
-                  <input type="file" id="add" name="add" accept="image/*" capture="photo" onchange="addImg()">
-
-                </button>
-              </p>
             </div>
 
             <div class="col-sm-5 text-center">
-              <div class="thumbnail">
+              <div class="thumbnail" id="imgDIV" style="padding-bottom:5%">
                 <% for (i=0; i< photo.length; i++){ %>
-                  <div id="div<%= i %>">
-                    <input type="hidden" name="hidden<%= i %>" id="hidden<%= i %>" value="" />
-
+                  <div id="div<%= i %>" >
                     <div id="preview<%= i %>">
                       <img class="img-responsive img-center img-thumbnail img" name="img<%= i %>" id="img<%= i %>" src="<%= photo[i]%>" alt="x" style="height:180px; width: 300px; margin-top:2%"/>
                     </div>
-
-                    <button type="button" class="filebox btn btn-default btn-warning">  <!-- onclick="changeFile(<%= i %>)" -->
-                      <label for="file<%= i %>">변경</label>
-                      <input type="file" id="file<%= i %>" name="file" accept="image/*" capture="photo" onchange="previewFiles(<%= i %>)"> <!-- onchange="change(<%= i %>, this)" -->
-                    </button>
-
-                    <button type="button" class="btn btn-default" onclick="deleteThum(<%= i %>)">삭제</button>
-                  </div>
-
-                  <!-- <button type="button" class="btn btn-default btn-warning" onclick="location.href='/sm_changeDetail/sm_changeFile">변경</button>
-                  <button type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/sm_deleteFile">삭제</button> -->
-
-                <% } %>
-                <% for (i=photo.length; i< 3; i++){ %>
-                  <div id="div<%= i %>" style="display:none;">
-                    <input type="hidden" name="hidden<%= i %>" id="hidden<%= i %>" value="" />
-
-                    <div id="preview<%= i %>">
-                      <img class="img-responsive img-center img-thumbnail img" name="img<%= i %>" id="img<%= i %>" src="" alt="x" style="height:180px; width: 300px; margin-top:2%"/>
-                    </div>
-
-                    <button type="button" class="filebox btn btn-default btn-warning">  <!-- onclick="changeFile(<%= i %>)" -->
-                      <label for="file<%= i %>">변경</label>
-                      <input type="file" id="file<%= i %>" name="file" accept="image/*" capture="photo" onchange="previewFiles(<%= i %>)"> <!-- onchange="change(<%= i %>, this)" -->
-                    </button>
-
-                    <button type="button" class="btn btn-default" onclick="deleteThum(<%= i %>)">삭제</button>
                   </div>
                 <% } %>
+              </div>
 
+              <button type="button" class="btn btn-primary" id="changeBtn" onclick="change()">사진 수정</button>
+
+              <div id="fileDIV" style="display:none;">
+                <input type="file" id="file" class="form-control" name="file"  accept="image/*" capture="photo"  multiple="true" onChange="Upload(this)";>
               </div>
             </div>
-
-
-
-              <!-- <input type="file" id="file" class="form-control" name="file"  accept="image/*" capture="photo"  multiple="true" onChange="Upload(this)";> -->
 
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
@@ -326,8 +146,8 @@ function countNum(){
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
             <div class="text-center">
-                <input type="submit" value="등록하기" class="btn btn-primary" onclick="location.href='/sm_changeDetail/<%= id %>'" >
-                <input type="reset" value="취소하기" class="btn btn-danger" >
+              <input type="submit" value="등록하기" class="btn btn-primary" onclick="location.href='/sm_changeDetail/<%= id %>'" >
+              <input type="reset" value="취소하기" class="btn btn-danger" >
             </div>
           </div>
 

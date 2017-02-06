@@ -104,6 +104,8 @@
               <td class="input" style="">
               <% if(results[0].state != 4){ %>
                 <button type="button" class="btn btn-success" style="font-size:10px;" onclick="location.href='/sm_chat/<%= `${results[0].product_id}` %>'">채팅하기</button>
+              <% }else{ %>
+                <button type="button" class="btn btn-success" style="font-size:10px;" onclick="location.href='/sm_chat/<%= `${results[0].product_id}` %>'" disabled>채팅하기</button>
               <% } %>
               </td>
             </tr>

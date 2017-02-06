@@ -27,6 +27,7 @@
   function cancel(){
     var comment = document.getElementById("comment");
     comment.value = "";
+    location.href='/sm_main';
   }
   </script>
 
@@ -37,26 +38,21 @@
 
 
     <div class="container">
-        <p class="lead"><strong>신고하기</strong></p>
         <!-- 본문 1-->
-        <div class="row">
-            <div class="col-md-3">
-                <div class="list-group">
-                    <a href="#" class="list-group-item">회원정보 수정</a>
-                    <a href="#" class="list-group-item">거래 상태</a>
-                    <a href="#" class="list-group-item">스크랩</a>
-                    <a href="sm_complain" class="list-group-item">신고하기</a>
-                    <a href="sm_suggest" class="list-group-item">건의하기</a> <hr>
-                </div>
-            </div>
+        <h3 style="text-align:center;"><img src="/img/mail.png" width="37" style="margin-right:5%;"/>
+          <strong> 개발자에게 건의하기 </strong>
+        <img src="/img/notepad.png" width="37" style="margin-left:5%;" /></h3>
 
-            <div class="col-md-9">
+        <hr />
+        <div class="row">
+
+            <div class="col-xs-10 col-md-6 col-md-offset-3 col-xs-offset-1">
               <form action="/sm_suggest" id="eventFrom" method="post" class="form-horizontal" onsubmit="return confirmation()">
-                <div class="form-group">
-                    <label>사용자 :</label>
-                    <input type="text" class="form-control" id="userID" name="userID" value="<%= userID %>"  style="cursor:context-menu" disabled>
+                <div class="form-group" style="text-align:center;">
+                    <label>사용자 :</label style="display:inline;">
+                    <input type="text" class="form-control" id="userID" name="userID" value="<%= userID %>"  style="cursor:context-menu; width:70%; display:inline;" disabled>
                 </div>
-                <div class="form-group" style="margin-top:5%">
+                <div class="form-group" style="text-align:center;"><br/>
                     <label>건의할 사항을 편하게 적어주세요!</label></label>
                 </div>
                 <div class="form-group">
@@ -65,7 +61,7 @@
                 </div>
                 <center>
                   <button type="submit" class="btn btn-warning" style="margin-right:2%">제출하기 </button>
-                  <button type="button" class="btn btn-default" onclick="cancel()">취소</button>
+                  <button type="button" class="btn btn-default" onclick="cancel();">취소</button>
                 </center>
               </form>
             </div>

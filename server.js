@@ -1350,17 +1350,15 @@ app.get('/sm_changeDetail/:id', function(request, response) {
                     before_category = object.product_category;
 
                     before_photo = [];
-                    if(object.photo1 !== ""){
+
+                    if(object.photo1 != ""){
                       before_photo.push((object.photo1).substring(1));
-                      photoState[0] = 0;
                     }
-                    if(object.photo2 !== ""){
+                    if(object.photo2 != ""){
                       before_photo.push((object.photo2).substring(1));
-                      photoState[1] = 0;
                     }
-                    if(object.photo3 !== ""){
+                    if(object.photo3 != ""){
                       before_photo.push((object.photo3).substring(1));
-                      photoState[2] = 0;
                     }
                     console.log(before_photo);
 
@@ -1383,7 +1381,6 @@ app.get('/sm_changeDetail/:id', function(request, response) {
             });
         });
 });
-
 
 app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response) {
     var body = request.body;
@@ -1482,6 +1479,7 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
             });
         });
 });
+
 
 app.get('/sm_enter_changeInfo', function(req, res) {
     res.render('sm_enter_changeInfo.ejs');
@@ -2245,7 +2243,7 @@ app.post('/sm_complain', function(req, res){
 app.get('/sm_complainList', function(req, res){
   var sql;
 
-  if('sy' == loginId[1]){ //관리자일 경우
+  if('admin' == loginId[1]){ //관리자일 경우
     var queryData = url.parse(req.url, true).query;
     var category = req.query.category;
     var searchText = req.query.text;
@@ -2284,7 +2282,7 @@ app.get('/sm_complainList', function(req, res){
       }
     ],
     function(err, row){
-      res.render('sm_complainList.ejs', {admin: 'sy', session: loginId[1], rows: row[0]});
+      res.render('sm_complainList.ejs', {admin: 'admin', session: loginId[1], rows: row[0]});
     });
   }
   else{  //관리자가 아니면 err 처리
@@ -2388,7 +2386,7 @@ app.get('/sm_complainOK/:id', function(req, res) {
   ],
   function(err){
     client.query('SELECT * FROM complainInfo ORDER BY auto DESC', function(err, result) {
-       res.render('sm_complainList.ejs', {admin: 'sy', session: loginId[1], rows: result});
+       res.render('sm_complainList.ejs', {admin: 'admin', session: loginId[1], rows: result});
     });
   });
 
@@ -2420,7 +2418,7 @@ app.post('/sm_suggest', function(req, res){
 });
 
 app.get('/sm_suggestList', function(req, res){
-  if('sy' == loginId[1]){ //관리자일 경우
+  if('admin' == loginId[1]){ //관리자일 경우
     client.query('SELECT * FROM suggestInfo ORDER BY auto DESC', function(err, row) {
       res.render('sm_suggestList.ejs', {rows: row});
     });
