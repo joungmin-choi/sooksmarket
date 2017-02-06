@@ -452,9 +452,9 @@
 
             var socket = io();
             var str = "소켓 테스트";
-            alert('chat message를 클라이언트에서 보냄');
+
             socket.emit('chat message', "a");
-            alert("1");
+            
 
             form.submit();
             return true;

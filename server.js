@@ -1850,22 +1850,29 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
                     } else {
                         id = result[0].maxId + 1;
                     }
-                });
-
-                data = {
-                    id: id,
-                    username: seller,
-                    product_id: product_id,
-                    haveCompletion: 1
-                };
-                sqlQuery = 'INSERT INTO CompletionInfo SET ?';
-                client.query(sqlQuery, data, function(err, result) {
-                  console.log("진입1");
                     callback(null);
                 });
             } else {
                 callback(null);
             }
+        },
+
+        function(callback){
+          if(isUpdated === 0){
+            data = {
+                id: id,
+                username: seller,
+                product_id: product_id,
+                haveCompletion: 1
+            };
+            sqlQuery = 'INSERT INTO CompletionInfo SET ?';
+            client.query(sqlQuery, data, function(err, result) {
+              console.log("진입1");
+                callback(null);
+            });
+          }else{
+            callback(null);
+          }
         },
 
         function(callback) {
@@ -2261,7 +2268,7 @@ app.post('/sm_complain', function(req, res){
 app.get('/sm_complainList', function(req, res){
   var sql;
 
-  if('admin' == loginId[1]){ //관리자일 경우
+  if('sooksmarket' == loginId[1]){ //관리자일 경우
     var queryData = url.parse(req.url, true).query;
     var category = req.query.category;
     var searchText = req.query.text;
@@ -2300,7 +2307,7 @@ app.get('/sm_complainList', function(req, res){
       }
     ],
     function(err, row){
-      res.render('sm_complainList.ejs', {admin: 'admin', session: loginId[1], rows: row[0]});
+      res.render('sm_complainList.ejs', {admin: 'sooksmarket', session: loginId[1], rows: row[0]});
     });
   }
   else{  //관리자가 아니면 err 처리
@@ -2404,7 +2411,7 @@ app.get('/sm_complainOK/:id', function(req, res) {
   ],
   function(err){
     client.query('SELECT * FROM complainInfo ORDER BY auto DESC', function(err, result) {
-       res.render('sm_complainList.ejs', {admin: 'admin', session: loginId[1], rows: result});
+       res.render('sm_complainList.ejs', {admin: 'sooksmarket', session: loginId[1], rows: result});
     });
   });
 
@@ -2436,7 +2443,7 @@ app.post('/sm_suggest', function(req, res){
 });
 
 app.get('/sm_suggestList', function(req, res){
-  if('admin' == loginId[1]){ //관리자일 경우
+  if('sooksmarket' == loginId[1]){ //관리자일 경우
     client.query('SELECT * FROM suggestInfo ORDER BY auto DESC', function(err, row) {
       res.render('sm_suggestList.ejs', {rows: row});
     });
