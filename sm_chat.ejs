@@ -129,20 +129,24 @@
                 location.href = '/sm_main';
                 return false;
             } else {
-                //alert('join [서버로 전송]');
+                alert('join [서버로 전송]');
                 socket.emit('join', {
                     'userid': users,
                     'room': product_id
                 });
 
                 $('form').submit(function() {
-                    //alert('폼 버튼 클릭되었습니다:)');
+                    alert('폼 버튼 클릭되었습니다:)');
                     socket.emit('chat message', $('#text').val());
                     $('#text').val('');
                     return false;
                 });
 
                 socket.on('first', function(data) {
+                    alert('first 클라이언트에서 받음');
+                    //alert(data.msg.length);
+                    //alert(users);
+                    //alert(data.user);
                     if (users == data.user) {
                         for (i = 0; i < data.msg.length; i++) {
                           msg_date = data.msg[i].msg_date;
@@ -161,6 +165,7 @@
                   //alert('chat message를 클라이언트에서 받음');
                   msg_date = data.date;
                   msg_date = msg_date.substring(5,16);
+                  alert('chat message를 클라이언트에서 받음');
                     if(data.user == users){
                       $('#messages').append("<li class='actual_msg' style='text-align:left; float:right; background: #FEFE7C;'><b>" + data.user + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg + "</li>");
                     }
@@ -172,7 +177,7 @@
         });
 
         window.onload = function(){
-          
+
           var trade_date = '<%= trade_date %>';
           var trade_time = '<%= trade_time %>';
           var changeTimeBtn = document.getElementById("input2");

@@ -21,7 +21,7 @@ var url = require('url');
 
 var multipartMiddleware = multipart();
 var loginId = "";
-
+var value =0;
 //DB 설정//
 var client = mysql.createConnection({
     host: '203.153.144.75',
@@ -286,6 +286,9 @@ app.post('/sm_main/:id', function(req,res){
       client.query(sql, [loginId[1], scrapName, photo, seller, p_id, date, category], function() {
           res.redirect('/');
       });
+
+
+
     });
 
   }else if(scrapImg === "☆"){
@@ -552,6 +555,12 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var comments = [];
     var sqlQuery, avgRating;
 
+    var reserve_count;
+    var sql;
+    var btn_delete;
+    var reserve_flag;
+    var reserve_member;
+
     if(loginId[1] == undefined){
       response.redirect('/');
     }
@@ -577,7 +586,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                     photo_split = (object.photo3).substring(1);
                     detail_photo.push(photo_split);
 
-                    callback(null);
+                    callback(null,1);
                 });
             },
 
@@ -599,8 +608,44 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 var sql = 'SELECT * FROM comments WHERE product_id=? ORDER BY parent_id DESC,  child_id ASC';
                 client.query(sql, detail_id, function(err, rows, fields) {
                     comments = rows;
-                    callback(null);
+                    callback(null,2);
                 });
+            },
+
+            function(callback){
+              sql='SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
+              client.query(sql, [detail_id], function(err, result){
+                if(err){
+                  console.log(err);
+                } else {
+                  reserve_flag=result[0].flag;
+                  reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
+                  callback(null);
+                }
+              });
+            },
+
+            function(callback){
+              sql='SELECT delete_btn FROM btn_state WHERE product_id=?';
+              client.query(sql,[detail_id],function(err,result){
+                if(err){
+                  console.log(err);
+                } else {
+                  btn_delete=result[0].delete_btn;
+                  callback(null,3);
+                }
+              });
+            },
+            function(callback){
+              sql='SELECT session_id FROM product_reserve WHERE product_id=?';
+              client.query(sql,[detail_id],function(err,result){
+                if(err){
+                  console.log(err);
+                } else {
+                  reserve_member=result;
+                  callback(null,4);
+                }
+              });
             }
         ],
 
@@ -617,9 +662,13 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 seller: detail_seller,
                 date: detail_date,
                 photo: detail_photo,
-                avgRating : avgRating
+                avgRating : avgRating,
+                reserve_ordernumber: reserve_count,
+                delete_btn : btn_delete,
+                reserveMember : reserve_member,
+                reserveFlag : reserve_flag
+
             });
-            //response.send(rows);
         });
     }
 });
@@ -633,6 +682,17 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     var way = body.way;
     var category = body.category;
     var detail = body.detail;
+    var productId;
+    var imageFile = request.files.file;
+    var length = request.files.file.length;
+
+    var name = new Array();
+    var path = new Array();
+    var type = new Array();
+    var outputPath = new Array();
+
+    var tasks = [
+    function(callback) {
 
     if (way == '직거래') {
         value = 1;
@@ -648,13 +708,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     }
 
     // 파일이 업로드되면 files 속성이 전달됨
-    var imageFile = request.files.file;
-    var length = request.files.file.length;
 
-    var name = new Array();
-    var path = new Array();
-    var type = new Array();
-    var outputPath = new Array();
 
     if (!(length > 0) && (request.files.file.size === 0)) { // 파일 0개
         outputPath[0] = "";
@@ -693,7 +747,6 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
         }
     }
 
-    var productId;
     client.query('SELECT * FROM ProductInfo', function(err, result) {
         var length = result.length;
         if (length === 0) {
@@ -703,17 +756,52 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
             productId = (result[length - 1].product_id) + 1;
             console.log(productId);
         }
+        callback(null,1);
     });
     console.log(outputPath);
-    var time = getTimeStamp();
-    client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time], function() {
-        response.redirect('/');
-    });
+},
+function(callback){
+  var reserver={
+    flag : 0,
+    product_id : productId,
+    session_id : NULL,
+    reserve_count : 1
+  };
+  var reserveSql='INSERT INTO product_reserve SET ?';
+  client.query(reserveSql,reserver,function(err,result){
+    if(err){
+      console.log(err);
+    }
+    callback(null,2);
+  });
+},
+function(callback){
+  var state={
+    product_id : productId,
+    delete_btn : 1
+  };
+  var stateSql='INSERT INTO btn_state SET ?';
+  client.query(stateSql,state,function(err,result){
+    if(err){
+      console.log(err);
+    }
+    callback(null,3);
+  });
+},
+function(callback){
+  var time = getTimeStamp();
+  client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time], function() {
+      response.redirect('/');
+      callback(null,4);
+  });
+}
+];
+async.series(tasks, function(err, results) {});
 });
 
 
 app.get('/sm_request/:id', function(request, response) {
-    var product_id, product_way;
+    var product_id, product_way, reserve_count;
     var tasks = [
         function(callback) {
             product_id = request.params.id;
@@ -723,6 +811,17 @@ app.get('/sm_request/:id', function(request, response) {
                 callback(null, product_way);
             });
         },
+
+        function(callback){
+          var updatestateSql = 'UPDATE btn_state SET delete_btn=0 WHERE product_id=?';
+          client.query(updatestateSql, [product_id],function(err,result){
+            if (err) {
+                console.log(err);
+            }
+            callback(null);
+          });
+        },
+
         function(callback) {
             var context = {
                 id: product_id,
@@ -1047,7 +1146,7 @@ io.on('connection', function(socket) {
 
                     console.log('2-1 socket.on의 join [서버에서 받음]');
                     socket.user = data.userid;
-                    //console.log('2-2 socket.on의 join 받아온값 : ', data);
+                    console.log('2-2 socket.on의 join 받아온값 : ', data);
                     //console.log('socket.on의 join socket : ', socket);
                     roomname = data.room;
                     socket.join(data.room);
@@ -1078,7 +1177,7 @@ io.on('connection', function(socket) {
 
     socket.on('chat message', function(msg) {
         console.log('4 socket.on의 chat message [서버에서 받음]');
-        //console.log('4', msg);
+        console.log('4', msg);
         var m = moment();
         var msg_date = m.format("YYYY-MM-DD HH:mm:ss");
         var chat = {
@@ -1454,20 +1553,17 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) {
     var m = moment();
     var contents = req.body.each_comment_detail;
     var child_id_max = 0;
-    console.log('제품 id', id, '상품 부모 id', pid, '내용', contents);
+    // console.log('제품 id', id, '상품 부모 id', pid, '내용', contents);
 
     async.series([
             function(callback) {
                 var sql = 'SELECT MAX(child_id) FROM comments WHERE product_id=? AND parent_id=?';
                 client.query(sql, [id, pid], function(err, result) {
-                    console.log('1번');
                     if (err) {
                         console.log(err);
                         res.status(500);
                     } else {
-                        console.log(result);
                         child_id_max = `${result[0]['MAX(child_id)']+1}`;
-                        console.log('1번 값', child_id_max);
                     }
                     callback(null, 1);
                 });
@@ -2624,4 +2720,78 @@ app.get('/sm_review/search/:id', function(request, response){
   ];
 
   async.series(tasks, function(err, result){});
+});
+
+
+app.get('/sm_request/:id/reserve/:sid',function(req,res){
+  var product_id = req.params.id;
+  var session_id = req.params.sid;
+  var reserve_count;
+  var sql;
+  var reserve_member;
+  var length;
+
+    var tasks = [
+        function(callback){
+          sql='SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
+          client.query(sql, [product_id], function(err, result){
+            if(err){
+              console.log(err);
+            } else {
+              reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
+              callback(null);
+            }
+          });
+        },
+        function(callback){
+          var reserve={
+            flag : 0,
+            product_id : product_id,
+            session_id : session_id,
+            reserve_count : reserve_count
+          };
+          sql='INSERT INTO product_reserve SET ?';
+          client.query(sql,reserve,function(err,result){
+            if(err){
+              console.log(err);
+            } else{
+              var link = '/sm_itemDetail/'+product_id;
+              res.redirect(link);
+              callback(null);
+            }
+          });
+        }
+        // function(callback) {
+        //   sql='UPDATE product_reserve SET reserve_count=? WHERE product_id=?';
+        //   client.query(sql, [reserve_count ,product_id], function(err, rows, fields){
+        //     if(err){
+        //       console.log(err);
+        //     } else {
+        //       var link = '/sm_itemDetail/'+product_id;
+        //       res.redirect(link);
+        //       callback(null,2);
+        //     }
+        //   });
+        // }
+      ];
+      async.series(tasks, function(err, results) {});
+});
+
+app.get('/sm_request/:id/cancel',function(req,res){
+  var product_id = req.params.id;
+    var tasks = [
+      function(callback){
+        var updatestateSql = 'UPDATE btn_state SET delete_btn=1 WHERE product_id=?';
+        client.query(updatestateSql, [product_id],function(err,result){
+          if (err) {
+              console.log(err);
+          } else {
+            var link = '/sm_itemDetail/'+product_id;
+            res.redirect(link);
+            callback(null);
+          }
+        });
+      }
+    ];
+    async.series(tasks, function(err, results) {});
 });

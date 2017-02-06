@@ -20,9 +20,25 @@
             .not{
               font-size: :15px;
               color: #cccccc;
+
+            #area{
+              height: 80px;
+              margin-bottom: 2%;
+              background-color: aliceblue;
+            }
+
+            ._edit{
+              margin-bottom: 1%;
+            }
+
+            .btn-warning{
+              background-color: mediumblue;
+              border-color: mediumblue;
+
             }
         </style>
         <script>
+
             $(document).ready(function() {
                 $('._edit').hide();
                 $('.re').hide();
@@ -35,7 +51,40 @@
                   $('.' + id).removeAttr("disabled");
                   $('#_'+id).show();
                   });
+
+                  if(`${<%= delete_btn %>}`== 0){
+                    $('#button_delete').attr("disabled",true);
+                    $('#button_buy').attr("disabled",true);
+                  } else {
+                     //$('#button_reserve').attr("disabled",true);
+                  }
             });
+
+            function reserve(){
+              var flag=0;
+              var session_id = `<%= session_id %>`;
+              var reserveMembers = new Array();
+              <% for(var i=0; i<reserveMember.length; i++){ %>
+                <% if(session_id == reserveMember[i].session_id){ %>
+                    flag =1;
+                  <% } %>
+              <% } %>
+              // reserveMembers = `<%= reserveMember %>`;
+              // var reserveMember_length= `<%= reserveMember.length %>`;
+
+              if(flag == 1){
+                alert("당신은 이미 대기상태 입니다")
+              } else {
+                var reserve_count = `${<%= reserve_ordernumber %>}`;
+                alert(" 당신은 "+reserve_count+"번째 대기자 입니다 :)");
+                location.href='/sm_request/<%= id %>/reserve/<%= session_id%>';
+              }
+          };
+
+
+
+
+
         </script>
 
 </head>
@@ -52,7 +101,7 @@
             <div class="row">
                 <!-- 0-->
                 <div class="col-lg-12">
-                    <h2 class="page-header">..</h2>
+                    <h2 class="page-header"> </h2>
                 </div>
                 <!-- 1-->
                 <div class="thumbnail">
@@ -114,7 +163,6 @@
                     <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
                     <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
                   <% } %>
-
                 </td>
                 </tr>
                 <tr>
@@ -125,16 +173,17 @@
             </table>
 
             <center>
-              <button type="button" class="btn btn-default">스크랩</button>
-              <% if (session_id != seller){ %>
-                <button type="button" class="btn btn-primary" onclick="location.href='/sm_request/<%= id %>'">구매하기</button>
-              <% } %>
+            <button type="button" class="btn btn-default">스크랩</button>
+            <% if (session_id != seller){ %>
+              <button id="button_buy" type="button" class="btn btn-primary" onclick="location.href='/sm_request/<%= id %>'">구매하기</button>
+              <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기</button>
+            <% } %>
 
-              <% if (session_id == seller){ %>
-                <button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>
-                <button type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
-                <button type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
-              <% } %>
+            <% if (session_id == seller){ %>
+              <button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>
+              <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+              <button type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
+            <% } %>
             </center>
 
           </div>
@@ -143,13 +192,13 @@
 
             <hr>
 
-            <div class="write_comment">
-                <h5>댓글을 남겨주세요:)</h5>
-                <form action='/sm_itemDetail/<%= id %>/comments' method='post' role="form">
+            <div class="">
+                <h5>상품 후기를 남겨주세요 :)</h5>
+                <form class="" action='/sm_itemDetail/<%= id %>/comments' method='post' role="form">
                     <div class="form-group">
                         <textarea class="form-control" rows="3" name="comment_detail"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+                    <button type="submit" class="btn btn-warning btn-sm">보내기</button>
                 </form>
             </div>
 
@@ -162,22 +211,21 @@
                         <h4 class="media-heading"><%= rows[i].session_id %>
                         <small><%= rows[i].comment_date %></small>
                         </h4>
-                      <textarea name="comment" class="edit<%=i %>" disabled><%= rows[i].comment_detail  %></textarea>
+                      <textarea id="area" name="comment" class="edit<%=i %> form-control" disabled><%= rows[i].comment_detail  %></textarea>
                         <% if(rows[i].session_id === session_id ) { %>
-                            <button class="_edit" id="_edit<%=i %>" >수정 완료</button>
+                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" >수정 완료</button>
                           </form>
                             <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
-                            <button class="edit" id="edit<%=i %>">수정</button>
-
+                            <button class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
                         <% } %>
-                            <button class=reply id=reply<%=i %> >답글</button>
-                            <div id=reply_element class=re>
+                            <button class="reply btn btn-warning btn-xs" id=reply<%=i %> >답글</button>
+                            <div id=reply_element class="re">
                                 <h5>댓글을 남겨주세요:)</h5>
                                 <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply' method='post' role="form">
                                     <div class="form-group">
                                         <textarea class="form-control" rows="3" name="each_comment_detail"></textarea>
                                     </div>
-                                    <button type="submit" class="btn btn-default btn-xs">보내기</button>
+                                    <button type="submit" class="btn btn-default btn-sm">보내기</button>
                                 </form>
                             </div>
                     </div>
@@ -199,28 +247,12 @@
                               </form>
                               <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
                               <button class="edit" id="edit<%=i %>">수정</button>
-
                             <% } %>
 
                       </div>
                   </div>
             <%  }
               } %>
-
-                    <!-- Comment -->
-                    <!-- <div class="media">
-          <a class="pull-left" href="#">
-            <img class="media-object" src="http://placehold.it/64x64" alt="">
-          </a>
-          <div class="media-body">
-            <h4 class="media-heading">Start Bootstrap
-              <small>August 25, 2014 at 9:30 PM</small>
-            </h4>Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin commodo. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-          </div>
-        </div> -->
-
-
-
                     <!-- Footer -->
                     <% include ./sm_footer %>
 
