@@ -22,6 +22,7 @@ var url = require('url');
 var multipartMiddleware = multipart();
 var loginId = "";
 var value =0;
+var chatFlag=0;
 //DB 설정//
 var client = mysql.createConnection({
     host: '203.153.144.75',
@@ -1137,16 +1138,16 @@ app.get('/sm_chat/:id', function(req, res) {
 io.on('connection', function(socket) {
     var result = [];
     var roomname;
-    console.log('1 connection이 이루어졌습니다');
+    //console.log('1 connection이 이루어졌습니다');
 
     socket.on('join', function(data) {
-       console.log('join을 서버에서 받았습니다');
+       //console.log('join을 서버에서 받았습니다');
         async.series([
                 function(callback) {
 
-                    console.log('2-1 socket.on의 join [서버에서 받음]');
+                    //console.log('2-1 socket.on의 join [서버에서 받음]');
                     socket.user = data.userid;
-                    console.log('2-2 socket.on의 join 받아온값 : ', data);
+                    //console.log('2-2 socket.on의 join 받아온값 : ', data);
                     //console.log('socket.on의 join socket : ', socket);
                     roomname = data.room;
                     socket.join(data.room);
@@ -1156,18 +1157,29 @@ io.on('connection', function(socket) {
                             console.log(err);
                         } else {
                             result = results;
+                            //console.log("check1",result);
                         }
                         callback(null, result);
                     });
 
                 },
                 function(callback) {
+                  if(chatFlag == 1){
+                    chatFlag =0;
+                    io.emit('second', {
+                        'user': socket.user,
+                        'msg': result
+                    });
+                    callback(null, result);
+                  } else{
                     io.emit('first', {
                         'user': socket.user,
                         'msg': result
                     });
-                    //console.log('5 io.emit의 first [클라이언트로 보냄]');
                     callback(null, result);
+                  }
+                    //console.log('5 io.emit의 first [클라이언트로 보냄]');
+
                 }
             ],
             function(err, result) {
@@ -1176,8 +1188,8 @@ io.on('connection', function(socket) {
     });
 
     socket.on('chat message', function(msg) {
-        console.log('4 socket.on의 chat message [서버에서 받음]');
-        console.log('4', msg);
+        //console.log('4 socket.on의 chat message [서버에서 받음]');
+        //console.log('4', msg);
         var m = moment();
         var msg_date = m.format("YYYY-MM-DD HH:mm:ss");
         var chat = {
@@ -1893,6 +1905,8 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
             };
             sqlQuery = 'INSERT INTO chat_msg SET ?';
             client.query(sqlQuery, data, function(err, result) {
+              chatFlag=1;
+              console.log("채팅플래그",chatFlag);
                 callback(null, 6);
             });
         },

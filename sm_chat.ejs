@@ -129,25 +129,30 @@
                 location.href = '/sm_main';
                 return false;
             } else {
-                alert('join [서버로 전송]');
+                //alert('join [서버로 전송]');
                 socket.emit('join', {
                     'userid': users,
                     'room': product_id
                 });
 
                 $('form').submit(function() {
-                    alert('폼 버튼 클릭되었습니다:)');
+                    //alert('폼 버튼 클릭되었습니다:)');
                     socket.emit('chat message', $('#text').val());
                     $('#text').val('');
                     return false;
                 });
 
                 socket.on('first', function(data) {
-                    alert('first 클라이언트에서 받음');
-                    //alert(data.msg.length);
+                    //alert('first 클라이언트에서 받음');
+                    //alert(1);
+                    var length = data.msg.length;
+                    //alert("길이값");
+                    //alert(length);
                     //alert(users);
                     //alert(data.user);
+                    //alert("여기부터");
                     if (users == data.user) {
+                      //alert("진입1");
                         for (i = 0; i < data.msg.length; i++) {
                           msg_date = data.msg[i].msg_date;
                           msg_date = msg_date.substring(5,16);
@@ -159,7 +164,42 @@
                           }
                         }
                     }
+                    // else {
+                    //   //alert("여기진입2");
+                    //   msg_date = data.msg[length-1].msg_date;
+                    //   msg_date = msg_date.substring(5,16);
+                    //   //$('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[data.msg.length].msg_id + "</b><br/><label>"+"1"+"</label><hr/>" + data.msg[length].msg + '</li>');
+                    //   $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[length-1].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[length-1].msg + '</li>');
+                    //
+                    // }
                 });
+
+                socket.on('second',function(data){
+                  //alert('second에서 받음');
+                    var length = data.msg.length;
+
+                    if (users == data.user) {
+                      //alert("진입1");
+                        for (i = 0; i < data.msg.length; i++) {
+                          msg_date = data.msg[i].msg_date;
+                          msg_date = msg_date.substring(5,16);
+                          if(data.msg[i].msg_id == users){
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFE7C; float:right; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg+'</li>');
+                          }
+                          else{
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg + '</li>');
+                          }
+                        }
+                    }
+                    else {
+                      //alert("여기진입2");
+                      msg_date = data.msg[length-1].msg_date;
+                      msg_date = msg_date.substring(5,16);
+                      //$('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[data.msg.length].msg_id + "</b><br/><label>"+"1"+"</label><hr/>" + data.msg[length].msg + '</li>');
+                      $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[length-1].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[length-1].msg + '</li>');
+
+                    }
+                })
 
                 socket.on('chat message', function(data) {
                   //alert('chat message를 클라이언트에서 받음');
