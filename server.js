@@ -1108,9 +1108,15 @@ app.get('/sm_changeDetail/:id', function(request, response) {
                     before_category = object.product_category;
 
                     before_photo = [];
-                    before_photo.push(object.photo1);
-                    before_photo.push(object.photo2);
-                    before_photo.push(object.photo3);
+                    if(object.photo1 != ""){
+                      before_photo.push((object.photo1).substring(1));
+                    }
+                    if(object.photo2 != ""){
+                      before_photo.push((object.photo2).substring(1));
+                    }
+                    if(object.photo3 != ""){
+                      before_photo.push((object.photo3).substring(1));
+                    }
                     console.log(before_photo);
 
                     callback(null, result);
@@ -1119,6 +1125,7 @@ app.get('/sm_changeDetail/:id', function(request, response) {
         ],
 
         function(err, result) { // callback (final)
+
             response.render('sm_changeDetail.ejs', {
                 id: id,
                 name: before_name,
@@ -1130,7 +1137,6 @@ app.get('/sm_changeDetail/:id', function(request, response) {
             });
         });
 });
-
 
 app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response) {
     var body = request.body;
@@ -1229,6 +1235,7 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
             });
         });
 });
+
 
 app.get('/sm_enter_changeInfo', function(req, res) {
     res.render('sm_enter_changeInfo.ejs');

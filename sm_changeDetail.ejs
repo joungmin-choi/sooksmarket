@@ -4,13 +4,11 @@
   <% include ./sm_head %>
 
   <script>
-
   function submitCheck(){
     var target = document.getElementById("target");
     var price = document.getElementById("price");
     var form = document.getElementById("form");
     var way = document.getElementsByName("way");
-
     if(target.value==""){
       alert("상품명을 입력하세요.");
       return false;
@@ -31,33 +29,14 @@
       form.submit();
       return true;
     }
-
   }
-
   function Upload(target) {
     var files = target.files;
-
     if(files.length>3){
       alert('최대 3개까지 가능합니다.');
       document.getElementById('file').value = "";
     }
   }
-
-  $(document).ready(function(){
-    // $('#selectbox').change(function(){
-    //     alert( $('#selectbox option:selected').val() );
-    // });
-    var select = document.getElementById("category");
-var option_value = select.options[select.<%= category %>].value;
-
-
-    element.style.color = "#ff6666";
-  });
-
-  function categoryChange(){
-
-  }
-
   </script>
 
 
@@ -94,17 +73,8 @@ var option_value = select.options[select.<%= category %>].value;
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">카테고리 :</label>
             <div class="col-sm-5">
-              <select class="form-control" id="category" name="category" style="cursor:context-menu;" onclick="category()" onchange="categoryChange()">
-                <!-- <option selected disabled><%= category %></option> -->
-
-                <option value="옷">옷</option>
-                <option value="화장품">화장품</option>
-                <option value="책">책</option>
-                <option value="전자기기">전자기기</option>
-                <option value="음식">음식</option>
-                <option value="필기류">필기류</option>
-                <option value="티켓 양도">티켓 양도</option>
-                <option value="기타">기타</option>
+              <select class="form-control" id="category" name="category" disabled="true" style="cursor:context-menu;">
+                <option><%= category %></option>
               </select>
             </div>
           </div>
