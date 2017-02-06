@@ -172,6 +172,7 @@
         });
 
         window.onload = function(){
+          
           var trade_date = '<%= trade_date %>';
           var trade_time = '<%= trade_time %>';
           var changeTimeBtn = document.getElementById("input2");
@@ -208,6 +209,10 @@
           var changeTimeBtn = document.getElementById("input2");
           changeTimeBtn.style.display = "none";
           msgUl.style.height = "68vh";
+        }
+
+        function refresh(){
+          location.reload();
         }
     </script>
 

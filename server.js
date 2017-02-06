@@ -929,10 +929,10 @@ app.post('/sm_request/:id', function(request, response) {
 
 
           if(state == 2){
-            str[0] = "<br/><div style='height:25px;text-align:center;margin:0 auto;'>";
+            str[0] = "<br/><div style='text-align:center;margin:0 auto;'>";
             str[1] = "<strong>시간을 변경하고 싶습니다.</strong>";
           }else{
-            str[0] = "<div style='text-align:center;'><div style='height:25px;text-align:center;margin:0 auto;'>";
+            str[0] = "<div style='text-align:center;'><div style='text-align:center;margin:0 auto;'>";
             str[1] = product_name+"</div><br/><strong>구매를 요청합니다.</strong>";
           }
 
@@ -1038,14 +1038,14 @@ app.get('/sm_chat/:id', function(req, res) {
 io.on('connection', function(socket) {
     var result = [];
     var roomname;
-    //console.log('1 connection이 이루어졌습니다');
+    console.log('1 connection이 이루어졌습니다');
 
     socket.on('join', function(data) {
-       //console.log('join을 서버에서 받았습니다')
+       console.log('join을 서버에서 받았습니다');
         async.series([
                 function(callback) {
 
-                    //console.log('2-1 socket.on의 join [서버에서 받음]');
+                    console.log('2-1 socket.on의 join [서버에서 받음]');
                     socket.user = data.userid;
                     //console.log('2-2 socket.on의 join 받아온값 : ', data);
                     //console.log('socket.on의 join socket : ', socket);
@@ -1077,7 +1077,7 @@ io.on('connection', function(socket) {
     });
 
     socket.on('chat message', function(msg) {
-        //console.log('4 socket.on의 chat message [서버에서 받음]');
+        console.log('4 socket.on의 chat message [서버에서 받음]');
         //console.log('4', msg);
         var m = moment();
         var msg_date = m.format("YYYY-MM-DD HH:mm:ss");
