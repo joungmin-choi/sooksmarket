@@ -14,7 +14,6 @@
   <% include ./sm_top_navigator %>
   <script>
     function moveTo(id, request_num){
-      alert(id+""+request_num);
       var link = '/sm_tradeStateDetail/'+ id + '/' + request_num;
       location.href=link;
     }
@@ -30,9 +29,9 @@
           <thead class="text-center">
             <tr style="background:#fff2cc;">
               <td class="numId" style="width:5%;"><strong>No.</strong></td>
-              <td class="column1" style="width:15%;"> </td>
-              <td class="product" style="width:50%;"><strong>물품</strong></td>
-              <td class="state" style="width:30%;"><strong>상태</strong></td>
+              <td class="column1" style="width:20%;"> </td>
+              <td class="product" style="width:47%;"><strong>물품</strong></td>
+              <td class="state" style="width:28%;"><strong>상태</strong></td>
             </tr>
           </thead>
           <tbody class="text-center">

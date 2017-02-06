@@ -27,7 +27,7 @@
           }
           else{
             var str = "/authenticateSookmyung/?email="+emailText.value+"@sm.ac.kr";
-            window.open(str,"","width=400 height=150");
+            window.open(str,"","width=400 height=300");
           }
         }
 
@@ -88,8 +88,6 @@
     </head>
 
     <body class="body">
-      <% include ./sm_top_navigator %>
-
       <div class="container">
         <p class="lead"><strong>Shop Name</strong></p>
 
@@ -128,8 +126,11 @@
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">이메일 :</label>
-                  <div class="col-sm-5">
-                    <input type="text" class="form-control" name="email" id="email"  placeholder="이메일를 입력해주세요.">
+                  <div class="col-sm-5 text-align">
+                    <input style="width:50%;" type="text" class="col-sm-3 col-xs-3 form-control" name="email" id="email"  placeholder="숙명이메일 입력">
+                    <div style="margin-top:2%;" class="col-sm-2 col-xs-2" style="width:50%;">
+                      @sm.ac.kr
+                    </div>
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->

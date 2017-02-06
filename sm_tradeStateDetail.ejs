@@ -5,13 +5,66 @@
   <% include ./sm_head %>
   <style>
     .detail{
-      background-color: #f2ffcc;
+      background-color: #FFdfe5;
     }
 
     .input{
-      background-color: #efeff5;
+      background-color: #eaeaea;
     }
+
+    .state{
+      border: 5px solid white;
+      background-color: #c0cbff;
+      width: 23%;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    <% switch (results[0].state) {
+      case 1: %> #state2, #state3, #state4{
+                  background-color:#eeeeee;
+                  font-weight: normal;
+                }
+              <% break;
+      case 2: %> #state3, #state4{
+                  background-color:#eeeeee;
+                  font-weight: normal;
+                }
+              <% break;
+      case 3: %> #state4{
+                  background-color:#eeeeee;
+                  font-weight: normal;
+                }
+              <% break;
+      case 4: %>
+              <% break;
+    } %>
   </style>
+  <script>
+  function completeTrade(){
+    <% if(final !=0){ %>
+      var trade_date = `<%= final[0].trade_date %>`;
+      var trade_time = `<%= final[0].trade_time %>`;
+      var date = new Array();
+      var time = new Array();
+
+      date[0] = parseInt(trade_date.substring(0,2))-1;
+      date[1] = parseInt(trade_date.substring(4,6));
+      time[0] = parseInt(trade_time.substring(0,2));
+      time[1] = parseInt(trade_time.substring(3,5));
+
+      var tradeTime = new Date(2017, date[0], date[1], time[0], time[1], 0);
+      var presentTime = new Date();
+
+      if(presentTime >= tradeTime){
+        var id = `<%= final[0].product_id %>`;
+        var num = `<%= results[0].request_num %>`;
+        location.href = '/sm_completeTrade/'+id+'/'+num;
+      }else{
+        alert("최종 거래 시간 이후에만 완료 가능합니다 :)");
+      }
+    <% } %>
+  }
+  </script>
 
 </head>
 
@@ -23,7 +76,11 @@
   </script>
 
   <div class="container">
-    <h3 style="text-align:center;"><strong> 거래 세부 사항 </strong></h3>
+
+    <h3 style="text-align:center;"><img src="/img/cart.png" width="37" style="margin-right:5%;"/>
+      <strong> 거래 세부 사항 </strong>
+    <img src="/img/online-shop.png" width="37" style="margin-left:5%;" /></h3>
+
     <hr />
       <div class="row">
         <div class="col-xs-12 col-md-6 col-md-offset-3" style="border:1px solid white;">
@@ -45,7 +102,9 @@
                 <td class="input" style="width:40%; "><%= `${results[0].seller}` %></td>
               <% } %>
               <td class="input" style="">
+              <% if(results[0].state != 4){ %>
                 <button type="button" class="btn btn-success" style="font-size:10px;" onclick="location.href='/sm_chat/<%= `${results[0].product_id}` %>'">채팅하기</button>
+              <% } %>
               </td>
             </tr>
             <tr>
@@ -53,15 +112,58 @@
               <td class="input" style="border:3px solid white;" colspan="2"><%= `${results[0].product_price}` %></td>
             </tr>
           </tbody>
-        </table>
-        <div id="finalTradeInfo">
+        </table><hr/>
+        <div id="stateDiv">
+          <strong style="font-size:17px; margin-left:2%;">[현재 거래 상황]</strong><br/><br/>
+          <table class="table">
+            <thead class="text-center">
+              <tr>
+                <td class="state" id="state1">거래 <br/>신청 중</td>
+                <td class="state" id="state2">시간 <br/>조율 중</td>
+                <td class="state" id="state3">최종 거래 <br/>확정</td>
+                <td class="state" id="state4">거래 <br/>완료</td>
+              </tr>
+              <tr>
+                <td colspan="4">
+                  <small>*상대방도 거래 완료 페이지를 작성해야, <br/>최종적으로 거래가 종료됩니다.</small>
+                </td>
+              </tr>
+            </thead>
+          </table>
+
         </div>
-        <div style="border:1px solid black;">
+
+        <% if(final != 0){ %>
+
+        <div id="finalTradeInfo"  style=" width: 90%; margin-left: 5%;">
+        <strong>★최종 거래 정보★</strong><br/>
+          <ul class="list-group" style="text-align:center; margin-top: 2%;">
+            <li class="list-group-item">
+              <%= `${final[0].trade_date}` %> <%= `${final[0].trade_time}` %>
+            </li>
+            <li class="list-group-item">
+            <%= `${final[0].trade_way}` %>
+            </li>
+            <li class="list-group-item">
+            <%= `${final[0].trade_place}` %>
+            </li>
+          </ul>
+        </div>
+        <% } %>
+
+        <div id="buttonDiv" style="text-align:center">
+          <% if((results[0].state == 3)&&(haveCompletion==1)){ %>
+            <button type="button" class="btn btn-warning" onclick="completeTrade();">거래 완료 하기</button>
+          <% } %>
+            <button type="button" class="btn btn-primary" onclick="location.href='/sm_tradeState'">돌아가기</button>
+
         </div>
       </div>
-      </div>
+    </div>
 
   </div>
+  <hr/>
 
 </body>
+<% include ./sm_footer %>
 </html>

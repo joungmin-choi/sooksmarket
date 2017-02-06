@@ -36,7 +36,9 @@
 
     .star_rating a:first-child {margin-left:0;}
 
-
+    .scoreDetail{
+      font-size: 12px;
+    }
 
     </style>
 
@@ -106,13 +108,14 @@
 
         <div class="container" >
 
-            <h2><strong> 거래 완료하기 </strong></h2>
+            <h2 style="text-align:center;"><strong> 거래 완료하기 </strong></h2>
 
             <hr>
 
             <form id="eventFrom" method="post" class="form-horizontal" onsubmit="return submitCheck()">
+            <div class="col-xs-12 col-md-8 col-md-offset-2">
 
-              <div class="alert alert-info" role="alert" style="width:90%; margin: 0 auto;">
+              <div class="alert alert-info" role="alert" style="width:90%; margin: 0 auto;text-align:center;">
                 <strong>물품 : </strong><%= product_name %> </br>
                 <strong>판매자 ID : </strong><%= seller %> <br/>
                 <strong>구매자 ID : </strong><%= customer %>
@@ -137,7 +140,11 @@
                   <br/>
 
                   <label style="font-size:15px; margin-left:10%; background-color:#eee; width:80%; text-align:center;">
-                    상대방에 대해 별점을 매겨주세요.
+                    <% if(username == seller){ %>
+                      구매자에 대해 별점을 매겨주세요.
+                    <% }else{ %>
+                      판매자에 대해 별점을 매겨주세요.
+                    <% } %>
                   </label><br/>
                   <label class="star_rating" style="font-size:25px; margin-left:10%; width:80%; text-align:center;">
                     <a id="star1" onclick="rating(1);">★</a>
@@ -147,16 +154,68 @@
                     <a id="star5" onclick="rating(5);">★</a>
                   </label><br/><br/>
 
-                  <div class="alert alert-success" role="alert" style="width:83%; margin: 0 auto; text-align:center;">
-                    <strong>5개 :</strong> 거래 시간 잘 지킴 & 상품 상태 Good<br/>
-                    <strong>4개 :</strong> 10분 이상 지각 & 상품 상태 Good<br/>
-                    <strong>3개 :</strong> 거래 시간 잘 지킴 & 상품 상태 Bad<br/>
-                    <strong>2개 :</strong> 10분 이상 지각 & 상품 상태 Bad<br/>
-                    <strong>1개 :</strong> 거래가 이루어지지 않음.
+                  <div class="alert alert-success" role="alert" style="width:80%; margin: 0 auto; text-align:center;">
+                    <table class="table" style="width:93%; margin-left:3%;">
+                      <thead class="text-center">
+                        <tr>
+                          <td style="width:25%;">
+                            <strong>별점</storng>
+                          </td>
+                          <td>
+                            <strong>해당 내용</storng>
+                          </td>
+                        </tr>
+                      </thead>
+                      <tbody class="text-center">
+                        <% if(username == seller){ %>
+                          <tr>
+                            <td><strong>5점 :</strong></td>
+                            <td class="scoreDetail">거래 시간 잘 지킴 & 정확한 금액을 받음</td>
+                          </tr>
+                          <tr>
+                            <td><strong>4점 :</strong></td>
+                            <td class="scoreDetail">10분 이상 지각 & 정확한 금액을 받음</td>
+                          </tr>
+                            <td><strong>3점 :</strong></td>
+                            <td class="scoreDetail">거래 시간 잘 지킴 & 구매자 사정으로 금액을 덜 받음</td>
+                          <tr>
+                            <td><strong>2점 :</strong></td>
+                            <td class="scoreDetail">10분 이상 지각 & 구매자 사정으로 금액을 덜 받음</td>
+                          </tr>
+                          <tr>
+                            <td><strong>1점 :</strong></td>
+                            <td class="scoreDetail">거래가 이루어지지 않음</td>
+                          </tr>
+                        <% }else{ %>
+                          <tr>
+                            <td><strong>5점 :</strong></td>
+                            <td class="scoreDetail">거래 시간 잘 지킴 & 상품 상태 Good</td>
+                          </tr>
+                          <tr>
+                            <td><strong>4점 :</strong></td>
+                            <td class="scoreDetail">10분 이상 지각 & 상품 상태 Good</td>
+                          </tr>
+                            <td><strong>3점 :</strong></td>
+                            <td class="scoreDetail">거래 시간 잘 지킴 & 상품 상태 Bad</td>
+                          <tr>
+                            <td><strong>2점 :</strong></td>
+                            <td class="scoreDetail">10분 이상 지각 & 상품 상태 Bad</td>
+                          </tr>
+                          <tr>
+                            <td><strong>1점 :</strong></td>
+                            <td class="scoreDetail">거래가 이루어지지 않음</td>
+                          </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
                   </div><br/><br/>
 
                   <label style="font-size:15px; margin-left:10%; background-color:#eee; width:80%; text-align:center;">
-                    상대방에 대한 후기를 남겨주세요. (선택)
+                    <% if(username == seller){ %>
+                      구매자에 대한 후기 (선택사항)
+                    <% }else{ %>
+                      판매자에 대한 후기 (선택사항)
+                    <% } %>
                   </label><br/><br/>
                   <textarea class="form-control" rows="4" placeholder='구체적으로 작성해주세요!' name="comment" id="comment" style="width:70%;margin:0 auto;"></textarea>
 
@@ -175,6 +234,7 @@
                   별점 <input type="text" id="ratingScore" name="ratingScore" />
                 </div>
 
+              </div>
             </form>
         </div>
         <hr>

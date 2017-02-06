@@ -95,9 +95,16 @@
     <% include ./sm_top_navigator %>
 
     <div class="container">
+      <h3 style="text-align:center;"><img src="/img/star.png" width="37" style="margin-right:5%;"/>
+        <strong> MY 스크랩 </strong>
+      <img src="/img/archive.png" width="37" style="margin-left:5%;" /></h3>
+
+      <hr />
+
 
         <!-- 본문 1-->
         <div class="row">
+          <!--
           <div class="col-md-3">
                 <p class="lead"><strong>Shop Name</strong></p>
                 <div class="list-group">
@@ -106,12 +113,14 @@
                     <a href="#" class="list-group-item">Category 3</a>
                 </div>
             </div>
+          -->
 
             <div id="snackbar">스크랩되었습니다.</div>
 
+
             <% for (i=((`${result.length}`)-1), flag=0; i>=0 ; i--, flag=0){%>
 
-              <div class="col-lg-4 col-sm-6 col-xs-6 text-center">
+              <div class=" col-sm-6 col-xs-6 col-md-3 text-center">
                   <div class="thumbnail">
                     <p style="float:left; margin-left: 0.5%">
                       <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%" onclick="scrap(<%= i %>)">
