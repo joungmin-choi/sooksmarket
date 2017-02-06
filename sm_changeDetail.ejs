@@ -30,11 +30,30 @@
       return true;
     }
   }
+
+  $(document).ready(function(){
+    $("#category").val("<%= `${category}` %>").attr("selected", "selected");
+
+  });
+
   function Upload(target) {
     var files = target.files;
     if(files.length>3){
       alert('최대 3개까지 가능합니다.');
       document.getElementById('file').value = "";
+    }
+  }
+
+  function change(){
+    if (confirm("확인 버튼을 누르시면 저장된 이미지가 삭제됩니다.\n그래도 진행하시겠습니까?") == true) {
+      var changeBtn = document.getElementById("changeBtn");
+      changeBtn.style.display = "none";
+
+      var imgDIV = document.getElementById("imgDIV");
+      imgDIV.style.display = "none";
+
+      var fileDIV = document.getElementById("fileDIV");
+      fileDIV.style.display = "block";
     }
   }
   </script>
@@ -79,10 +98,29 @@
             </div>
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
-            <label for="" class="col-sm-3 control-label">사진 :</label>
-            <div class="col-sm-5">
-              <input type="file" id="file" class="form-control" name="file"  accept="image/*" capture="photo"  multiple="true" onChange="Upload(this)";>
+
+            <div class="col-sm-3 control-label">
+              <label for="" class="control-label">사진 :</label>
             </div>
+
+            <div class="col-sm-5 text-center">
+              <div class="thumbnail" id="imgDIV" style="padding-bottom:5%">
+                <% for (i=0; i< photo.length; i++){ %>
+                  <div id="div<%= i %>" >
+                    <div id="preview<%= i %>">
+                      <img class="img-responsive img-center img-thumbnail img" name="img<%= i %>" id="img<%= i %>" src="<%= photo[i]%>" alt="x" style="height:180px; width: 300px; margin-top:2%"/>
+                    </div>
+                  </div>
+                <% } %>
+              </div>
+
+              <button type="button" class="btn btn-primary" id="changeBtn" onclick="change()">사진 수정</button>
+
+              <div id="fileDIV" style="display:none;">
+                <input type="file" id="file" class="form-control" name="file"  accept="image/*" capture="photo"  multiple="true" onChange="Upload(this)";>
+              </div>
+            </div>
+
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">희망거래방법 :</label>
