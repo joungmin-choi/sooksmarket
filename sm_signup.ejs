@@ -40,6 +40,7 @@
           var pwCheckText = document.getElementById("pwCheck");
           var form = document.getElementById("form");
           var allias = document.getElementById("allias");
+          allias.value = idText.value;
 
           if(nameText.value==""){
             alert("이름을 입력하세요.");
@@ -89,10 +90,15 @@
 
     <body class="body">
       <div class="container">
-        <p class="lead"><strong>Shop Name</strong></p>
+        <h3 style="text-align:center;">
+          <img src="/img/notepad2.png" width="37" style="margin-right:3%;" />
+          <strong> 회원 가입 </strong>
+        <img src="/img/notepad2.png" width="37" style="margin-left:3%;" /></h3>
+
+        <hr />
 
           <div class="row">
-            <div class="col-md-11">
+            <div class="col-md-12 col-md-offset-1 col-xs-12">
               <form class="form-horizontal" role="form" id="form" name="form" method = "post"  onsubmit="return submitCheck()" >
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">이름 :</label>
@@ -103,15 +109,18 @@
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">아이디 :</label>
                   <div class="col-sm-5">
-                    <input type="text" class="form-control" name="username" id="id"  placeholder="아이디를 입력해주세요.">
+                    <input type="text" class="form-control" name="username" id="id"  placeholder="아이디를 입력해주세요." style="width:68%;display:inline;float:left;">
+                    <input type="" class="col-sm-4 btn btn-primary"  onClick="checkId();" value="중복확인" style="width:30%;float:right;">
                   </div>
                 </div>
-                <div class="form-group"> <!--has-success has-feedback-->
+                <!--
+                <div class="form-group">
                   <label for="" class="col-sm-3 control-label"></label>
-                  <div class="col-sm-5">
+                  <div class="col-sm-5" style="text-align:center;">
                     <input type="" class="col-sm-4 btn btn-primary"  onClick="checkId();"  value="중복확인">
                   </div>
-                </div>
+                </div>-->
+
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">비밀번호 :</label>
                   <div class="col-sm-5">
@@ -126,8 +135,8 @@
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">이메일 :</label>
-                  <div class="col-sm-5 text-align">
-                    <input style="width:50%;" type="text" class="col-sm-3 col-xs-3 form-control" name="email" id="email"  placeholder="숙명이메일 입력">
+                  <div class="col-sm-5 text-center">
+                    <input style="width:40%;" type="text" class="col-sm-3 col-xs-3 form-control" name="email" id="email"  placeholder="숙명이메일 ID">
                     <div style="margin-top:2%;" class="col-sm-2 col-xs-2" style="width:50%;">
                       @sm.ac.kr
                     </div>
@@ -143,19 +152,17 @@
                   <label for="" class="col-sm-3 control-label">전화번호 :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="phone" id="phone"  placeholder="전화번호를 입력해주세요.">
+                    (※'-'없이 숫자만 입력해주세요!)
                   </div>
                 </div>
-                <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-9 control-label">(※'-'없이 숫자만 입력해주세요!)</label>
-                </div>
-                <div class="form-group"> <!--has-success has-feedback-->
+                <div class="form-group" style="display:none;"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">별명 :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="displayName" id="allias"  placeholder="사용할 닉네임를 입력해주세요.">
                   </div>
-                </div>
+                </div><br/>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <div class="text-center">
+                  <div class="col-md-8 col-md-offset-1 text-center">
                     <input type="submit" value="가입하기" class="btn btn-primary">
                     <input type="reset" value="취소하기" class="btn btn-danger"  onclick="location.href='/'">
                   </div>
@@ -165,7 +172,7 @@
 
 
           </div>
-      </div>
+      </div><hr/>
 
     </body>
 

@@ -766,7 +766,7 @@ function(callback){
     flag : 0,
     product_id : productId,
     session_id : null,
-    reserve_count : 1
+    reserve_count : 0
   };
   var reserveSql='INSERT INTO product_reserve SET ?';
   client.query(reserveSql,reserver,function(err,result){
@@ -1053,6 +1053,7 @@ app.post('/sm_request/:id', function(request, response) {
           };
           SqlQuery = 'INSERT INTO chat_msg SET ?';
           client.query(SqlQuery, data, function(err, result) {
+            chatFlag=1;
             if(err){
               console.log(err);
             }
@@ -1223,6 +1224,17 @@ app.get('/sm_chat/:id/reject', function(request, response){
 
   var tasks = [
     function(callback){
+        var updatestateSql = 'UPDATE btn_state SET delete_btn=1 WHERE product_id=?';
+        client.query(updatestateSql, [product_id],function(err,result){
+          if (err) {
+              console.log(err);
+           }
+           callback(null);
+        });
+      },
+
+    function(callback){
+      console.log("진입");
       product_id = request.params.id;
       sqlQuery = 'DELETE FROM TradeInfo WHERE product_id=?';
 
@@ -1811,6 +1823,7 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
             });
         },
         function(callback) {
+
             if (isUpdated === 0) {
                 sqlQuery = 'SELECT MAX(id) as maxId FROM CompletionInfo';
                 client.query(sqlQuery, function(err, result) {
@@ -1829,25 +1842,20 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
                 };
                 sqlQuery = 'INSERT INTO CompletionInfo SET ?';
                 client.query(sqlQuery, data, function(err, result) {
+                  console.log("진입1");
                     callback(null);
                 });
             } else {
                 callback(null);
             }
         },
+
         function(callback) {
+          console.log("isUpdated", isUpdated);
             if (isUpdated === 0) {
-                sqlQuery = 'SELECT MAX(id) as maxId FROM CompletionInfo';
-                client.query(sqlQuery, function(err, result) {
-                    if (result[0].maxId === null) {
-                        id = 1;
-                    } else {
-                        id = result[0].maxId + 1;
-                    }
-                });
 
                 data = {
-                    id: id,
+                    id: id+1,
                     username: customer,
                     product_id: product_id,
                     haveCompletion: 1
@@ -1855,6 +1863,8 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
                 sqlQuery = 'INSERT INTO CompletionInfo SET ?';
 
                 client.query(sqlQuery, data, function(err, result) {
+                  if(err){console.log(err);}
+                  console.log("진입2");
                     callback(null);
                 });
             } else {
@@ -1943,6 +1953,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response){
   var body = request.body;
 
   var tasks = [
+
     function(callback){
       product_id = request.params.id;
       request_num = request.params.num;
@@ -1984,6 +1995,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response){
       };
       sqlQuery = 'INSERT INTO chat_msg SET ?';
       client.query(sqlQuery, data, function(err, result) {
+        chatFlag=1;
         callback(null,2);
       });
     },
@@ -2113,8 +2125,14 @@ app.post('/sm_completeTrade/:id/:num', function(request, response){
           console.log(err);
           throw err;
         }
+        callback(null);
       });
 
+
+    },
+
+    function(callback){
+      console.log("들어옴!");
       sqlQuery = 'UPDATE CompletionInfo SET haveCompletion=? WHERE product_id=? AND username=?';
       client.query(sqlQuery, [0, product_id, username], function(err, result){
         if(err){throw err;}
