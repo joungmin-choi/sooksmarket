@@ -18,6 +18,7 @@ var smtpTransport = require("nodemailer-smtp-transport");
 var async = require('async');
 var moment = require('moment');
 var url = require('url');
+var cuid = require('cuid');
 
 var multipartMiddleware = multipart();
 var loginId = "";
@@ -97,7 +98,7 @@ app.get('/', function(req, res) {
     if (flag !== undefined) {
       res.redirect('/sm_main');
     } else {
-          if(loginFlag == 0) {
+          if(loginFlag === 0) {
             res.render('index', {
               loginon: 0
           }); }
@@ -122,14 +123,32 @@ app.get('/sm_enter_main', function(req, res) {
 
 
 
+var unsign = 0;
 ////--
 app.get('/sm_logout', function(req, res) {
+  if (unsign === 1){  // 회원탈퇴 시
+    async.series([
+      function(callback){
+        client.query('DELETE FROM ProductInfo WHERE product_seller=?',[loginId[1]], function(err, result){
+          callback(null);
+        });
+      }
+    ],
+    function(err){
+      req.logout();
+      client.query('DELETE FROM users WHERE username=?',[loginId[1]], function(err, result){
+        unsign = 0;
+        res.render('index.ejs', {loginon:0});
+      });
+    });
+  }else{
     req.logout();
     req.session.save(function() {
         res.render('index', {
             loginon: 0
         });
     });
+  }
 });
 
 
@@ -658,7 +677,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var reserve_member;
     var flag=0;
 
-    if(loginId[1] == undefined){
+    if(loginId[1] === undefined){
       response.redirect('/');
     }
     else{
@@ -756,7 +775,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                   } else {
                     //console.log('없다');
                   }
-                  callback(null,5)
+                  callback(null,5);
                 }
               });
             }
@@ -797,13 +816,12 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     var category = body.category;
     var detail = body.detail;
     var productId;
-    var imageFile = request.files.file;
-    var length = request.files.file.length;
 
-    var name = new Array();
-    var path = new Array();
-    var type = new Array();
-    var outputPath = new Array();
+    var file = [];
+    var name = [];
+    var path = [];
+    var type = [];
+    var outputPath = [];
     var productName;
 
     var tasks = [
@@ -818,62 +836,52 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
 
     }
 
-    if (detail === null) {
-        detail = "";
+    for(var i=0; i<3; i++){
+      if(request.files.file[i].size !== 0){
+        file.push(request.files.file[i]);
+      }
     }
 
     // 파일이 업로드되면 files 속성이 전달됨
-
-
-    if (!(length > 0) && (request.files.file.size === 0)) { // 파일 0개
-        outputPath[0] = "";
-        outputPath[1] = "";
-        outputPath[2] = "";
-        fs.unlink(request.files.file.path, function(err) {});
-    } else if (!(length > 0) && (request.files.file.size !== 0)) { // 파일 1개
-        name[0] = imageFile.name;
-        path[0] = imageFile.path;
-        type[0] = imageFile.type;
-
-        if (type[0].indexOf('image') != -1) {
-            // image 타입이면 이름을 재지정함(현재날짜로)
-            outputPath[0] = './fileUploads/' + Date.now() + '_' + name[0];
-            fs.rename(path[0], outputPath[0], function(err) {});
-        }
-        outputPath[1] = "";
-        outputPath[2] = "";
-    } else { // 파일 2개 또는 3개
-        for (var i = 0; i < length; i++) {
-            // 업로드 파일이 존재하면
-            // 그 파일의 이름, 경로, 타입을 저장
-            name[i] = request.files.file[i].name;
-            path[i] = request.files.file[i].path;
-            type[i] = request.files.file[i].type;
-
-            if (type[i].indexOf('image') != -1) {
-                // image 타입이면 이름을 재지정함(현재날짜로)
-                outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
-                fs.rename(path[i], outputPath[i], function(err) {});
-            }
-        }
-        for (i = length; i < 3; i++) {
-            request.files.file[i] = "";
-            outputPath[i] = "";
-        }
+    if (file.length === 0) { // 파일 0개
+      for (i = file.length; i < 3; i++) {
+          request.files.file[i] = "";
+          outputPath[i] = "";
+      }
     }
+    else { // 파일 2개 또는 3개
+      for (var i = 0; i < file.length; i++) { // 업로드 파일이 존재하면
+
+        // 그 파일의 이름, 경로, 타입을 저장
+        name[i] = file[i].name;
+        path[i] = file[i].path;
+        type[i] = file[i].type;
+
+        if (type[i].indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
+          outputPath[i] = './fileUploads/' + name[i] + '_' + Date.now();
+          fs.rename(path[i], outputPath[i], function(err) {});
+        }
+      }
+      for (i = file.length; i < 3; i++) {
+          request.files.file[i] = "";
+          outputPath[i] = "";
+      }
+    }
+
+
 
     client.query('SELECT * FROM ProductInfo', function(err, result) {
         var length = result.length;
         if (length === 0) {
-            console.log("b");
+            //console.log("b");
             productId = 1;
         } else {
             productId = (result[length - 1].product_id) + 1;
-            console.log(productId);
+            //console.log(productId);
         }
         callback(null,1);
     });
-    console.log(outputPath);
+    //console.log(outputPath);
 },
 function(callback){
   var pSql='SELECT product_name FROM ProductInfo WHERE product_id=?';
@@ -1500,13 +1508,13 @@ app.get('/sm_changeDetail/:id', function(request, response) {
 
                     before_photo = [];
 
-                    if(object.photo1 != ""){
+                    if(object.photo1 !== ""){
                       before_photo.push((object.photo1).substring(1));
                     }
-                    if(object.photo2 != ""){
+                    if(object.photo2 !== ""){
                       before_photo.push((object.photo2).substring(1));
                     }
-                    if(object.photo3 != ""){
+                    if(object.photo3 !== ""){
                       before_photo.push((object.photo3).substring(1));
                     }
                     console.log(before_photo);
@@ -1538,20 +1546,14 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
   else if (way == '사물함거래'){ value = 2; }
   else{ value = 3; }
 
-  if (detail === null){ detail = ""; }
-
-  // 파일이 업로드되면 files 속성이 전달됨
-  var imageFile = request.files.file;
-  var length = request.files.file.length;
-
-  var name = [];   var path = [];  var type = [];  var outputPath = [];
+  var file = []; var name = [];   var path = [];  var type = [];  var outputPath = [];
   var hiddenValue = request.body.hidden;
 
   var change_photo = [];
 
   async.series([
     function(callback){
-      if(hiddenValue == 0){
+      if(hiddenValue === 0){
         client.query('SELECT * FROM ProductInfo WHERE product_id=?', [request.params.id], function(err, result) {
           outputPath[0] = result.photo1;
           outputPath[1] = result.photo2;
@@ -1561,36 +1563,37 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
         });
       }
       else if (hiddenValue == 1){
-        if(!(length > 0) && (request.files.file.size === 0)){  // 파일 0개
-          outputPath[0] = ""; outputPath[1] = ""; outputPath[2] = "";
-          fs.unlink(request.files.file.path, function(err) { });
-        }
-        else if(!(length > 0) && (request.files.file.size !== 0)){  // 파일 1개
-          name[0] = imageFile.name;
-          path[0] = imageFile.path;
-          type[0] = imageFile.type;
-
-          if(type[0].indexOf('image') != -1) {
-            outputPath[0] = './fileUploads/' + Date.now() + '_' + name[0];
-            fs.rename(path[0], outputPath[0], function(err) {});
+        for(var i=0; i<3; i++){
+          if(request.files.file[i].size !== 0){
+            file.push(request.files.file[i]);
           }
-          outputPath[1] = ""; outputPath[2] = "";
         }
-        else{  // 파일 2개 또는 3개
-          for(var i=0; i<length; i++){
-            name[i] = request.files.file[i].name;
-            path[i] = request.files.file[i].path;
-            type[i] = request.files.file[i].type;
 
-            if(type[i].indexOf('image') != -1) {
-              outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
+
+        if (file.length === 0) { // 파일 0개
+          for (i = file.length; i < 3; i++) {
+              request.files.file[i] = "";
+              outputPath[i] = "";
+          }
+        }
+        else { // 파일 2개 또는 3개
+          for (var i = 0; i < file.length; i++) { // 업로드 파일이 존재하면
+
+            // 그 파일의 이름, 경로, 타입을 저장
+            name[i] = file[i].name;
+            path[i] = file[i].path;
+            type[i] = file[i].type;
+
+            if (type[i].indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
+              outputPath[i] = './fileUploads/' + name[i] + '_' + Date.now();
               fs.rename(path[i], outputPath[i], function(err) {});
             }
           }
-          for( i=length; i<3; i++){
-            request.files.file[i] = ""; outputPath[i] = "";
+          for (i = file.length; i < 3; i++) {
+              request.files.file[i] = "";
+              outputPath[i] = "";
           }
-        }
+        } // else 문
         callback(null);
       }
       else if(hiddenValue == 2){
@@ -2493,7 +2496,9 @@ app.get('/sm_complainList', function(req, res){
     });
   }
   else{  //관리자가 아니면 err 처리
-    res.redirect('404.html');
+    client.query('SELECT * FROM complainInfo WHERE userID=? ORDER BY auto DESC', [loginId[1]],function(err, result) {
+      res.render('sm_complainListUser.ejs', {rows:result});
+    });
   }
 });
 
@@ -2578,7 +2583,7 @@ app.get('/sm_complainOK/:id', function(req, res) {
         callback(null);
       }
       else{
-        var email = "eclips0123@naver.com";
+        var email = "sooksmarket@sm.ac.kr";
         sendMessage(email, function() {
           console.log("메일보냄");
         });
@@ -2631,7 +2636,9 @@ app.get('/sm_suggestList', function(req, res){
     });
   }
   else{  //관리자가 아니면 err 처리
-    res.redirect('404.html');
+    client.query('SELECT * FROM suggestInfo WHERE userID=? ORDER BY auto DESC', [loginId[1]],function(err, row) {
+      res.render('sm_suggestListUser.ejs', {rows:row});
+    });
   }
 });
 
@@ -3120,4 +3127,134 @@ app.get('/sm_reserve_list', function(request, response){
     }
   ];
   async.series(tasks, function(err,results){});
+});
+
+app.get('/find', function(req, res){
+  res.render('find.ejs');
+});
+
+app.post('/find/:type', function(req, res){
+  var type = req.params.type;
+
+  if(type === "id"){
+    if(req.body.id !== undefined){
+      var login_email = req.body.id + '@sm.ac.kr';
+      var str = 'SELECT * FROM users WHERE login_email=?';
+
+      client.query(str, [login_email], function(err, result){  //console.log(result[0]);
+        if(result[0] !== undefined){
+          sendId(result[0].username, login_email, function() {
+            console.log("메일보냄");
+          });
+        }
+      });
+    }
+  }
+  else if (type === "pwd"){
+    if(req.body.pwd !== undefined){
+      var login_email = req.body.pwd + '@sm.ac.kr';
+      var str = 'SELECT * FROM users WHERE login_email=?';
+      var tempPass = cuid.slug();
+
+      async.series([
+        function(callback){
+          client.query(str, [login_email], function(err, result){  //console.log(result[0]);
+            if(result[0] !== undefined){
+              sendPwd(tempPass, login_email, function() {
+                console.log("메일보냄11");
+              });
+            }
+            callback(null);
+          });
+        }
+      ],
+      function(err){
+        return hasher({
+            password: tempPass
+        }, function(err, pass, salt, hash) {
+
+            var password = hash;
+            var salts = salt;
+
+            //users.push(user);
+            var sql = 'UPDATE users SET password=?, salt=? WHERE login_email=?';
+            client.query(sql, [password, salts, login_email], function(err, result) {
+            });
+          });
+        });
+
+      }
+    }
+
+});
+
+var sendId = function(id, email, callback) {
+  var style='<div style="border: 1px solid #d6d6d6; padding: 16px; text-align:center">';
+    var mailOptions = {
+        from: '숙스마켓 <miniymay101@gmail.com>',
+        to: email,
+        subject: '[숙스마켓] 아이디 찾기',
+        html:style+'<h5 style="background-color:#ff9999">등록된 ID : </h5>'+'<h1>' + id+'</h1></div>'
+    };
+
+    smtpTransport.sendMail(mailOptions, function(error, response) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log("Message sent : " + response.message);
+        }
+        smtpTransport.close();
+        callback();
+    });
+};
+
+var sendPwd = function(pwd, email, callback) {
+  var style='<div style="border: 1px solid #d6d6d6; padding: 16px; text-align:center">';
+    var mailOptions = {
+        from: '숙스마켓 <miniymay101@gmail.com>',
+        to: email,
+        subject: '[숙스마켓] 비밀번호 찾기',
+        html:style+'<h5 style="background-color:#ff9999">임시비밀번호 : </h5>'+'<h1>' + pwd+'</h1></div>'
+    };
+
+    smtpTransport.sendMail(mailOptions, function(error, response) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log("Message sent : " + response.message);
+        }
+        smtpTransport.close();
+        callback();
+    });
+};
+
+app.get('/sm_unsign', function(req, res){
+  res.render('sm_unsign.ejs', {flag:0});
+});
+
+app.post('/sm_unsign', function(req, res){
+  var str = 'SELECT * FROM TradeInfo WHERE (seller=? AND state<4) OR (customer=? AND state<4)';
+  var flag = 0;
+
+  async.series([
+    function(callback){
+      client.query(str, [loginId[1], loginId[1]], function(err, result){
+        //console.log(result[0]);
+        if(result[0] === undefined){  // 거래 중이 아닐 때
+          flag = 1;
+        }
+        callback(null);
+      });
+    }
+  ],
+  function(err){
+    if(flag === 1){
+      //res.redirect('sm_logout');
+      res.render('sm_unsign.ejs', {flag:1});
+      unsign = 1;
+    }
+    else{
+      res.render('sm_unsign.ejs', {flag:2});
+    }
+  });
 });

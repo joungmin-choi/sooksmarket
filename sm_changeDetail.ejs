@@ -38,10 +38,7 @@
 
   function Upload(target) {
     var files = target.files;
-    if(files.length>3){
-      alert('최대 3개까지 가능합니다.');
-      document.getElementById('file').value = "";
-    }
+
     document.getElementById("hidden").value = "1";
   }
 
@@ -94,8 +91,15 @@
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">카테고리 :</label>
             <div class="col-sm-5">
-              <select class="form-control" id="category" name="category" disabled="true" style="cursor:context-menu;">
-                <option><%= category %></option>
+              <select class="form-control" id="category" name="category" style="cursor:context-menu;">
+                <option>옷</option>
+                <option>화장품</option>
+                <option>책</option>
+                <option>전자기기</option>
+                <option>음식</option>
+                <option>필기류</option>
+                <option>티켓 양도</option>
+                <option>기타</option>
               </select>
             </div>
           </div>
@@ -120,7 +124,11 @@
               <button type="button" class="btn btn-primary" id="changeBtn" onclick="change()">사진 수정</button>
 
               <div id="fileDIV" style="display:none;">
-                <input type="file" id="file" class="form-control" name="file"  accept="image/*" capture="photo"  multiple="true" onChange="Upload(this)";>
+                <input type="file" id="file" class="form-control" name="file"  accept="image/*" onChange="Upload(this)";>
+                <input type="file" id="file" class="form-control" name="file"  accept="image/*" onChange="Upload(this)";>
+                <input type="file" id="file" class="form-control" name="file"  accept="image/*" onChange="Upload(this)";>
+                <small>** 최대 3개까지 업로드 가능 **</small>
+                <!-- <input type="file" id="file" class="form-control" name="file"  accept="image/*" capture="photo"  multiple="true" onChange="Upload(this)";> -->
               </div>
             </div>
 
