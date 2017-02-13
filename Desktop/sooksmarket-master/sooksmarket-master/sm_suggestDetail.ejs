@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include ./sm_head %>
+
+  <style>
+  textarea{
+    cursor:context-menu;
+    background-color:white;
+    resize: none;
+  }
+  </style>
+
+
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="row">
+      <span>
+        <h2 style="display:inline">건의사항</h2>
+      </span>
+      <hr/>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <table class="table table-bordered table-striped table-hover">
+        <tbody>
+          <tr>
+            <td>사용자 ID</td>
+            <td><%= row[0].userID %></td>
+          </tr>
+          <tr>
+            <td>건의사항</td>
+            <td>
+              <textarea class="form-control col-sm-5" rows="5" style="cursor:context-menu; background-color:white; resize: none;" disabled><%= row[0].comment %></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td>등록일</td>
+            <td><%= row[0].date %></td>
+          </tr>
+        </tbody>
+      </table>
+      <center>
+        <button type="button" class="btn btn-primary" style="margin-top:5%;margin-right:3%" onClick="window.close();">닫기</button>
+      </center>
+    </div>
+  </div>
+
+
+</body>
+
+</html>

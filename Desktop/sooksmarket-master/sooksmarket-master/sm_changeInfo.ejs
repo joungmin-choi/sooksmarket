@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <% include ./sm_head %>
+    <script language="JavaScript">
+      function submitCheck(){
+        var pw_1Text = document.getElementById("pw_1");
+        var pw_2Text = document.getElementById("pw_1");
+        if(pw_1Text.value==""){
+          alert("비밀번호를 입력하세요.");
+          return false;
+        }
+        else if(pw_2Text.value==""){
+          alert("비밀번호를 입력하세요.");
+          return false;
+        }
+        else if(pw_1Text.value != pw_2Text.value){
+          alert("비밀번호 중복확인 실패!\n다시 입력하세요!");
+          return false;
+        }
+      }
+    </script>
+</head>
+
+<body>
+    <!-- 네이게이션 상단 부분 -->
+    <% include ./sm_top_navigator %>
+    <!-- 사이즈바 부분 -->
+
+
+    <div class="container">
+      <!--1
+      <p class="lead"><strong>숙스마켓</strong></p>-->
+      <!--2-->
+      <div class="row">
+        <h3 style="text-align:center;">
+          <strong> 회원 정보 수정 </strong>
+          <img src="/img/notepad2.png" width="37" style="margin-left:3%;"/>
+        </h3>
+
+        <hr />
+            <!-- (2-1)
+            <div class="col-md-3">
+              <% include ./sm_sidebar %>
+            </div>
+            -->
+            <!-- (2-2) -->
+            <% row=rows[0]; %>
+            <div class="col-md-9">
+              <form action='/sm_changeInfo' class="form-horizontal" role="form" method='post' onsubmit="return submitCheck()" >
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">이름 :</label>
+                  <div class="col-sm-5">
+                    <input type="text" class="form-control" name="name" value=" <%= `${row.login_name}` %> " disabled>
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">ID :</label>
+                  <div class="col-sm-5">
+                    <input type="text" class="form-control" name="username" id="" value="<%= `${row.username}` %>" disabled>
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">PASSWORD :</label>
+                  <div class="col-sm-5">
+                    <input type="password" class="form-control" name="password" id="pw_1" placeholder="새로운 비밀 번호를 입력해주세요:)">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">PASSWORD 확인 :</label>
+                  <div class="col-sm-5">
+                    <input type="password" class="form-control" name="password2" id="pw_2" placeholder="새로운 비밀 번호를 입력해주세요:)">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">이메일 :</label>
+                  <div class="col-sm-5">
+                    <input type="text" class="form-control" name="email" id="<%= row.login_email %>" value="<%= `${row.login_email}` %>" disabled>
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <label for="" class="col-sm-3 control-label">전화번호 :</label>
+                  <div class="col-sm-5">
+                    <input type="text" class="form-control" name="phone" id="<%= row.login_name %>" value="<%= `${row.login_phone}` %>">
+                  </div>
+                </div>
+                <div class="form-group"> <!--has-success has-feedback-->
+                  <div class="text-center">
+                    <input type="submit" value="수정완료" class="btn btn-primary">
+                    <input type="reset" value="취소" class="btn btn-danger" onclick="location.href='/sm_main'">
+                  </div>
+                </div>
+
+              </form>
+            </div>
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+        <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+
+    <% include ./sm_footer %>
+</html>

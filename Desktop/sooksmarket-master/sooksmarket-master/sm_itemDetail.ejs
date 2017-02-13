@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <% include ./sm_head %>
+        <style>
+            .checkbox-inline {
+                cursor: context-menu;
+            }
+
+            input[type="checkbox"][disabled] {
+                cursor: context-menu;
+            }
+
+            .star{
+              font-size: 15px;
+              color: #ffa500;
+              font-family: arial;
+            }
+
+            .not{
+              font-size: :15px;
+              color: #cccccc;
+              font-family: arial;
+            }
+
+            #area{
+              height: 80px;
+              margin-bottom: 2%;
+              background-color: aliceblue;
+            }
+
+            ._edit{
+              margin-bottom: 1%;
+            }
+
+            .btn-warning{
+              background-color: mediumblue;
+              border-color: mediumblue;
+
+            }
+        </style>
+        <script>
+
+            $(document).ready(function() {
+                $('._edit').hide();
+                $('.re').hide();
+                $('.reply').click(function() {
+                    $(this).next().toggle();
+                });
+
+                $('.edit').click(function(){
+                  var id = $(this).attr('id');
+                  $('.' + id).removeAttr("disabled");
+                  $('#_'+id).show();
+                  });
+
+                  if(`${<%= delete_btn %>}`== 0){
+                    $('#button_delete').attr("disabled",true);
+                    $('#button_buy').attr("disabled",true);
+                  } else {
+                     $('#button_reserve').attr("disabled",true);
+                  }
+            });
+
+            function reserve(){
+              var flag=0;
+              var session_id = `<%= session_id %>`;
+              var reserveMembers = new Array();
+              <% for(var i=0; i<reserveMember.length; i++){ %>
+                <% if(session_id == reserveMember[i].session_id){ %>
+                    flag =1;
+                  <% } %>
+              <% } %>
+              // reserveMembers = `<%= reserveMember %>`;
+              // var reserveMember_length= `<%= reserveMember.length %>`;
+
+              if(flag == 1){
+                alert("당신은 이미 대기상태 입니다")
+              } else {
+                var reserve_count = `${<%= reserve_ordernumber %>}`;
+                alert(" 당신은 "+reserve_count+"번째 대기자 입니다 :)");
+                location.href='/sm_request/<%= id %>/reserve/<%= session_id%>';
+              }
+          };
+
+
+
+        </script>
+
+</head>
+
+<body>
+    <!-- Navigation -->
+    <% include ./sm_top_navigator %>
+
+    <!-- Page Content -->
+    <div class="container">
+      <!-- Introduction Row -->
+      <!-- Team Members Row -->
+      <div class="row">
+        <!-- 0-->
+        <div class="col-lg-12 text-center">
+          <h3 class="page-header"><%= name %></h3>
+        </div>
+        <!-- 1-->
+        <div class="thumbnail">
+
+          <% for (i=0; i< photo.length; i++){
+
+            if (photo[i] != ""){ %>
+              <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="300" height="200"/>
+              <br/>
+            <% } %>
+
+            <% if (photo[0] == ""){ %>
+              <br/><br/></br/>
+            <% }
+          } %>
+
+          <br/>
+          <table class="table table-hover">
+            <tbody class="text-center">
+              <tr>
+                <td>등록일 : </td>
+                <td><%= date %></td>
+              </tr>
+              <!--
+              <tr>
+                <td>팔고자 하는 물건 : </td>
+                <td><%= name %></td>
+              </tr>
+            -->
+              <tr>
+                <td>판매자 ID : </td>
+                <td>
+                  <a href="/sm_review/search/<%= seller %>" title="후기 보기" style="">
+                    <%= seller %>
+                  </a>
+                  <% if(avgRating != 0){
+                      if(avgRating >= 4.7){ %>
+                        <br/><label class="star">★★★★★</label>
+                    <% }else if((avgRating>=3.7)&&(avgRating<4.7)){ %>
+                        <br/><label class="star">★★★★</label><label class="not">★</label>
+                    <% }else if((avgRating>=2.7)&&(avgRating<3.7)){ %>
+                        <br/><label class="star">★★★</label><label class="not">★★</label>
+                    <% }else if((avgRating>=1.7)&&(avgRating<2.7)){ %>
+                        <br/><label class="star">★★</label><label class="not">★★★</label>
+                    <% }else if((avgRating>=1)&&(avgRating<1.7)){ %>
+                        <br/><label class="star">★</label><label class="not">★★★★</label>
+                    <% } %>
+                  <% } %>
+                </td>
+              </tr>
+              <tr>
+                <td>가격 : </td>
+                <td><%= price %></td>
+              </tr>
+              <tr>
+                <td>희망 거래 방법 : </td>
+                <td>
+                  <% if(way == 1){ %>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>사물함거래</label>
+                  <% }else if (way == 2){ %>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>직거래</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
+                  <% }else { %>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
+                  <% } %>
+                </td>
+                </tr>
+                <tr>
+                  <td>상세내용 : </td>
+                  <td><textarea class="form-control col-sm-5" rows="5" style="cursor:context-menu; background-color:white; resize: none;" disabled><%= detail %></textarea></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <center>
+
+            <% if (session_id != seller){ %>
+              <button id="button_buy" type="button" class="btn btn-primary" onclick="location.href='/sm_request/<%= id %>'">구매하기</button>
+              <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기</button>
+            <% } %>
+
+
+            <% if (session_id == seller){ %>
+              <!--<button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>-->
+              <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+              <button type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
+            <% } %>
+            </center>
+
+          </div>
+        </div>
+
+
+            <hr>
+
+
+            <div class="write_comment">
+                <h5>문의는 댓글로 남겨주세요:)</h5>
+                <form action='/sm_itemDetail/<%= id %>/comments' method='post' role="form">
+
+                    <div class="form-group">
+                        <textarea class="form-control" rows="3" name="comment_detail"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning btn-sm">보내기</button>
+                </form>
+            </div>
+
+            <!-- Comment -->
+            <% for (i=0; i<`${rows.length}`; i++) { %>
+              <% if(rows[i].child_id == 0 ) { %>
+                <div class="media">
+                    <div class="media-body">
+                      <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit' method='post' role="form">
+                        <h4 class="media-heading"><%= rows[i].session_id %>
+                        <small><%= rows[i].comment_date %></small>
+                        </h4>
+                      <textarea id="area" name="comment" class="edit<%=i %> form-control" disabled><%= rows[i].comment_detail  %></textarea>
+                        <% if(rows[i].session_id === session_id ) { %>
+                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" >수정 완료</button>
+                          </form>
+                            <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
+                            <button class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
+                        <% } %>
+                            <button class="reply btn btn-warning btn-xs" id=reply<%=i %> >답글</button>
+                            <div id=reply_element class="re">
+                                <h5>댓글을 남겨주세요:)</h5>
+                                <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply' method='post' role="form">
+                                    <div class="form-group">
+                                        <textarea class="form-control" rows="3" name="each_comment_detail"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-default btn-sm">보내기</button>
+                                </form>
+                            </div>
+                    </div>
+                </div>
+                <% }
+                else { %>
+                  <div class="media">
+                    <a class="pull-left" href="#">
+                      <img class="media-object" src="http://placehold.it/32x32" alt="">
+                    </a>
+                      <div class="media-body">
+                        <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit' method='post' role="form">
+                          <h4 class="media-heading"><%= rows[i].session_id %>
+                          <small><%= rows[i].comment_date %></small>
+                          </h4>
+                          <textarea name="comment" class="edit<%=i %> form-control" disabled><%= rows[i].comment_detail  %></textarea>
+                          <% if(rows[i].session_id === session_id ) { %>
+                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" type="submit">수정 완료</button>
+                              </form>
+                              <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
+                              <button class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
+                            <% } %>
+
+                      </div>
+                  </div>
+            <%  }
+              } %>
+                    <!-- Footer -->
+                    <% include ./sm_footer %>
+
+        </div>
+        <!-- /container -->
+
+
+        <!-- Bootstrap core JavaScript
+    ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+
+        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+        <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+
+</html>

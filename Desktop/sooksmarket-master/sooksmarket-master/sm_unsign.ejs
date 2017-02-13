@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <% include ./sm_head %>
+
+    <script>
+    function confirmation(){
+      form.submit();
+      return true;
+    }
+
+    function cancel(){
+      window.location.href = "/sm_main";
+    }
+
+    $(document).ready(function(){
+      if ("<%= `${flag}` %>" == 1){
+        alert("탈퇴하였습니다.\n이용해주셔서 감사합니다:)");
+        window.location.href = "/sm_logout";
+      }
+      else if ("<%= `${flag}` %>" == 2){
+        alert("거래가 완료되어야 탈퇴하실 수 있습니다.\n[mypage]->[나의거래내역]에서 확인하세요.");
+        window.location.href = "/sm_main";
+      }
+
+    });
+    </script>
+</head>
+
+<body>
+    <% include ./sm_top_navigator %>
+
+    <div class="container">
+      <h3 style="text-align:center;">
+        <img src="/img/logout1.png" width="37" style="margin-right:3%;" />
+        <strong> 회원 탈퇴 </strong>
+      <img src="/img/logout2.png" width="37" style="margin-left:3%;" /></h3>
+      <hr/>
+
+        <!-- 본문 1-->
+        <div class="row">
+
+            <div class="col-xs-13 col-md-6 col-md-offset-3 col-xs-offset-1">
+
+              <form action="/sm_unsign" id="eventFrom" method="post" class="form-horizontal" onsubmit="return confirmation()">
+
+
+
+                  <div class="form-group" style="margin-left:10%; margin-top:5%; margin-bottom:5%">
+                      <div class="col-xs-10 bg-danger text-white">
+                        <div>※ 탈퇴 시 개인정보, 게시글은 삭제됩니다.</div>
+                        <div>※ 본인이 작성한 댓글은 삭제되지 않습니다.</div>
+                        <div>※ 탈퇴를 원하시면 아래 "확인" 버튼을, 탈퇴를 취소하실 경우 "취소" 버튼을 클릭해주십시오.</div>
+                      </div>
+                  </div>
+
+                  <div class="form-group text-center">
+                      <div class="col-xs-12">
+                          <button type="submit" class="btn btn-warning" style="margin-right:2%">확인 </button>
+                          <button type="button" class="btn btn-default" onclick="cancel()">취소</button>
+                      </div>
+                  </div>
+                  <hr/>
+              </form>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <% include ./sm_footer %>
+
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+
+
+
+</html>

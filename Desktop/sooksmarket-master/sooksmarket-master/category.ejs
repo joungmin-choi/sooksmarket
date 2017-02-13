@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <% include ./sm_head %>
+
+
+    <style>
+    a:link {text-decoration: none;}
+    a:visited {text-decoration: none; color: #000066;}
+    div.thumbnail:hover { border: 1px solid #777; }
+
+    #snackbar {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 2px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1;
+      left: 50%;
+      bottom: 30px;
+      font-size: 17px;
+    }
+
+    #snackbar.show {
+      visibility: visible;
+      -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @-webkit-keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @-webkit-keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+
+    @keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+    </style>
+
+    <script>
+
+    function confirmation(){
+      var searchText = document.getElementById("text").value;
+
+      document.getElementById("text").value =searchText;
+
+      return true;
+    }
+
+    var itemDetail = function(i){
+      if ("<%= `${on}` %>" == 1){
+        alert('한 달(<%= `${allowDate}` %>)동안 사용하실 수 없습니다.');
+        detail="Detail" + i;
+        var element = document.getElementById(detail);
+        element.href = '/sm_main';
+      }
+
+    }
+
+    var scrap = function(i) {
+      id="scrap" + i;
+      var element = document.getElementById(id);
+      var x = document.getElementById("snackbar");
+      var scrapImg;
+      var scrapName = document.getElementById("name"+i).outerText;
+
+      x.className = "show";
+
+      if(element.outerText == "☆"){
+        scrapImg = (element.innerHTML = "★");
+        element.style.color = "#ff6666";
+        element.style.fontSize = '135%';
+
+        x.innerHTML = "스크랩되었습니다."
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+      }else{
+        scrapImg = (element.innerHTML = "☆");
+        element.style.color = "#ff6666";
+        element.style.fontSize = '135%';
+
+        x.innerHTML = "스크랩이 해제되었습니다."
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+      }
+
+
+      $.post("/sm_category/"+i, {scrapName: scrapName, scrapImg: scrapImg});
+
+    };
+
+
+    </script>
+  </head>
+
+  <body>
+    <% include ./sm_top_navigator %>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-8 col-xs-offset-2">
+
+          <form id="form" name="form" class="input-group" action="" method="get" onsubmit="return confirmation()">
+            <div class="input-group-btn">
+              <select class="btn btn-default selectpicker" id="category" style="height: 34px;">
+                <option value="<%= option %>"><%= option %></option>
+              </select>
+            </div>
+            <input type="text" id="text" name="text" class="form-control" placeholder="Search..." />
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="submit">
+                <span class="glyphicon glyphicon-search"></span>
+              </button>
+            </span>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="container">
+      <!-- Introduction Row -->
+      <!-- Team Members Row -->
+
+
+      <div class="row">
+        <!-- 0-->
+        <div class="col-lg-12" style="margin-top:8%;">
+          <h3 style="display:inline;">현재 등록된 물건</h3>
+          <a href="/sm_addItems">
+          <button type="button" class="btn btn-primary" style="display:inline; float:right;">
+            <span class="glyphicon glyphicon-star" aria-hidden="true"></span> 상품 등록
+          </button>
+          </a>
+          <hr/>
+
+        </div>
+        <!-- 1-->
+        <div id="snackbar">스크랩되었습니다.</div>
+
+        <% for (i=((`${rows.length}`)-1), flag=0; i>=0 ; i--, flag=0){%>
+
+          <div class="col-lg-4 col-sm-6 col-xs-6 text-center">
+
+            <div class="thumbnail">
+              <p style="float:left; margin-left: 0.5%">
+                <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%" onclick="scrap(<%= i %>)">
+                <% for(j=0; j<(scrap.length); j++){
+                  if(rows[i].product_id == scrap[j].product_id){
+                    flag = 1; %>
+                    ★
+                  <% }
+                 } %>
+                 <% if (flag != 1){ %>
+                   ☆
+                 <% } %>
+                </a>
+              </p>
+
+              <a onclick="itemDetail(<%= i %>)" id="Detail<%= i %>" href="/sm_itemDetail/<%= rows[i].product_id  %>">
+                <% if(rows[i].photo1 != ""){ %>
+                  <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                <% } else{ %>
+                  <img class="img-responsive img-center" src="/사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                  <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
+                <% } %>
+
+                <h3 id="name<%= i %>" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
+                  <%= rows[i].product_name %>
+                </h3>
+                <small><%= rows[i].product_seller %></small>
+              </a>
+            </div>
+          </div>
+        <% } %>
+
+      </div>
+
+      <hr>
+    </div> <!-- /container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+  <!-- Footer -->
+  <% include ./sm_footer %>
+
+</html>

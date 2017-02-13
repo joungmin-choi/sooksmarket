@@ -1,0 +1,315 @@
+<!doctype html>
+<html>
+
+<head>
+  <% include ./sm_head %>
+    <title>Socket.IO chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #form{
+        position:fixed;
+        width:100%;
+        height: 100%;
+        padding-top: 1%;
+        bottom: auto;
+        background: #FEFEFE;
+
+
+      }
+
+      #input {
+        display: inline-block;
+         width: 100%;
+         margin-left: 3%;
+         height: auto;
+         margin-bottom: 1%;
+         margin-top: 2%;
+      }
+
+      #text{
+        /*max-width: 90vw;*/
+        width: 80%;
+        height: 40px;
+        margin-right: 3%;
+        margin-left: 1%;
+      }
+
+      #text_button {
+        /*max-width: 9vw;*/
+        width: 50px;
+        height: 30;
+      }
+
+      #time_button{
+        height: 40px;
+        margin-left: 4%;
+        margin-top: 0.5%;
+        margin-bottom : 1%;
+
+      }
+
+        #messages {
+            width: 100%;
+            height: 70vh;
+            overflow-y: scroll;
+            padding-left: 15px;
+            padding-right: 15px;
+            margin-bottom: 0px;
+            background: lightblue;
+            margin-top: -6%;
+        }
+
+        #messages li {
+            clear: both;
+            margin-bottom: 10px;
+            text-decoration: none;
+            list-style-type: none;
+            padding: 5px 10px;
+            margin: 20px 0px 0px 20px;
+            max-width: 70%;
+        }
+
+        .actual_msg {
+            float: left;
+            display: inline-block;
+            margin: 3%;
+            padding: 25px 34px;
+            min-width: 35%;
+            min-height: 10%;
+            max-width: calc(80vw);
+            border-radius: 5px;
+            /*box-shadow: 0px 3px 3px rgba(172, 172, 172, 0.73);*/
+            line-height: 1.4;
+            word-wrap: break-word;
+            color: #1A1A1A;
+            background-color: #b3b3b3;
+        }
+
+        #messages li:first-child{
+          margin-top: 5%;
+        }
+
+        #messages li hr{
+          border-color: black;
+          margin-top: 24px;
+        }
+
+        #messages li label{
+          float:right;
+          font-weight:normal;
+        }
+
+        #messages li b{
+          font-size: 16px;
+        }
+    </style>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+
+    <script>
+        $(function() {
+            var socket = io();
+            var seller = '<%= seller %>';
+            var customer = '<%= customer %>';
+            var users = '<%= session %>';
+            var product_id = '<%= product_id %>';
+            var msg_date;
+
+            if ((users != seller) && (users != customer)) {
+                alert("존재하지 않는 채팅방입니다!");
+                location.href = '/sm_main';
+                return false;
+            } else {
+                //alert('join [서버로 전송]');
+                socket.emit('join', {
+                    'userid': users,
+                    'room': product_id
+                });
+
+                $('form').submit(function() {
+                    //alert('폼 버튼 클릭되었습니다:)');
+                    socket.emit('chat message', $('#text').val());
+                    $('#text').val('');
+                    return false;
+                });
+
+                socket.on('first', function(data) {
+                    //alert('first 클라이언트에서 받음');
+                    //alert(1);
+                    var length = data.msg.length;
+                    //alert("길이값");
+                    //alert(length);
+                    //alert(users);
+                    //alert(data.user);
+                    //alert("여기부터");
+                    if (users == data.user) {
+                      //alert("진입1");
+                        for (i = 0; i < data.msg.length; i++) {
+                          msg_date = data.msg[i].msg_date;
+                          msg_date = msg_date.substring(5,16);
+                          if(data.msg[i].msg_id == users){
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFE7C; float:right; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg+'</li>');
+                          }
+                          else{
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg + '</li>');
+                          }
+                        }
+                    }
+                    // else {
+                    //   //alert("여기진입2");
+                    //   msg_date = data.msg[length-1].msg_date;
+                    //   msg_date = msg_date.substring(5,16);
+                    //   //$('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[data.msg.length].msg_id + "</b><br/><label>"+"1"+"</label><hr/>" + data.msg[length].msg + '</li>');
+                    //   $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[length-1].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[length-1].msg + '</li>');
+                    //
+                    // }
+                });
+
+                socket.on('second',function(data){
+                  //alert('second에서 받음');
+                    var length = data.msg.length;
+
+                    if (users == data.user) {
+                      //alert("진입1");
+                        for (i = 0; i < data.msg.length; i++) {
+                          msg_date = data.msg[i].msg_date;
+                          msg_date = msg_date.substring(5,16);
+                          if(data.msg[i].msg_id == users){
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFE7C; float:right; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg+'</li>');
+                          }
+                          else{
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg + '</li>');
+                          }
+                        }
+                    }
+                    else {
+                      //alert("여기진입2");
+                      msg_date = data.msg[length-1].msg_date;
+                      msg_date = msg_date.substring(5,16);
+                      //$('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[data.msg.length].msg_id + "</b><br/><label>"+"1"+"</label><hr/>" + data.msg[length].msg + '</li>');
+                      $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[length-1].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[length-1].msg + '</li>');
+
+                    }
+                })
+
+                socket.on('chat message', function(data) {
+                  //alert('chat message를 클라이언트에서 받음');
+                  msg_date = data.date;
+                  msg_date = msg_date.substring(5,16);
+
+                    if(data.user == users){
+                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:right; background: #FEFE7C;'><b>" + data.user + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg + "</li>");
+                    }
+                    else {
+                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:left; background: #FEFEFE;'><b>" + data.user + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg + "</li>");
+                    }
+                });
+            }
+        });
+
+        window.onload = function(){
+
+          var trade_date = '<%= trade_date %>';
+          var trade_time = '<%= trade_time %>';
+          var changeTimeBtn = document.getElementById("input2");
+          var msgUl = document.getElementById("messages");
+
+          if(trade_date == 0){
+            // changeTimeBtn.style.display = "none";
+            // msgUl.style.height = "71vh";
+          }
+          else{
+            msgUl.style.height = "65vh";
+            var date = new Array();
+            var time = new Array();
+            date[0] = parseInt(trade_date.substring(0,2))-1;
+            date[1] = parseInt(trade_date.substring(4,6));
+            time[0] = parseInt(trade_time.substring(0,2));
+            time[1] = parseInt(trade_time.substring(3,5));
+
+            var tradeTime = new Date(2017, date[0], date[1], time[0], time[1], 0);
+            var presentTime = new Date();
+
+            var interval = tradeTime - presentTime;
+
+            if(interval >= 3600*6*1000 ){
+              setTimeout("disableBtn()", interval-3600*6*1000);
+            }
+            else{
+              changeTimeBtn.style.display = "none";
+            }
+          }
+        };
+
+        function disableBtn(){
+          var changeTimeBtn = document.getElementById("input2");
+          changeTimeBtn.style.display = "none";
+          msgUl.style.height = "68vh";
+        }
+
+        function refresh(){
+          location.reload();
+        }
+    </script>
+
+</head>
+
+<body>
+  <!-- 네이게이션 상단 부분 -->
+  <% include ./sm_top_navigator %>
+
+        <ul id="messages" style="height:71vh;"></ul>
+        <form action="">
+          <div>
+          <div id="input">
+                <input name="name" id="text" placeholder="  내용을 입력해주세요." style="width:72%;">
+                <button type="submit" class="btn btn-warning" id="text_button">확인</button>
+          </div>
+          <div id="input2">
+              <button type="button" class="btn btn-warning" id="time_button" onclick="location.href='/sm_request/<%=product_id%>'">시간변경</button>
+          </div>
+        </div>
+        </form>
+
+    <script type="text/javascript">
+      function selectTime(id, request_num){
+        var users = '<%= session %>';
+        var product_id = '<%= product_id %>';
+
+        if(id == users){
+          alert("상대방만 시간 선택 버튼을 누를 수 있습니다!");
+        }
+        else{
+          var link = "/sm_selectTime/" + product_id + "/" + request_num;
+          location.href=link;
+        }
+      }
+
+      function complete(id){
+        var users = '<%= session %>';
+        var product_id = '<%= product_id %>';
+
+        if(id == users){
+          alert("상대방만 확인 버튼을 누를 수 있습니다!");
+        }else{
+          alert("거래 취소가 완료되었습니다.\n해당 거래 관련 데이터는 모두 삭제됩니다.");
+          var link = '/sm_chat/'+product_id+'/reject';
+          location.href=link;
+        }
+      }
+    </script>
+
+</body>
+
+</script>
+
+</html>

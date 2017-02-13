@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <% include ./sm_head %>
+
+
+    <style>
+    body {
+      padding-top: 50px;
+    }
+    .navbar-template {
+      padding: 40px 15px;
+    }
+
+    a:link {text-decoration: none;}
+    a:visited {text-decoration: none; color: #000066;}
+    div.thumbnail:hover { border: 1px solid #777; }
+
+    #snackbar {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 2px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1;
+      left: 50%;
+      bottom: 30px;
+      font-size: 17px;
+    }
+
+    #snackbar.show {
+      visibility: visible;
+      -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @-webkit-keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @-webkit-keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+
+    @keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+    </style>
+
+    <script>
+    window.onload = function(){
+      <% if(haveCompletion ==1){ %>
+        var trade_date = `<%= tradeInfo[0].trade_date %>`;
+        var trade_time = `<%= tradeInfo[0].trade_time %>`;
+
+        var date = new Array();
+        var time = new Array();
+        date[0] = parseInt(trade_date.substring(0,2))-1;
+        date[1] = parseInt(trade_date.substring(4,6));
+        time[0] = parseInt(trade_time.substring(0,2));
+        time[1] = parseInt(trade_time.substring(3,5));
+
+        var tradeTime = new Date(2017, date[0], date[1], time[0], time[1], 0);
+        var presentTime = new Date();
+
+        if(presentTime >= tradeTime){
+          var str = `<%= tradeInfo[0].product_name %>`+'의 거래 완료 페이지가 작성되지 않았습니다.\n지금 작성하시겠습니까?';
+          var check = confirm(str);
+
+          if(check){
+            var link = '/sm_tradeStateDetail/'+`<%= product_id %>`+'/'+`<%= request_num %>`;
+            location.href=link;
+          }
+        }
+      <% } %>
+    }
+
+    function confirmation(){
+      var category = document.getElementById("category").value;
+      var searchText = document.getElementById("text").value;
+
+      document.getElementById("category").value = category;
+      document.getElementById("text").value =searchText;
+
+      return true;
+    };
+
+    var itemDetail = function(i){
+      if ("<%= `${on}` %>" == 1){
+        alert('한 달(<%= `${allowDate}` %>)동안 사용하실 수 없습니다.');
+        detail="Detail" + i;
+        var element = document.getElementById(detail);
+        element.href = '/sm_main';
+      }
+
+    };
+
+    function allow(){
+      if ("<%= `${on}` %>" == 1){
+        alert('한 달(<%= `${allowDate}` %>)동안 사용하실 수 없습니다.');
+        window.location.href = "/sm_main";
+      }
+    }
+
+    var scrap = function(i) {
+      id="scrap" + i;
+      var element = document.getElementById(id);
+      var x = document.getElementById("snackbar");
+      var scrapImg;
+      var scrapName = document.getElementById("name"+i).outerText;
+
+      x.className = "show";
+
+      if(element.outerText == "☆"){
+        scrapImg = (element.innerHTML = "★");
+        element.style.color = "#ff6666";
+        element.style.fontSize = '135%';
+
+        x.innerHTML = "스크랩되었습니다."
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+      }else{
+        scrapImg = (element.innerHTML = "☆");
+        element.style.color = "#ff6666";
+        element.style.fontSize = '135%';
+
+        x.innerHTML = "스크랩이 해제되었습니다."
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+      }
+
+
+      $.post("/sm_main/"+i, {scrapName: scrapName, scrapImg: scrapImg});
+
+    };
+
+    </script>
+  </head>
+
+  <body>
+    <% include ./sm_top_navigator %>
+
+    <!-- /.container -->
+    <div class="container">
+      <div class="navbar-template text-center">
+        <h1>
+          Sook's Market
+        </h1>
+        <p class="lead text-info"><small>
+          <img src="/img/cart.png" width="25" style="margin-right:2%;"/>숙명여대 중고장터 입니다
+          <img src="/img/cart.png" width="25" style="margin-left:2%;"/>
+        </small></p>
+      </div>
+    </div><!-- /.container -->
+
+
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-10 col-xs-offset-1">
+
+          <form id="form" name="form" class="input-group" action="" method="get" onsubmit="return confirmation()">
+            <div class="input-group-btn">
+              <select class="btn btn-default selectpicker" id="category" name="category" style="height: 34px;">
+                <option value="전체 검색">전체 검색</option>
+                <option value="상의">상의</option>
+                <option value="하의">하의</option>
+                <option value="화장품">화장품</option>
+                <option value="책">책</option>
+                <option value="전자기기">전자기기</option>
+                <option value="음식">음식</option>
+                <option value="필기류">필기류</option>
+                <option value="티켓 양도">티켓 양도</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <input type="text" id="text" name="text" class="form-control" placeholder="Search..." />
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="submit">
+                <span class="glyphicon glyphicon-search"></span>
+              </button>
+            </span>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="container">
+      <!-- Introduction Row -->
+      <!-- Team Members Row -->
+
+
+      <div class="row">
+        <!-- 0-->
+        <div class="col-lg-12" style="margin-top:8%;">
+          <h3 style="display:inline;">현재 등록된 물건</h3>
+          <a href="/sm_addItems">
+          <button type="button" class="btn btn-primary" style="display:inline; float:right;" onclick="allow()">
+            <span class="glyphicon glyphicon-star" aria-hidden="true"></span> 상품 등록
+          </button>
+          </a>
+          <hr/>
+
+        </div>
+        <!-- 1-->
+
+        <div id="snackbar">스크랩되었습니다.</div>
+
+        <% for (i=((`${rows.length}`)-1), flag=0; i>=0 ; i--, flag=0){%>
+
+          <div class="col-xs-6 col-md-3 text-center">
+            <div class="thumbnail">
+              <p style="float:left; margin-left: 0.5%; ">
+                <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%;font-family: arial;" onclick="scrap(<%= i %>)">
+                <% for(j=0; j<(scrap.length); j++){
+                  if(rows[i].product_id == scrap[j].product_id){
+                    flag = 1; %>
+                    ★
+                  <% }
+                 } %>
+                 <% if (flag != 1){ %>
+                   ☆
+                 <% } %>
+                </a>
+              </p>
+
+              <a onclick="itemDetail(<%= i %>)" id="Detail<%= i %>" href="/sm_itemDetail/<%= rows[i].product_id  %>">
+                <% if(rows[i].photo1 != ""){ %>
+                  <img class="img-responsive img-center" src="<%= rows[i].photo1 %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                <% } else{ %>
+                  <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                  <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
+                <% } %>
+
+                <h3 id="name<%= i %>" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
+                  <%= rows[i].product_name %>
+                </h3>
+                <%= rows[i].product_seller %>
+              </a>
+            </div>
+          </div>
+        <% } %>
+      </div>
+
+      <hr>
+    </div> <!-- /container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+  <!-- Footer -->
+  <% include ./sm_footer %>
+
+</html>

@@ -1,0 +1,50 @@
+.text{
+  color: rgb(94, 94, 94);
+}
+.button {
+  padding: 5px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 5px;
+  border: none;
+}
+.submit{
+  background-color: white;
+  color: black;
+  border: 2px solid #008CBA;
+
+}
+.submit:hover{
+  background-color: #008CBA;
+  color: white;
+}
+.cancel:hover{
+  background-color: rgba(0,0,0,0.19);
+  color: white;
+}
+#picture:active{
+  transform: translateY(2px);
+}
+#picture{
+   border-radius:3px;
+   border:none;
+}
+
+  table{border-spacing:10px;}
+  table td{
+    color: #ff6699;
+    font-family:'THE외계인설명서';
+  }
+  .btn{
+     margin-top:3%;
+     margin-left:3%
+  }
+  .submit{
+    border: 2px solid #0d87eb;
+    border-radius: 5px;
+  }
+  .cancel {
+    margin-left: 1%;
+  }

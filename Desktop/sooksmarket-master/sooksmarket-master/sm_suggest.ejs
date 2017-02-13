@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% include ./sm_head %>
+
+  <script>
+  function confirmation(){
+    var comment = document.getElementById("comment").value;
+
+    if (comment == ""){
+      alert("내용을 입력해주세요.");
+      document.getElementById("comment").focus();
+      return false;
+    }
+    else{
+      var retVal = confirm("건의하시겠습니까?");
+      if( retVal == true ){
+        alert('건의되었습니다.');
+        form.submit();
+        return true;
+      }else{
+        return false;
+      }
+    }
+  }
+
+  function cancel(){
+    var comment = document.getElementById("comment");
+    comment.value = "";
+    location.href='/sm_main';
+  }
+  </script>
+
+</head>
+
+<body>
+    <% include ./sm_top_navigator %>
+
+
+    <div class="container">
+        <!-- 본문 1-->
+        <h3 style="text-align:center;"><img src="/img/mail.png" width="37" style="margin-right:5%;"/>
+          <strong> 개발자에게 건의하기 </strong>
+        <img src="/img/notepad.png" width="37" style="margin-left:5%;" /></h3>
+
+        <hr />
+        <div class="row">
+
+            <div class="col-xs-10 col-md-6 col-md-offset-3 col-xs-offset-1">
+              <form action="/sm_suggest" id="eventFrom" method="post" class="form-horizontal" onsubmit="return confirmation()">
+                <div class="form-group" style="text-align:center;">
+                    <label>사용자 :</label style="display:inline;">
+                    <input type="text" class="form-control" id="userID" name="userID" value="<%= userID %>"  style="cursor:context-menu; width:70%; display:inline;" disabled>
+                </div>
+                <div class="form-group" style="text-align:center;"><br/>
+                    <label>건의할 사항을 편하게 적어주세요!</label></label>
+                </div>
+                <div class="form-group">
+                    <label for="comment">Comment:</label>
+                    <textarea class="form-control" rows="5" id="comment" name="comment" style="resize: none;"></textarea>
+                </div>
+                <center>
+                  <button type="submit" class="btn btn-warning" style="margin-right:2%">제출하기 </button>
+                  <button type="button" class="btn btn-default" onclick="cancel();">취소</button>
+                </center>
+              </form>
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <% include ./sm_footer %>
+
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+
+
+
+</html>
