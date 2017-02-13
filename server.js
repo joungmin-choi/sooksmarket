@@ -147,7 +147,8 @@ app.get('/sm_main', function(req, res) {
   var allowDate; //신고가 풀리는 날
   var sql;
   var haveCompletion=0;
-  var product_id, request_num, tradeInfo;
+  var product_id, request_num, tradeInfo, rejectProduct_id=0;
+  var applyRejection, confirmRejection, results, changeSql=0;
 
   product_id = request_num = 0;
 
@@ -231,7 +232,7 @@ app.get('/sm_main', function(req, res) {
       },
 
       function(callback){
-
+        //alert창 부분
         if(haveCompletion == 1){
           sql = 'SELECT * FROM FinalTrade WHERE product_id=?';
           client.query(sql, [product_id], function(err, result){
@@ -248,6 +249,81 @@ app.get('/sm_main', function(req, res) {
         }
       },
 
+      function(callback){
+        sql = 'SELECT * FROM TradeRejection WHERE username=? ORDER BY id DESC';
+        client.query(sql, [loginId[1]], function(err, result){
+          if(err){
+            console.log(err);
+            throw err;
+          }
+          results = result;
+          callback(null);
+        });
+      },
+
+      function(callback){
+        if(results.length === 0){
+          applyRejection = 0;
+          confirmRejection = 1;
+          changeSql = 0;
+        }else {
+          for(var i=0; i<results.length; i++){
+            if(results[i].applyRejection == 1){
+
+              var date = [];
+              var time = [];
+              var rejectTime = results[i].time;
+              date[0] = parseInt(rejectTime.substring(5,7))-1;
+              date[1] = parseInt(rejectTime.substring(8,10));
+              time[0] = parseInt(rejectTime.substring(11,13));
+              time[1] = parseInt(rejectTime.substring(14,16));
+
+              var tradeTime = new Date(2017, date[0], date[1], time[0], time[1], 0);
+              var presentTime = new Date();
+              var interval = presentTime - tradeTime;
+
+              if(interval < 5000){
+                applyRejection = 1;
+                confirmRejection = 1;
+              }else{
+                applyRejection = 0;
+                confirmRejection = 1;
+                changeSql = 1;
+                rejectProduct_id = results[i].product_id;
+              }
+              break;
+            }else if(results[i].confirmRejection === 0){
+              applyRejection = 0;
+              confirmRejection = 0;
+              changeSql = 0;
+              rejectProduct_id = results[i].product_id;
+              break;
+            }else{
+              applyRejection = 0;
+              confirmRejection = 1;
+              changeSql = 0;
+            }
+          }
+        }
+        callback(null);
+      },
+
+      function(callback){
+        if(changeSql !== 0){
+          sql = 'UPDATE TradeRejection SET applyRejection=0 WHERE product_id=? AND username=?';
+          client.query(sql, [rejectProduct_id, loginId[1]], function(err, result){
+            if(err){
+              console.log(err);
+              throw err;
+            }
+            changeSql = 0;
+            callback(null);
+          });
+        }else{
+          callback(null);
+        }
+      },
+
     function(callback) {
       res.render('sm_main.ejs', {
         loginon: 1,
@@ -259,7 +335,10 @@ app.get('/sm_main', function(req, res) {
         product_id : product_id,
         request_num : request_num,
         haveCompletion : haveCompletion,
-        session_id : loginId[1]
+        session_id : loginId[1],
+        applyRejection : applyRejection,
+        confirmRejection : confirmRejection,
+        rejectProduct_id : rejectProduct_id
       });
       callback(null);
     }
@@ -838,7 +917,7 @@ function(callback){
 },
 function(callback){
   var time = getTimeStamp();
-  client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date) VALUES (?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time], function() {
+  client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date, isDone) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time, 0], function() {
       response.redirect('/');
       callback(null,4);
   });
@@ -1272,6 +1351,7 @@ app.get('/sm_chat/:id/reject', function(request, response){
 
   var tasks = [
     function(callback){
+        product_id = request.params.id;
         var updatestateSql = 'UPDATE btn_state SET delete_btn=1 WHERE product_id=?';
         client.query(updatestateSql, [product_id],function(err,result){
           if (err) {
@@ -1282,8 +1362,17 @@ app.get('/sm_chat/:id/reject', function(request, response){
       },
 
     function(callback){
-      console.log("진입");
-      product_id = request.params.id;
+      sqlQuery = 'UPDATE TradeRejection SET confirmRejection=1 WHERE product_id=? AND username=?';
+      client.query(sqlQuery, [product_id, loginId[1]], function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
       sqlQuery = 'DELETE FROM TradeInfo WHERE product_id=?';
 
       client.query(sqlQuery, [product_id], function(err, result){
@@ -2004,7 +2093,8 @@ app.get('/sm_rejectTrade/:id/:num', function(request, response){
 });
 
 app.post('/sm_rejectTrade/:id/:num', function(request, response){
-  var product_id, request_num, sqlQuery, product_name, reject_reason;
+  var product_id, request_num, sqlQuery, product_name, reject_reason, seller, customer, user;
+  var trader, data, m;
   var body = request.body;
 
   var tasks = [
@@ -2013,12 +2103,13 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response){
       product_id = request.params.id;
       request_num = request.params.num;
 
-      sqlQuery = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
+      sqlQuery = 'SELECT product_name, product_seller FROM ProductInfo WHERE product_id=?';
       client.query(sqlQuery, [product_id], function(err, result){
         if(err){
           console.log(err);
         }else{
           product_name = result[0].product_name;
+          seller = result[0].product_seller;
         }
         callback(null,1);
       });
@@ -2033,16 +2124,17 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response){
       str[0] = "<strong>[거래를 취소합니다]</strong><br/><br/>";
       str[1] = product_name;
       str[2] = "<br/><br/>- 사유 :<br/>"+reject_reason;
-      str[3] = "<br/><br/><small><em>※상대방께서는 아래의 거래 취소 확인 버튼을 눌러주세요! 눌러주셔야 거래 취소가 완료됩니다!</em></small>";
+      str[3] = "<br/><br/><small><em>※상대방께서는 아래의 확인 혹은 신고 버튼을 눌러주세요! 눌러주셔야 거래 취소가 완료됩니다!</em></small>";
       str[4] = "<br/><button type='submit' class='btn btn-success' style='margin-top:2%;'";
-      str[5] = "onclick='complete(\""+loginId[1]+"\");'>거래 취소 확인</button>";
+      str[5] = "onclick='complete(\""+loginId[1]+"\");'>확인</button>";
+      str[6] = "<button type='submit' class='btn btn-danger' style='margin-top:2%;' onclick='report(\""+loginId[1]+"\");'>신고</button>";
 
       for(var i=0; i<str.length; i++){
         msg += str[i];
       }
 
-      var m = moment();
-      var data = {
+      m = moment();
+      data = {
         msg_id : loginId[1],
         msg : msg,
         msg_date : m.format("YYYY-MM-DD HH:mm:ss"),
@@ -2052,6 +2144,62 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response){
       client.query(sqlQuery, data, function(err, result) {
         chatFlag=1;
         callback(null,2);
+      });
+    },
+
+    function(callback){
+      sqlQuery = 'SELECT customer FROM TradeInfo WHERE product_id=? AND request_num=?';
+      client.query(sqlQuery, [product_id, request_num], function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        customer = result[0].customer;
+        user = loginId[1];
+        if(seller == user){
+          trader = customer;
+        }else{
+          trader = seller;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      sqlQuery = 'INSERT INTO TradeRejection SET ?';
+      data = {
+        product_id: product_id,
+        applyRejection: 1,
+        confirmRejection: 1,
+        username : user,
+        time : m.format("YYYY-MM-DD HH:mm:ss")
+      };
+
+      client.query(sqlQuery, data, function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      sqlQuery = 'INSERT INTO TradeRejection SET ?';
+      data = {
+        product_id : product_id,
+        applyRejection : 0,
+        confirmRejection : 0,
+        username : trader,
+        time : m.format("YYYY-MM-DD HH:mm:ss")
+      };
+
+      client.query(sqlQuery, data, function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        callback(null);
       });
     },
 
@@ -2187,7 +2335,6 @@ app.post('/sm_completeTrade/:id/:num', function(request, response){
     },
 
     function(callback){
-      console.log("들어옴!");
       sqlQuery = 'UPDATE CompletionInfo SET haveCompletion=? WHERE product_id=? AND username=?';
       client.query(sqlQuery, [0, product_id, username], function(err, result){
         if(err){throw err;}
@@ -2219,6 +2366,11 @@ app.post('/sm_completeTrade/:id/:num', function(request, response){
         sqlQuery = 'DELETE FROM chat_msg WHERE msg_room=?';
         client.query(sqlQuery, [product_id], function(err, result){
           if(err){throw err;}
+        });
+
+        sqlQuery = 'UPDATE ProductInfo SET isDone=? WHERE product_id=?';
+        client.query(sqlQuery, [1, product_id], function(err, result){
+          if(err){console.log(err);}
         });
 
         sqlQuery = 'UPDATE TradeInfo SET state=? WHERE product_id=?';
