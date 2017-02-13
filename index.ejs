@@ -5,9 +5,11 @@
         <% include ./sm_head %>
         <script>
         $(document).ready(function(){
-          // if(<%= `${loginon}` %> === 0){
-          // alert('로그아웃 상태입니다 :)');
-          // }
+          if(<%= `${loginon}` %> === 1){
+          alert('해당하는 아이디 정보가 없습니다 :)');
+        } else if(<%= `${loginon}` %> === 2){
+          alert('비밀번호가 틀렸습니다 :)');
+        }
         });
         </script>
         <style>
