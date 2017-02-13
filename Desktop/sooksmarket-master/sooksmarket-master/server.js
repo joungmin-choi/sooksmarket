@@ -433,6 +433,7 @@ app.post('/sm_signup', function(req, res) {
 app.get('/checkId', function(request, response) {
     var id = request.query.id;
 
+
     readData(id, function() {
         var context = {
             userId: id,
