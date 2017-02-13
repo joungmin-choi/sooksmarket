@@ -275,7 +275,8 @@ app.get('/sm_main', function(req, res) {
         tradeInfo : tradeInfo,
         product_id : product_id,
         request_num : request_num,
-        haveCompletion : haveCompletion
+        haveCompletion : haveCompletion,
+        session_id : loginId[1]
       });
       callback(null);
     }
@@ -986,6 +987,7 @@ app.post('/sm_request/:id', function(request, response) {
                           hour[t]=tempH;
                           min[t]=tempM;
                           break;
+
                         }
                       }
                     }
