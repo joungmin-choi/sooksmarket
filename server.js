@@ -97,7 +97,7 @@ app.get('/', function(req, res) {
     if (flag !== undefined) {
       res.redirect('/sm_main');
     } else {
-          if(loginFlag == 0) {
+          if(loginFlag === 0) {
             res.render('index', {
               loginon: 0
           }); }
