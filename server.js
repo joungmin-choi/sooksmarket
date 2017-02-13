@@ -97,9 +97,23 @@ app.get('/', function(req, res) {
     if (flag !== undefined) {
       res.redirect('/sm_main');
     } else {
-        res.render('index', {
-            loginon: 0
-        });
+
+          if(loginFlag === 0) {
+            res.render('index', {
+              loginon: 0
+          }); }
+          else if(loginFlag == 1){
+            loginFlag =0;
+            res.render('index', {
+              loginon: 1
+          });
+          }
+          else if(loginFlag == 2){
+            loginFlag =0;
+            res.render('index', {
+              loginon: 2
+          });
+          }
     }
 
 });
