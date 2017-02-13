@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <% include ./sm_head %>
+
+        <style>
+        *{
+          font-family:'THE외계인설명서';
+        }
+        button{
+          margin-top:3%;
+        }
+        .box{
+          border: 1px solid #d6d6d6;
+          padding: 16px;
+        }
+        </style>
+
+        <script>
+        function ID(){
+          var id = document.getElementById("id");
+          if (id.value == ""){
+            alert('이메일을 입력하세요.');
+          }
+          else{
+            $.post("/find/id", {id: id.value});
+            alert('해당 메일에서 확인해 주시길 바랍니다.');
+          }
+        }
+
+        function PWD(){
+          var pwd = document.getElementById("pwd");
+          if (pwd.value == ""){
+            alert('이메일을 입력하세요.');
+          }
+          else{
+            $.post("/find/pwd", {pwd: pwd.value});
+            alert('해당 메일에서 확인해 주시길 바랍니다.');
+          }
+        }
+        </script>
+
+
+    </head>
+
+    <body class="body">
+      <div class="container">
+        <h3 style="text-align:center;">
+          <img src="/img/notepad2.png" width="37" style="margin-right:3%;" />
+          <strong> 아이디/비번 찾기 </strong>
+        <img src="/img/notepad2.png" width="37" style="margin-left:3%;" /></h3>
+
+        <hr />
+
+          <div class="row">
+            <div class="col-md-12 col-md-offset-1 col-xs-12">
+              <form class="form-horizontal" role="form" id="form" name="form">
+                <div class="form-group" style="margin-top:2%">
+                  <h3 class="col-sm-3 control-label">ID 찾기</h3>
+                  <div class="col-sm-5 box">
+                    <input style="width:83%" type="text" class="col-sm-3 col-xs-3 form-control" name="id" id="id"  placeholder="숙명이메일 ID">
+                    <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
+                      @sm.ac.kr
+                    </div>
+                    <button type="button" class="btn btn-warning form-control" onclick="ID()">확인</button>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-top:2%">
+                  <h3 class="col-sm-3 control-label">PWD 찾기</h3>
+                  <div class="col-sm-5 box">
+                    <input style="width:83%" type="text" class="col-sm-3 col-xs-3 form-control" name="pwd" id="pwd"  placeholder="숙명이메일 ID">
+                    <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
+                      @sm.ac.kr
+                    </div>
+                    <button type="button" class="btn btn-warning form-control" onclick="PWD()">확인</button>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-top:2%; text-align:center">
+                  <div class="col-sm-6 control-label">
+                    <button type="button" class="btn btn-primary" onclick="location.href='/index'">로그인</button>
+                  </div>
+
+
+                </div>
+
+              </form>
+            </div>
+
+
+          </div>
+      </div><hr/>
+
+    </body>
+
+    <% include ./sm_footer %>
+
+</html>

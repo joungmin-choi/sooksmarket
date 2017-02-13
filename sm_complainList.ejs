@@ -22,6 +22,12 @@
       }
     }
 
+    $(document).ready(function(){
+      if("<%= `${admin}` %>" != "<%= `${session}` %>"){
+        location.href='404.html';
+      }
+    });
+
 
     // $(document).ready(function(){
     //   if("<%= `${admin}` %>" == "<%= `${session}` %>"){

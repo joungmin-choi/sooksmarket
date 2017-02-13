@@ -5,11 +5,9 @@
         <% include ./sm_head %>
         <script>
         $(document).ready(function(){
-          if(<%= `${loginon}` %> === 1){
-          alert('해당하는 아이디 정보가 없습니다 :)');
-        } else if(<%= `${loginon}` %> === 2){
-          alert('비밀번호가 틀렸습니다 :)');
-        }
+          // if(<%= `${loginon}` %> === 0){
+          // alert('로그아웃 상태입니다 :)');
+          // }
         });
         </script>
         <style>
@@ -60,6 +58,7 @@
             <div class="text-center">
               <input id=btn type="submit" value="로그인" class="btn btn-primary" name="loginBtn" />
               <input id=btn type="button" value="회원가입" class="btn btn-primary" onclick="location.href='/sm_signup'" />
+              <input id=btn type="button" value="아이디/비밀번호 찾기" class="btn btn-primary" onclick="location.href='/find'" />
               <!-- <input type="button" value="testing" class="btn btn-primary" onclick="location.href='/sm_selectTime/42/1'" /> -->
             </div>
           </div>

@@ -11,6 +11,11 @@
     </style>
 
     <script>
+    $(document).ready(function(){
+      if("<%= `${admin}` %>" != "<%= `${session}` %>"){
+        location.href='404.html';
+      }
+    });
 
 
     </script>

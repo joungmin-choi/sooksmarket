@@ -216,16 +216,19 @@
             }
         });
 
+        window.onload = function(){
 
-        function changeTime(){
           var trade_date = '<%= trade_date %>';
           var trade_time = '<%= trade_time %>';
           var changeTimeBtn = document.getElementById("input2");
           var msgUl = document.getElementById("messages");
 
           if(trade_date == 0){
-            location.href='/sm_request/<%=product_id%>';
-          }else{
+            // changeTimeBtn.style.display = "none";
+            // msgUl.style.height = "71vh";
+          }
+          else{
+            msgUl.style.height = "65vh";
             var date = new Array();
             var time = new Array();
             date[0] = parseInt(trade_date.substring(0,2))-1;
@@ -239,15 +242,23 @@
             var interval = tradeTime - presentTime;
 
             if(interval >= 3600*6*1000 ){
-              location.href='/sm_request/<%=product_id%>';
+              setTimeout("disableBtn()", interval-3600*6*1000);
             }
             else{
-              alert("시간 변경은 정해진 거래시간으로부터 6시간 이전에만 가능합니다.");
+              changeTimeBtn.style.display = "none";
             }
           }
+        };
+
+        function disableBtn(){
+          var changeTimeBtn = document.getElementById("input2");
+          changeTimeBtn.style.display = "none";
+          msgUl.style.height = "68vh";
         }
 
-
+        function refresh(){
+          location.reload();
+        }
     </script>
 
 </head>
@@ -264,7 +275,7 @@
                 <button type="submit" class="btn btn-warning" id="text_button">확인</button>
           </div>
           <div id="input2">
-              <button type="button" class="btn btn-warning" id="time_button" onclick="changeTime();">시간변경</button>
+              <button type="button" class="btn btn-warning" id="time_button" onclick="location.href='/sm_request/<%=product_id%>'">시간변경</button>
           </div>
         </div>
         </form>
@@ -294,10 +305,6 @@
           var link = '/sm_chat/'+product_id+'/reject';
           location.href=link;
         }
-      }
-
-      function report(id){
-        
       }
     </script>
 

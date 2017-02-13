@@ -301,8 +301,8 @@
 
             if (way[0].checked == true) {
                 directText.style.margin = "2%";
-                placeText[0] = "- 장소 : <label><input type='checkbox' value='교내' name='place" + dayNum + "' onclick='check("+dayNum+",0);' /> 교내</label>";
-                placeText[1] = " <label><input type='checkbox' value='교외' name='place" + dayNum + "' onclick='check("+dayNum+",1);' /> 교외</label>";
+                placeText[0] = "- 장소 : <label><input type='checkbox' value='교내' name='place" + dayNum + "' /> 교내</label>";
+                placeText[1] = " <label><input type='checkbox' value='교외' name='place" + dayNum + "' /> 교외</label>";
                 placeText[2] = "<br/><textarea class='form-control' rows='3' name='directDetailPlace" + dayNum + "' id='directDetailPlace" + dayNum + "' placeholder='ex) 블루베리 카페 앞'></textarea><br/>";
 
 
@@ -312,17 +312,6 @@
 
                 directText.innerHTML = "";
             }
-        }
-
-        function check(dayNum, i){
-          var place = document.getElementsByName("place"+dayNum);
-          if(i==0){
-            place[0].checked = true;
-            place[1].checked = false;
-          }else{
-            place[1].checked = true;
-            place[0].checked = false;
-          }
         }
 
         function writeLockerPlace(dayNum) {
@@ -442,11 +431,9 @@
                 if (lockerWay[i][0].checked == true) {
                     var lockerDetailPlace = new Array();
                     var lockerNum = new Array();
-                    var lockerPw = new Array();
 
                     lockerDetailPlace[i] = document.getElementById("lockerDetailPlace" + i);
                     lockerNum[i] = document.getElementById("lockerNum" + i);
-                    lockerPw[i] = document.getElementById("lockerPw" + i);
 
                     if (lockerDetailPlace[i].value == "") {
                         alert("사물함 위치를 기입해주세요!");
@@ -458,22 +445,16 @@
                         lockerNum[i].focus();
                         return false;
                         break;
-                    } else if (lockerPw[i].value == ""){
-                      alert("사물함 비밀번호를 기입해주세요!");
-                      lockerPw[i].focus();
-                      return false;
-                      break;
                     }
                 }
                 <% } %>
             }
 
+            var socket = io();
+            var str = "소켓 테스트";
 
-            // var socket = io();
-            // var str = "소켓 테스트";
-            // 
-            // socket.emit('chat message', "a");
-
+            socket.emit('chat message', "a");
+            
 
             form.submit();
             return true;
