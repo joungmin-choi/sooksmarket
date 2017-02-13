@@ -23,6 +23,7 @@ var multipartMiddleware = multipart();
 var loginId = "";
 var value =0;
 var chatFlag=0;
+var loginFlag=0;
 //DB 설정//
 var client = mysql.createConnection({
     host: '203.153.144.75',
@@ -96,11 +97,23 @@ app.get('/', function(req, res) {
     if (flag !== undefined) {
       res.redirect('/sm_main');
     } else {
-        res.render('index', {
-            loginon: 0
-        });
+          if(loginFlag == 0) {
+            res.render('index', {
+              loginon: 0
+          }); }
+          else if(loginFlag == 1){
+            loginFlag =0;
+            res.render('index', {
+              loginon: 1
+          });
+          }
+          else if(loginFlag == 2){
+            loginFlag =0;
+            res.render('index', {
+              loginon: 2
+          });
+          }
     }
-
 });
 
 app.get('/sm_enter_main', function(req, res) {
@@ -245,7 +258,8 @@ app.get('/sm_main', function(req, res) {
         tradeInfo : tradeInfo,
         product_id : product_id,
         request_num : request_num,
-        haveCompletion : haveCompletion
+        haveCompletion : haveCompletion,
+        session_id : loginId[1]
       });
       callback(null);
     }
@@ -312,6 +326,7 @@ passport.deserializeUser(function(id, done) {
     client.query(sql, [id], function(err, results) {
         if (err) {
             console.log(err);
+
             done(null, false);
         } else {
             done(null, results[0]);
@@ -331,6 +346,7 @@ passport.use(new LocalStrategy(
             //console.log('user값 확인 :', user);
             if (user === undefined) {
                 console.log(err);
+                loginFlag=1;
                 return done(null, false);
             }
             //console.log('pwd :', pwd);
@@ -346,6 +362,7 @@ passport.use(new LocalStrategy(
                     done(null, user);
                 } else {
                     console.log('err');
+                      loginFlag=2;
                     done(null, false);
                 }
             });
@@ -555,12 +572,12 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var detail_id = request.params.id; //console.log(request.params.id);  // 1
     var comments = [];
     var sqlQuery, avgRating;
-
     var reserve_count;
     var sql;
     var btn_delete;
     var reserve_flag;
     var reserve_member;
+    var flag=0;
 
     if(loginId[1] == undefined){
       response.redirect('/');
@@ -647,7 +664,24 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                   callback(null,4);
                 }
               });
+            },
+            function(callback){
+              sql='SELECT * FROM TradeInfo WHERE product_id=?';
+              client.query(sql, [detail_id],function(err,result){
+                if(err){
+                  console.log(err);
+                } else {
+                  if(result.length){
+                    //console.log('있따');
+                    flag=1;
+                  } else {
+                    //console.log('없다');
+                  }
+                  callback(null,5)
+                }
+              });
             }
+
         ],
 
         // callback (final)
@@ -667,8 +701,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 reserve_ordernumber: reserve_count,
                 delete_btn : btn_delete,
                 reserveMember : reserve_member,
-                reserveFlag : reserve_flag
-
+                reserveFlag : reserve_flag,
+                flag : flag
             });
         });
     }
@@ -691,6 +725,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     var path = new Array();
     var type = new Array();
     var outputPath = new Array();
+    var productName;
 
     var tasks = [
     function(callback) {
@@ -762,11 +797,23 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     console.log(outputPath);
 },
 function(callback){
+  var pSql='SELECT product_name FROM ProductInfo WHERE product_id=?';
+  client.query(pSql,[productId],function(err,result){
+    if(err){
+      console.log(err);
+    } else {
+      productName = result[0].product_name;
+      callback(null);
+    }
+  });
+},
+function(callback){
   var reserver={
     flag : 0,
     product_id : productId,
     session_id : null,
-    reserve_count : 0
+    reserve_count : 0,
+    pName : productName
   };
   var reserveSql='INSERT INTO product_reserve SET ?';
   client.query(reserveSql,reserver,function(err,result){
@@ -826,7 +873,8 @@ app.get('/sm_request/:id', function(request, response) {
         function(callback) {
             var context = {
                 id: product_id,
-                way: product_way
+                way: product_way,
+                session_id : loginId[1]
             };
             request.app.render('sm_request.ejs', context, function(err, html) {
                 if (err) {
@@ -2589,7 +2637,8 @@ app.get('/sm_tradeState', function(request, response){
     function(callback){
       response.render('sm_tradeState.ejs',{
         results : searchResults,
-        id : sessionId
+        id : sessionId,
+        session_id : loginId[1]
       },function(err,html){
         if(err)
           throw err;
@@ -2687,7 +2736,8 @@ app.get('/sm_review', function(request, response){
     function(callback){
       context = {
         results : sqlResults,
-        notExist: 0
+        notExist: 0,
+        session_id : loginId[1]
       };
       response.render('sm_review.ejs',context,function(err,html){
         if(err)
@@ -2749,6 +2799,7 @@ app.get('/sm_request/:id/reserve/:sid',function(req,res){
   var sql;
   var reserve_member;
   var length;
+  var productName;
 
     var tasks = [
         function(callback){
@@ -2763,11 +2814,23 @@ app.get('/sm_request/:id/reserve/:sid',function(req,res){
           });
         },
         function(callback){
+          var pSql='SELECT product_name FROM ProductInfo WHERE product_id=?';
+          client.query(pSql,[product_id],function(err,result){
+            if(err){
+              console.log(err);
+            } else {
+              productName = result[0].product_name;
+              callback(null);
+            }
+          });
+        },
+        function(callback){
           var reserve={
             flag : 0,
             product_id : product_id,
             session_id : session_id,
-            reserve_count : reserve_count
+            reserve_count : reserve_count,
+            pName : productName
           };
           sql='INSERT INTO product_reserve SET ?';
           client.query(sql,reserve,function(err,result){
@@ -2813,4 +2876,96 @@ app.get('/sm_request/:id/cancel',function(req,res){
       }
     ];
     async.series(tasks, function(err, results) {});
+});
+
+app.get('/sm_request/:id/reserve_no/:sid',function(req,res){
+  var product_id = req.params.id;
+  var session_id = req.params.sid;
+  var reserve_count;
+  var session_reserve_count;
+  var sql;
+  var tasks=[
+    function(callback){
+      sql='SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
+      client.query(sql, [product_id], function(err, result){
+        if(err){
+          console.log(err);
+        } else {
+          reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
+          callback(null);
+        }
+      });
+    },
+    function(callback){
+      sql='SELECT reserve_count FROM product_reserve WHERE product_id=? AND session_id=?';
+      client.query(sql, [product_id,session_id], function(err, result){
+        if(err){
+          console.log(err);
+        } else {
+          session_reserve_count = result[0].reserve_count;
+          //console.log('1단계 통과')
+          callback(null);
+        }
+      });
+    },
+    function(callback){
+      sql='DELETE FROM product_reserve WHERE session_id=?';
+      client.query(sql, [session_id], function(err,result){
+        if(err){
+          console.log(err);
+        } else {
+          //console.log('삭제되었습니다')
+          callback(null);
+        }
+      });
+    },
+    function(callback){
+      var temp=session_reserve_count+1;
+      for(var i=temp; i<reserve_count; i++){
+      sql='UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
+      client.query(sql,[i-1, product_id, i],function(err,result){
+        if(err){
+          console.log(err);
+        } else {
+        }
+      });
+    };
+      callback(null);
+    },
+    function(callback){
+      var link = '/sm_itemDetail/'+product_id;
+      res.redirect(link);
+      callback(null);
+    }
+  ];
+  async.series(tasks,function(err,results){});
+});
+
+app.get('/sm_reserve_list', function(request, response){
+  var sql;
+  var sessionId = loginId[1];
+  var reserve_result;
+  var tasks = [
+    function(callback){
+      sql='SELECT * FROM product_reserve WHERE session_id=? ORDER BY id DESC';
+      client.query(sql,[sessionId],function(err,result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        reserve_result=result;
+        console.log('0',reserve_result);
+        callback(null);
+      });
+    },
+    function(callback){
+      response.render('sm_reserve_list.ejs',{
+        results : reserve_result,
+        id : sessionId,
+        session_id : loginId[1]
+      });
+      callback(null);
+    }
+  ];
+  async.series(tasks, function(err,results){});
 });
