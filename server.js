@@ -997,7 +997,7 @@ app.get('/sm_request/:id', function(request, response) {
 app.post('/sm_request/:id', function(request, response) {
 
     var id, product_id, seller, customer, request_num, requestor, trade_way, product_name, product_price;
-    var SqlQuery, state;
+    var SqlQuery, state, maxReqNum;
     var tasks = [
         function(callback) {
             product_id = request.params.id;
@@ -1019,10 +1019,12 @@ app.post('/sm_request/:id', function(request, response) {
                     customer = loginId[1];
                     request_num = 1;
                     state = 1;
+                    maxReqNum = 0;
                 } else {
                     customer = result[0].customer;
                     request_num = result[0].maxRequestNum + 1;
                     state = 2;
+                    maxReqNum = result[0].maxRequestNum;
                 }
                 requestor = loginId[1];
 
@@ -1042,6 +1044,21 @@ app.post('/sm_request/:id', function(request, response) {
           });
         },
 
+        function(callback){
+          if(maxReqNum !== 0){
+            SqlQuery = 'UPDATE TradeInfo SET isClicked=1 WHERE product_id=?';
+            client.query(SqlQuery, [product_id], function(err,result){
+              if(err){
+                console.log(err);
+                throw err;
+              }
+              callback(null);
+            });
+          }else{
+            callback(null);
+          }
+        },
+
         function(callback) {
             var tradeInfoData = {
                 product_id: product_id,
@@ -1052,7 +1069,8 @@ app.post('/sm_request/:id', function(request, response) {
                 id : id,
                 state : state,
                 product_name : product_name,
-                product_price : product_price
+                product_price : product_price,
+                isClicked : 0
             };
 
             SqlQuery = 'INSERT INTO TradeInfo SET ?';
@@ -1826,6 +1844,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit', function(req, r
 app.get('/sm_selectTime/:id/:num', function(request, response) {
     var product_id, request_num, sqlQuery;
     var results = "";
+    var isClicked = 0;
 
     var tasks = [
 
@@ -1842,12 +1861,26 @@ app.get('/sm_selectTime/:id/:num', function(request, response) {
             });
         },
 
+        function(callback){
+          sqlQuery = 'SELECT isClicked FROM TradeInfo WHERE product_id=? AND request_num=?';
+          client.query(sqlQuery, [product_id, request_num], function(err, result){
+            if(err){
+              console.log(err);
+              throw err;
+            }
+            isClicked = result[0].isClicked;
+            callback(null);
+          });
+        },
+
         function(callback) {
             response.render('sm_selectTime.ejs', {
                 results: results,
                 id: product_id,
                 num: request_num,
-                users: loginId[1]
+                users: loginId[1],
+                session_id : loginId[1],
+                isClicked : isClicked
             }, function(err, html) {
                 if (err) {
                     throw err;
@@ -2010,7 +2043,6 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
             };
             sqlQuery = 'INSERT INTO CompletionInfo SET ?';
             client.query(sqlQuery, data, function(err, result) {
-              console.log("진입1");
                 callback(null);
             });
           }else{
@@ -2019,7 +2051,6 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
         },
 
         function(callback) {
-          console.log("isUpdated", isUpdated);
             if (isUpdated === 0) {
 
                 data = {
@@ -2032,12 +2063,23 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
 
                 client.query(sqlQuery, data, function(err, result) {
                   if(err){console.log(err);}
-                  console.log("진입2");
+
                     callback(null);
                 });
             } else {
                 callback(null);
             }
+        },
+
+        function(callback){
+            sqlQuery = 'UPDATE TradeInfo SET isClicked=1 WHERE product_id=?';
+            client.query(SqlQuery, [product_id], function(err,result){
+              if(err){
+                console.log(err);
+                throw err;
+              }
+              callback(null);
+            });
         },
 
         function(callback) {
@@ -2228,6 +2270,17 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response){
     },
 
     function(callback){
+      sqlQuery = 'UPDATE TradeInfo SET isClicked=1 WHERE product_id=?';
+      client.query(SqlQuery, [product_id], function(err,result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
       var link = '/sm_chat/' + product_id;
       response.redirect(link);
       callback(null,3);
@@ -2392,14 +2445,24 @@ app.post('/sm_completeTrade/:id/:num', function(request, response){
           if(err){throw err;}
         });
 
-        sqlQuery = 'UPDATE ProductInfo SET isDone=? WHERE product_id=?';
-        client.query(sqlQuery, [1, product_id], function(err, result){
-          if(err){console.log(err);}
-        });
-
         sqlQuery = 'UPDATE TradeInfo SET state=? WHERE product_id=?';
         client.query(sqlQuery, [4, product_id], function(err, result){
           if(err){throw err;}
+          callback(null);
+        });
+      }else{
+        callback(null);
+      }
+    },
+
+    function(callback){
+      if(isDone == 1){
+        sqlQuery = 'UPDATE ProductInfo SET isDone=? WHERE product_id=?';
+        client.query(sqlQuery, [1, product_id], function(err, result){
+          if(err){
+            console.log(err);
+            throw err;
+          }
           callback(null);
         });
       }else{
@@ -2513,12 +2576,12 @@ app.get('/sm_complainList', function(req, res){
       }
     ],
     function(err, row){
-      res.render('sm_complainList.ejs', {admin: 'sooksmarket', session: loginId[1], rows: row[0]});
+      res.render('sm_complainList.ejs', {admin: 'sooksmarket', session: loginId[1], rows: row[0], session_id:loginId[1]});
     });
   }
   else{  //관리자가 아니면 err 처리
     client.query('SELECT * FROM complainInfo WHERE userID=? ORDER BY auto DESC', [loginId[1]],function(err, result) {
-      res.render('sm_complainListUser.ejs', {rows:result});
+      res.render('sm_complainListUser.ejs', {rows:result, session_id:loginId[1]});
     });
   }
 });
@@ -2887,7 +2950,8 @@ app.get('/sm_tradeStateDetail/:id/:num', function(request, response){
         results : results,
         id : sessionId,
         final : finalTradeInfo,
-        haveCompletion : haveCompletion
+        haveCompletion : haveCompletion,
+        session_id : loginId[1]
       };
       response.render('sm_tradeStateDetail.ejs',context,function(err,html){
         if(err)
@@ -3156,11 +3220,12 @@ app.get('/find', function(req, res){
 
 app.post('/find/:type', function(req, res){
   var type = req.params.type;
+  var login_email, str;
 
   if(type === "id"){
     if(req.body.id !== undefined){
-      var login_email = req.body.id + '@sm.ac.kr';
-      var str = 'SELECT * FROM users WHERE login_email=?';
+      login_email = req.body.id + '@sm.ac.kr';
+      str = 'SELECT * FROM users WHERE login_email=?';
 
       client.query(str, [login_email], function(err, result){  //console.log(result[0]);
         if(result[0] !== undefined){
@@ -3173,8 +3238,8 @@ app.post('/find/:type', function(req, res){
   }
   else if (type === "pwd"){
     if(req.body.pwd !== undefined){
-      var login_email = req.body.pwd + '@sm.ac.kr';
-      var str = 'SELECT * FROM users WHERE login_email=?';
+      login_email = req.body.pwd + '@sm.ac.kr';
+      str = 'SELECT * FROM users WHERE login_email=?';
       var tempPass = cuid.slug();
 
       async.series([
@@ -3278,4 +3343,172 @@ app.post('/sm_unsign', function(req, res){
       res.render('sm_unsign.ejs', {flag:2});
     }
   });
+});
+
+app.get('/sm_reportRejector/:id', function(request, response){
+  var product_id, user, trader;
+  var sqlQuery;
+
+  var tasks = [
+    function(callback){
+      product_id = request.params.id;
+      user = loginId[1];
+      sqlQuery = 'SELECT seller, customer FROM TradeInfo WHERE product_id=? ORDER BY request_num DESC';
+
+      client.query(sqlQuery, [product_id], function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+
+        if(result[0].seller == user){
+          trader = result[0].customer;
+        }else{
+          trader = result[0].seller;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      var context = {
+        userID : user,
+        rejector : trader,
+        product_id : product_id,
+        session_id : user
+      };
+
+      response.render('sm_reportRejector.ejs',context,function(err,html){
+        if(err)
+          throw err;
+        response.end(html);
+        callback(null);
+      });
+    }
+  ];
+
+  async.series(tasks, function(err, results){});
+});
+
+app.post('/sm_reportRejector/:id', function(request, response){
+  var body = req.body;
+  var userID = loginId[1];
+  var complainID = body.complainID;
+  var detail = body.detail;
+  var product_id;
+  var sqlQuery;
+
+  var flag = 0;
+
+  var tasks = [
+    function(callback) {
+      product_id = request.params.id;
+
+      sqlQuery = 'SELECT * FROM users WHERE username LIKE ?';
+      client.query(sqlQuery, [complainID], function(err, result) {
+        if(result !== ''){
+          flag = 1;
+        }
+        callback(null, flag);
+      });
+    },
+
+  function(callback) {
+    if(flag == 1){
+      var time = getTimeStamp();
+      sqlQuery = 'INSERT INTO complainInfo (userID, complainID, detail, date, flag) VALUES (?,?,?,?,?)';
+      client.query(sqlQuery, [userID, complainID, detail, time, 0], function() {
+          callback(null);
+      });
+    }
+    else if(flag === 0){
+      callback(null);
+    }
+  },
+
+  function(callback){
+
+      var updatestateSql = 'UPDATE btn_state SET delete_btn=1 WHERE product_id=?';
+      client.query(updatestateSql, [product_id],function(err,result){
+        if (err) {
+            console.log(err);
+         }
+         callback(null);
+      });
+    },
+
+  function(callback){
+    sqlQuery = 'UPDATE TradeRejection SET confirmRejection=1 WHERE product_id=? AND username=?';
+    client.query(sqlQuery, [product_id, loginId[1]], function(err, result){
+      if(err){
+        console.log(err);
+        throw err;
+      }
+      callback(null);
+    });
+  },
+
+  function(callback){
+    sqlQuery = 'DELETE FROM TradeInfo WHERE product_id=?';
+
+    client.query(sqlQuery, [product_id], function(err, result){
+      if(err){
+        console.log(err);
+        throw err;
+      }
+      callback(null,1);
+    });
+  },
+
+  function(callback){
+    sqlQuery = 'DELETE FROM TradeTimePlace WHERE product_id=?';
+    client.query(sqlQuery, [product_id], function(err, result){
+      if(err){
+        console.log(err);
+        throw err;
+      }
+      callback(null,2);
+    });
+  },
+
+  function(callback){
+    sqlQuery = 'DELETE FROM chat_msg WHERE msg_room=?';
+    client.query(sqlQuery, [product_id], function(err, result){
+      if(err){
+        console.log(err);
+        throw err;
+      }
+      callback(null,3);
+    });
+  },
+
+  function(callback){
+    sqlQuery = 'DELETE FROM FinalTrade WHERE product_id=?';
+    client.query(sqlQuery, [product_id], function(err, result){
+      if(err){
+        console.log(err);
+        throw err;
+      }
+      callback(null,4);
+    });
+  },
+
+  function(callback){
+    sqlQuery = 'DELETE FROM CompletionInfo WHERE product_id=?';
+    client.query(sqlQuery, [product_id], function(err, result){
+      if(err){
+        console.log(err);
+        throw err;
+      }
+      callback(null,5);
+    });
+  },
+
+  function(callback){
+    response.redirect('/sm_main');
+    callback(null);
+  }
+];
+
+  async.series(tasks, function(err, results){});
 });

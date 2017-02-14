@@ -297,7 +297,15 @@
       }
 
       function report(id){
-        
+        var users = '<%= session %>';
+        var product_id = '<%= product_id %>';
+
+        if(id == users){
+          alert("상대방만 신고 버튼을 누를 수 있습니다!");
+        }else{
+          var link = '/sm_reportRejector/'+product_id;
+          location.href=link;
+        }
       }
     </script>
 
