@@ -209,6 +209,7 @@
             </table>
 
             <center>
+              <% if(isDone == 0){ %>
 
             <% if(session_id === 'sooksmarket') { %>
               <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
@@ -227,6 +228,9 @@
               <button id="button_change" type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
             <% } %>
 
+            <% } %>
+            <% }else{ %>
+              <h5 style="color:red;font-weight:bold;">판매 완료된 상품입니다.</h5>
             <% } %>
 
             </center>

@@ -248,6 +248,14 @@
                 </a>
               </p>
 
+                <% var complain = 0;
+                  for(j=0; j<complainHistory.length; j++){
+                    if(rows[i].product_seller == complainHistory[j].complainID){
+                      complain = 1;
+                    }
+                  }%>
+
+            <% if(complain == 0){ %>
               <a onclick="itemDetail(<%= i %>)" id="Detail<%= i %>" href="/sm_itemDetail/<%= rows[i].product_id  %>">
                 <% if(rows[i].isDone == 0){ %>
                   <% if(rows[i].photo1 != ""){ %>
@@ -265,6 +273,9 @@
                 </h3>
                 <%= rows[i].product_seller %>
               </a>
+            <% }else{ %>
+              
+            <% } %>
             </div>
           </div>
         <% } %>

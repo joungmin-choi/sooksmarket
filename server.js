@@ -164,7 +164,7 @@ app.get('/sm_main', function(req, res) {
 
   var on = 0;
   var allowDate; //신고가 풀리는 날
-  var sql;
+  var sql, complainHistory;
   var haveCompletion=0;
   var product_id, request_num, tradeInfo, rejectProduct_id=0;
   var applyRejection, confirmRejection, results, changeSql=0;
@@ -343,6 +343,22 @@ app.get('/sm_main', function(req, res) {
         }
       },
 
+      function(callback){
+        sql = 'SELECT complainID FROM ComplainIdHistory';
+        client.query(sql, function(err,result){
+          if(err){
+            console.log(err);
+            throw err;
+          }
+          // if(result.length === 0){
+          //   complainHistory = 0;
+          // }else{
+            complainHistory = result;
+          //}
+          callback(null);
+        });
+      },
+
     function(callback) {
       res.render('sm_main.ejs', {
         loginon: 1,
@@ -357,7 +373,8 @@ app.get('/sm_main', function(req, res) {
         session_id : loginId[1],
         applyRejection : applyRejection,
         confirmRejection : confirmRejection,
-        rejectProduct_id : rejectProduct_id
+        rejectProduct_id : rejectProduct_id,
+        complainHistory : complainHistory
       });
       callback(null);
     }
@@ -672,7 +689,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var sqlQuery, avgRating;
     var reserve_count;
     var sql;
-    var btn_delete;
+    var btn_delete, isDone;
     var reserve_flag;
     var reserve_member;
     var flag=0;
@@ -694,6 +711,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                     detail_detail = object.product_detail;
                     detail_seller = object.product_seller;
                     detail_date = object.product_date;
+                    isDone = object.isDone;
 
                     var photo_split = (object.photo1).substring(1);
                     detail_photo.push(photo_split);
@@ -800,7 +818,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 delete_btn : btn_delete,
                 reserveMember : reserve_member,
                 reserveFlag : reserve_flag,
-                flag : flag
+                flag : flag,
+                isDone : isDone
             });
         });
     }
@@ -1245,7 +1264,8 @@ app.get('/sm_chat/:id', function(req, res) {
             customer: customer,
             session: loginId[1],
             trade_date: 0,
-            trade_time: 0
+            trade_time: 0,
+            session_id:loginId[1]
           };
         }
         else{
@@ -1255,7 +1275,8 @@ app.get('/sm_chat/:id', function(req, res) {
             customer: customer,
             session: loginId[1],
             trade_date : result[0].trade_date,
-            trade_time : result[0].trade_time
+            trade_time : result[0].trade_time,
+            session_id:loginId[1]
           };
         }
         callback(null);
