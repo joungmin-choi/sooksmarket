@@ -1786,7 +1786,7 @@ app.get('/sm_itemDetail/:id/comment/:parent_id/:child_id/delete', function(req, 
 
     async.series([
             function(callback) {
-                if (cid !== 0) {
+                if (cid != 0) {
                     sql = 'DELETE FROM comments WHERE product_id=? AND parent_id=? AND child_id=?';
                     client.query(sql, [id, pid, cid], function(err, result) {
                         if (err) {
@@ -3514,8 +3514,43 @@ app.post('/sm_reportRejector/:id', function(request, response){
 });
 
 app.post('/fcm/register', function(request, response){
-  var chunk = '';
+  var token = '';
+  var sqlQuery;
+  var isExisted = 0;
   console.log("come");
-  chunk = request.body.Token;
-  console.log(chunk);
+  token = request.body.Token;
+
+  var tasks = [
+    function(callback){
+      token = request.body.Token;
+      console.log(token);
+      sqlQuery = 'SELECT * FROM pushTest WHERE Token=?';
+      client.query(sqlQuery, [token], function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        if(result.length === 0){
+          isExisted = 0;
+        }else{
+          isExisted = 1;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      if(isExisted === 0){
+        sqlQuery = 'INSERT INTO pushTest SET ?';
+        client.query(sqlQuery, {Token:token}, function(err, result){
+          callback(null);
+        });
+      }else{
+        console.log("이미 있음");
+        callback(null);
+      }
+    }
+  ];
+
+  async.series(tasks, function(err, results){});
 });
