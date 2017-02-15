@@ -3512,3 +3512,10 @@ app.post('/sm_reportRejector/:id', function(request, response){
 
   async.series(tasks, function(err, results){});
 });
+
+app.post('/fcm/register', function(request, response){
+  var chunk = '';
+  console.log("come");
+  chunk = request.body.Token;
+  console.log(chunk);
+});
