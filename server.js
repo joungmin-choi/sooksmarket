@@ -20,6 +20,7 @@ var moment = require('moment');
 var url = require('url');
 var cuid = require('cuid');
 var FCM = require('fcm-node');
+var request = require('request');
 
 var serverKey = 'AAAAS6fpdc4:APA91bEZ0RXGmBKDrfijoO1JQ2cobVuGVNTQorK_tDyNLsfJCO4QF2b3fYmODbouk3nLnACDRUhKZSepqwSRx9FwriTdLitMZ0okqPe8SGn7ysAZEdubL_NIRvweIIe0yoDxqenRJMtQ';
 var fcm = new FCM(serverKey);
@@ -3561,29 +3562,33 @@ app.post('/fcm/register', function(request, response){
 
 app.get('/push', function(request, response){
   console.log("진입1");
-  var message = { //this may vary according to the message type (single recipient, multicast, topic, et cetera)
-    to: 'c6-LJHEO4xw:APA91bHgCgXHgyeKFzzcpJYrDSD97MNl_ZTmGBaVvlQkKRykI38S-GWGRG5bOJWUkCP6DtCCdglJGsBPWOACC_moS52QcRU24K12Z2feLkOt58FMjb0fHP5-Sqzw7SN3w3Dc_HOYRdT7',
-    title: 'Sooks Push',
-
-    // notification: {
-    //     title: 'Sooks Push',
-    //     body: '푸시 알람 테스트'
-    // },
-
-    data: {  //you can send only notification or only data(or include both)
-        title: 'Sooks Push',
-        body: '푸시 알람 테스트'
-    }
-  };
-
-  fcm.send(message, function(err, response){
-    if (err) {
-        console.log(err);
-        console.log("Something has gone wrong!");
-    } else {
-        console.log("Successfully sent with response: ", response);
-    }
-  });
-
+  sendTopicMessage("제목","내용","/noti.png","/");
   console.log("진입5");
 });
+
+function sendTopicMessage(title, content, imgUrl, link) {
+      var message = { title : title , content : content, imgUrl : imgUrl , link : link };
+      request({
+              url : 'https://fcm.googleapis.com/fcm/send',
+              method : 'POST',
+              headers : {
+                      'Content-Type' : ' application/json',
+                      'Authorization' : 'key=AAAAS6fpdc4:APA91bEZ0RXGmBKDrfijoO1JQ2cobVuGVNTQorK_tDyNLsfJCO4QF2b3fYmODbouk3nLnACDRUhKZSepqwSRx9FwriTdLitMZ0okqPe8SGn7ysAZEdubL_NIRvweIIe0yoDxqenRJMtQ'
+              },
+              body : JSON.stringify({
+                      "data" : {
+                              "message" : "알람 테스트",
+                              "senMsg" : message
+                      },
+                      "to" : "c6-LJHEO4xw:APA91bHgCgXHgyeKFzzcpJYrDSD97MNl_ZTmGBaVvlQkKRykI38S-GWGRG5bOJWUkCP6DtCCdglJGsBPWOACC_moS52QcRU24K12Z2feLkOt58FMjb0fHP5-Sqzw7SN3w3Dc_HOYRdT7"
+              })
+      }, function(error, response, body) {
+              if (error) {
+                      console.error(error, response, body);
+              } else if (response.statusCode >= 400) {
+                      console.error('HTTP Error: ' + response.statusCode + ' - '+ response.statusMessage + '\n' + body);
+              } else {
+                      console.log('Done');
+              }
+      });
+    }
