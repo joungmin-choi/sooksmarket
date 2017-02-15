@@ -1786,7 +1786,7 @@ app.get('/sm_itemDetail/:id/comment/:parent_id/:child_id/delete', function(req, 
 
     async.series([
             function(callback) {
-                if (cid !== 0) {
+                if (cid != 0) {
                     sql = 'DELETE FROM comments WHERE product_id=? AND parent_id=? AND child_id=?';
                     client.query(sql, [id, pid, cid], function(err, result) {
                         if (err) {
