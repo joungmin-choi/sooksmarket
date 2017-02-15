@@ -19,6 +19,10 @@ var async = require('async');
 var moment = require('moment');
 var url = require('url');
 var cuid = require('cuid');
+var FCM = require('fcm-node');
+
+var serverKey = 'AAAAS6fpdc4:APA91bEZ0RXGmBKDrfijoO1JQ2cobVuGVNTQorK_tDyNLsfJCO4QF2b3fYmODbouk3nLnACDRUhKZSepqwSRx9FwriTdLitMZ0okqPe8SGn7ysAZEdubL_NIRvweIIe0yoDxqenRJMtQ';
+var fcm = new FCM(serverKey);
 
 var multipartMiddleware = multipart();
 var loginId = "";
@@ -3553,4 +3557,33 @@ app.post('/fcm/register', function(request, response){
   ];
 
   async.series(tasks, function(err, results){});
+});
+
+app.get('/push', function(request, response){
+  console.log("진입1");
+  var message = { //this may vary according to the message type (single recipient, multicast, topic, et cetera)
+    to: 'c6-LJHEO4xw:APA91bHgCgXHgyeKFzzcpJYrDSD97MNl_ZTmGBaVvlQkKRykI38S-GWGRG5bOJWUkCP6DtCCdglJGsBPWOACC_moS52QcRU24K12Z2feLkOt58FMjb0fHP5-Sqzw7SN3w3Dc_HOYRdT7',
+    title: 'Sooks Push',
+
+    // notification: {
+    //     title: 'Sooks Push',
+    //     body: '푸시 알람 테스트'
+    // },
+
+    data: {  //you can send only notification or only data(or include both)
+        title: 'Sooks Push',
+        body: '푸시 알람 테스트'
+    }
+  };
+
+  fcm.send(message, function(err, response){
+    if (err) {
+        console.log(err);
+        console.log("Something has gone wrong!");
+    } else {
+        console.log("Successfully sent with response: ", response);
+    }
+  });
+
+  console.log("진입5");
 });
