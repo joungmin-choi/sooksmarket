@@ -25,6 +25,8 @@ var loginId = "";
 var value =0;
 var chatFlag=0;
 var loginFlag=0;
+var alerm=0;
+
 //DB 설정//
 var client = mysql.createConnection({
     host: '203.153.144.75',
@@ -173,6 +175,14 @@ app.get('/sm_main', function(req, res) {
 
   if (flag !== undefined) {
     async.series([
+      function(callback){
+        sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+        client.query(sql, [loginId[1]], function(err, result){
+          alerm = result.length;
+          //console.log(result.length);
+          callback(null);
+        });
+      },
       function(callback){
         sql = 'SELECT * FROM ComplainIdHistory WHERE complainID=? AND date(date)>=date(now())';
         client.query(sql, [flag], function(err, result){
@@ -371,6 +381,7 @@ app.get('/sm_main', function(req, res) {
         request_num : request_num,
         haveCompletion : haveCompletion,
         session_id : loginId[1],
+        alerm: alerm,
         applyRejection : applyRejection,
         confirmRejection : confirmRejection,
         rejectProduct_id : rejectProduct_id,
@@ -796,6 +807,14 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                   callback(null,5);
                 }
               });
+            },
+            function(callback){
+              sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+              client.query(sql, [loginId[1]], function(err, result){
+                alerm = result.length;
+                //console.log(result.length);
+                callback(null, 6);
+              });
             }
 
         ],
@@ -805,6 +824,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
             response.render('sm_itemDetail.ejs', {
                 rows: comments,
                 session_id: loginId[1],
+                alerm: alerm,
                 id: detail_id,
                 name: detail_name,
                 price: detail_price,
@@ -976,11 +996,21 @@ app.get('/sm_request/:id', function(request, response) {
           });
         },
 
+        function(callback){
+          sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+          client.query(sql, [loginId[1]], function(err, result){
+            alerm = result.length;
+            //console.log(result.length);
+            callback(null);
+          });
+        },
+
         function(callback) {
             var context = {
                 id: product_id,
                 way: product_way,
-                session_id : loginId[1]
+                session_id : loginId[1],
+                alerm: alerm
             };
             request.app.render('sm_request.ejs', context, function(err, html) {
                 if (err) {
@@ -1265,6 +1295,14 @@ app.get('/sm_chat/:id', function(req, res) {
           callback(null);
       });
     },
+    function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    },
 
     function(callback){
       sql = 'SELECT trade_date, trade_time FROM FinalTrade WHERE product_id=?';
@@ -1283,7 +1321,8 @@ app.get('/sm_chat/:id', function(req, res) {
             session: loginId[1],
             trade_date: 0,
             trade_time: 0,
-            session_id:loginId[1]
+            session_id:loginId[1],
+            alerm: alerm
           };
         }
         else{
@@ -1294,7 +1333,8 @@ app.get('/sm_chat/:id', function(req, res) {
             session: loginId[1],
             trade_date : result[0].trade_date,
             trade_time : result[0].trade_time,
-            session_id:loginId[1]
+            session_id:loginId[1],
+            alerm: alerm
           };
         }
         callback(null);
@@ -1678,10 +1718,13 @@ app.post('/sm_enter_changeInfo', function(req, res) {
     });
 });
 
-app.post('/sm_itemDetail/:id/comments', function(req, res) {
+app.post('/sm_itemDetail/:id/comments', function(req, res) {  // 댓글
     var id;
     var m = moment();
     var parent_id_max;
+    //console.log("aa: ",req.body.hidden);
+    var itemDetailMainID = req.body.hidden;
+    var arrow;
 
     async.series([
             function(callback) {
@@ -1703,13 +1746,21 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) {
             function(callback) {
                 id = req.params.id;
 
+                if(itemDetailMainID == loginId[1]){
+                    arrow = null;
+                }
+                else{
+                  arrow = itemDetailMainID;
+                }
+
                 var comment = {
                     product_id: req.params.id,
                     session_id: loginId[1],
                     comment_detail: req.body.comment_detail,
                     comment_date: m.format("YYYY-MM-DD HH:mm"),
                     parent_id: parent_id_max,
-                    child_id: 0
+                    child_id: 0,
+                    arrow : arrow
                 };
 
                 var sql1 = 'INSERT INTO comments SET ?';
@@ -1721,6 +1772,30 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) {
                     callback(null, 2);
                 });
 
+            },
+            function(callback){  // 선영
+              var time = getTimeStamp();
+
+              var notify = {
+                  category: 1,
+                  product_id: req.params.id,
+                  detail: req.body.comment_detail,
+                  date: time,
+                  link: '/sm_itemDetail/'+id,
+                  arrow: arrow,
+                  id: loginId[1],
+                  parent_id: parent_id_max,
+                  child_id: 0
+              };
+
+              var sql2 = 'INSERT INTO notifyMessage SET ?';
+              client.query(sql2, notify, function(err, result) {
+                  if (err) {
+                      console.log(err);
+                      res.status(500);
+                  }
+                  callback(null, 3);
+              });
             }
         ],
         function(err, results) {
@@ -1730,13 +1805,14 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) {
         });
 });
 
-app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) {
+app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) {  // 대댓글
     var id = req.params.id;
     var pid = req.params.parent_id;
     var m = moment();
     var contents = req.body.each_comment_detail;
     var child_id_max = 0;
     // console.log('제품 id', id, '상품 부모 id', pid, '내용', contents);
+    var arrow;
 
     async.series([
             function(callback) {
@@ -1753,6 +1829,27 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) {
             },
 
             function(callback) {
+
+                var sql1 = 'SELECT session_id FROM comments WHERE parent_id=? AND child_id=0';
+                client.query(sql1, [pid], function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500);
+                    }
+                    //console.log(result[0].session_id);
+                    if(result[0].session_id == loginId[1]){
+                      arrow = null;
+                    }
+                    else{
+                      arrow = result[0].session_id;
+                    }
+
+                    callback(null, 2);
+                });
+
+            },
+
+            function(callback) {
                 var comment = {
                     product_id: req.params.id,
                     session_id: loginId[1],
@@ -1760,16 +1857,41 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) {
                     comment_date: m.format("YYYY-MM-DD HH:mm"),
                     parent_id: pid,
                     child_id: child_id_max,
+                    arrow: arrow
                 };
-                var sql1 = 'INSERT INTO comments SET ?';
-                client.query(sql1, comment, function(err, result) {
+                var sql2 = 'INSERT INTO comments SET ?';
+                client.query(sql2, comment, function(err, result) {
                     if (err) {
                         console.log(err);
                         res.status(500);
                     }
-                    callback(null, 2);
+                    callback(null, 3);
                 });
 
+            },
+            function(callback){  // 선영
+              var time = getTimeStamp();
+
+              var notify = {
+                  category: 1,
+                  product_id: req.params.id,
+                  detail: contents,
+                  date: time,
+                  link: '/sm_itemDetail/'+id,
+                  arrow: arrow,
+                  id: loginId[1],
+                  parent_id: pid,
+                  child_id: child_id_max
+              };
+
+              var sql2 = 'INSERT INTO notifyMessage SET ?';
+              client.query(sql2, notify, function(err, result) {
+                  if (err) {
+                      console.log(err);
+                      res.status(500);
+                  }
+                  callback(null, 4);
+              });
             }
         ],
         function(err, results) {
@@ -1805,6 +1927,27 @@ app.get('/sm_itemDetail/:id/comment/:parent_id/:child_id/delete', function(req, 
                         callback(null, 1);
                     });
                 }
+            },
+            function(callback) {
+                if (cid != 0) {  // 대댓글
+                    sql = 'DELETE FROM notifyMessage WHERE category=1 AND product_id=? AND parent_id=? AND child_id=?';
+                    client.query(sql, [id, pid, cid], function(err, result) {
+                        if (err) {
+                            console.log(err);
+                            res.status(500);
+                        }
+                        callback(null, 2);
+                    });
+                } else {  //댓글
+                    sql = 'DELETE FROM notifyMessage WHERE category=1 AND product_id=? AND parent_id=?';
+                    client.query(sql, [id, pid], function(err, result) {
+                        if (err) {
+                            console.log(err);
+                            res.status(500);
+                        }
+                        callback(null, 2);
+                    });
+                }
             }
 
         ],
@@ -1830,6 +1973,15 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit', function(req, r
                         console.log(err);
                     }
                     callback(null, 1);
+                });
+            },
+            function(callback) {  // 선영
+                var sql = 'UPDATE notifyMessage SET detail=? WHERE category=1 AND product_id=? AND parent_id=? AND child_id=?';
+                client.query(sql, [comment, id, pid, cid], function(err, rows, fields) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    callback(null, 2);
                 });
             }
 
@@ -1872,6 +2024,14 @@ app.get('/sm_selectTime/:id/:num', function(request, response) {
             callback(null);
           });
         },
+        function(callback){
+          sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+          client.query(sql, [loginId[1]], function(err, result){
+            alerm = result.length;
+            //console.log(result.length);
+            callback(null);
+          });
+        },
 
         function(callback) {
             response.render('sm_selectTime.ejs', {
@@ -1880,6 +2040,7 @@ app.get('/sm_selectTime/:id/:num', function(request, response) {
                 num: request_num,
                 users: loginId[1],
                 session_id : loginId[1],
+                alerm: alerm,
                 isClicked : isClicked
             }, function(err, html) {
                 if (err) {
@@ -2576,13 +2737,32 @@ app.get('/sm_complainList', function(req, res){
       }
     ],
     function(err, row){
-      res.render('sm_complainList.ejs', {admin: 'sooksmarket', session: loginId[1], rows: row[0], session_id:loginId[1]});
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        res.render('sm_complainList.ejs', {admin: 'sooksmarket', session: loginId[1], rows: row[0], session_id:loginId[1], alerm: alerm});
+      });
+
     });
   }
-  else{  //관리자가 아니면 err 처리
-    client.query('SELECT * FROM complainInfo WHERE userID=? ORDER BY auto DESC', [loginId[1]],function(err, result) {
-      res.render('sm_complainListUser.ejs', {rows:result, session_id:loginId[1]});
+  else{  //관리자가 아닐 경우
+    async.series([
+      function(callback){
+        sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+        client.query(sql, [loginId[1]], function(err, result){
+          alerm = result.length;
+          //console.log(result.length);
+          callback(null);
+        });
+      }
+    ],
+    function(err){
+      client.query('SELECT * FROM complainInfo WHERE userID=? ORDER BY auto DESC', [loginId[1]],function(err, result) {
+        res.render('sm_complainListUser.ejs', {rows:result, session_id:loginId[1], alerm: alerm});
+      });
     });
+
   }
 });
 
@@ -2876,12 +3056,21 @@ app.get('/sm_tradeState', function(request, response){
         callback(null);
       });
     },
+    function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    },
 
     function(callback){
       response.render('sm_tradeState.ejs',{
         results : searchResults,
         id : sessionId,
-        session_id : loginId[1]
+        session_id : loginId[1],
+        alerm: alerm
       },function(err,html){
         if(err)
           throw err;
@@ -2946,12 +3135,22 @@ app.get('/sm_tradeStateDetail/:id/:num', function(request, response){
     },
 
     function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    },
+
+    function(callback){
       context = {
         results : results,
         id : sessionId,
         final : finalTradeInfo,
         haveCompletion : haveCompletion,
-        session_id : loginId[1]
+        session_id : loginId[1],
+        alerm: alerm
       };
       response.render('sm_tradeStateDetail.ejs',context,function(err,html){
         if(err)
@@ -2978,10 +3177,20 @@ app.get('/sm_review', function(request, response){
     },
 
     function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    },
+
+    function(callback){
       context = {
         results : sqlResults,
         notExist: 0,
-        session_id : loginId[1]
+        session_id : loginId[1],
+        alerm: alerm
       };
       response.render('sm_review.ejs',context,function(err,html){
         if(err)
@@ -3068,6 +3277,7 @@ app.get('/sm_request/:id/reserve/:sid',function(req,res){
             }
           });
         },
+
         function(callback){
           var reserve={
             flag : 0,
@@ -3081,12 +3291,42 @@ app.get('/sm_request/:id/reserve/:sid',function(req,res){
             if(err){
               console.log(err);
             } else{
-              var link = '/sm_itemDetail/'+product_id;
-              res.redirect(link);
+              // var link = '/sm_itemDetail/'+product_id;
+              // res.redirect(link);
               callback(null);
             }
           });
+        },
+
+        function(callback){ // 선영
+          var time = getTimeStamp();
+          var link = '/sm_itemDetail/'+product_id;
+
+          var notify={
+            category: 3,
+            product_id : product_id,
+            detail: productName,
+            date: time,
+            link: link,
+            arrow : session_id,
+            reserve_count : reserve_count
+          };
+
+          if(reserve_count !== 0){
+            sql='INSERT INTO notifyMessage SET ?';
+            client.query(sql, notify, function(err,result){
+              if(err){
+                console.log(err);
+              } else{
+                callback(null);
+              }
+            });
+          }
+          else{
+            callback(null);
+          }
         }
+
         // function(callback) {
         //   sql='UPDATE product_reserve SET reserve_count=? WHERE product_id=?';
         //   client.query(sql, [reserve_count ,product_id], function(err, rows, fields){
@@ -3100,7 +3340,10 @@ app.get('/sm_request/:id/reserve/:sid',function(req,res){
         //   });
         // }
       ];
-      async.series(tasks, function(err, results) {});
+      async.series(tasks, function(err, results) {
+        var link = '/sm_itemDetail/'+product_id;
+        res.redirect(link);
+      });
 });
 
 app.get('/sm_request/:id/cancel',function(req,res){
@@ -3163,6 +3406,16 @@ app.get('/sm_request/:id/reserve_no/:sid',function(req,res){
         }
       });
     },
+    function(callback){ // 선영
+      sql='DELETE FROM notifyMessage WHERE category=3 AND product_id=? AND arrow=?';
+      client.query(sql, [product_id, session_id], function(err,result){
+        if(err){
+          console.log(err);
+        } else {
+          callback(null);
+        }
+      });
+    },
     function(callback){
       var temp=session_reserve_count+1;
       for(var i=temp; i<reserve_count; i++){
@@ -3174,6 +3427,20 @@ app.get('/sm_request/:id/reserve_no/:sid',function(req,res){
         }
       });
     };
+      callback(null);
+    },
+    function(callback){ //선영
+      var temp=session_reserve_count+1;
+
+      for(var i=temp; i<reserve_count; i++){
+        sql='UPDATE notifyMessage SET reserve_count=? WHERE category=3 AND product_id=? AND reserve_count=?';
+        client.query(sql,[i-1, product_id, i],function(err,result){
+          if(err){
+            console.log(err);
+          } else {
+          }
+        });
+      };
       callback(null);
     },
     function(callback){
@@ -3203,10 +3470,19 @@ app.get('/sm_reserve_list', function(request, response){
       });
     },
     function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    },
+    function(callback){
       response.render('sm_reserve_list.ejs',{
         results : reserve_result,
         id : sessionId,
-        session_id : loginId[1]
+        session_id : loginId[1],
+        alerm: alerm
       });
       callback(null);
     }
@@ -3369,13 +3645,22 @@ app.get('/sm_reportRejector/:id', function(request, response){
         callback(null);
       });
     },
+    function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    },
 
     function(callback){
       var context = {
         userID : user,
         rejector : trader,
         product_id : product_id,
-        session_id : user
+        session_id : user,
+        alerm: alerm
       };
 
       response.render('sm_reportRejector.ejs',context,function(err,html){
@@ -3511,4 +3796,54 @@ app.post('/sm_reportRejector/:id', function(request, response){
 ];
 
   async.series(tasks, function(err, results){});
+});
+
+app.get('/sm_alermList/:id', function(req, res){
+  async.series([
+    function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    }
+  ],
+  function(err){
+    var sql = 'SELECT * FROM notifyMessage WHERE arrow=? ORDER BY date DESC';
+    client.query(sql, [loginId[1]], function(err, result){
+      //console.log(result);
+      res.render('sm_alermList.ejs', {session_id:loginId[1], alerm: alerm, rows: result});
+    });
+  });  
+});
+
+app.get('/sm_readAlerm/:id', function(req, res) {
+  var row = [];
+  var link;
+  var OK = 0;
+
+  var queryData = url.parse(req.url, true).query;
+  var auto = req.query.auto;
+
+  async.series([
+    function(callback){
+      var str = 'SELECT * FROM notifyMessage WHERE auto=?';
+      client.query(str, [auto], function(err, result){
+        row = result[0];
+        link = result[0].link;
+        callback(null);
+      });
+    },
+    function(callback){
+      var str = 'UPDATE notifyMessage SET flag=? WHERE auto=?';
+      client.query(str, [1, auto], function(err, result) {
+        callback(null);
+      });
+    }
+  ],
+  function(err){
+    res.redirect(link);
+  });
+
 });

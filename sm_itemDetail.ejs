@@ -51,6 +51,7 @@
                 });
 
                 $('.edit').click(function(){
+                  alert('edit');
                   var id = $(this).attr('id');
                   $('.' + id).removeAttr("disabled");
                   $('#_'+id).show();
@@ -88,6 +89,7 @@
                   }
             });
 
+
             function reserve(){
               var flag=0;
               var session_id = `<%= session_id %>`;
@@ -108,6 +110,7 @@
                 location.href='/sm_request/<%= id %>/reserve/<%= session_id%>';
               }
           };
+
 
           function reserve_no (){
             alert("예약이 취소되었습니다");
@@ -209,7 +212,6 @@
             </table>
 
             <center>
-              <% if(isDone == 0){ %>
 
             <% if(session_id === 'sooksmarket') { %>
               <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
@@ -229,9 +231,6 @@
             <% } %>
 
             <% } %>
-            <% }else{ %>
-              <h5 style="color:red;font-weight:bold;">판매 완료된 상품입니다.</h5>
-            <% } %>
 
             </center>
 
@@ -246,6 +245,8 @@
                 <h5>문의는 댓글로 남겨주세요:)</h5>
                 <form action='/sm_itemDetail/<%= id %>/comments' method='post' role="form">
 
+                  <input type="hidden" name="hidden" id="hidden" value="<%= seller %>" />
+
                     <div class="form-group">
                         <textarea class="form-control" rows="3" name="comment_detail"></textarea>
                     </div>
@@ -258,14 +259,12 @@
               <% if(rows[i].child_id == 0 ) { %>
                 <div class="media">
                     <div class="media-body">
-                      <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit' method='post' role="form">
-                        <h4 class="media-heading"><%= rows[i].session_id %>
-                        <small><%= rows[i].comment_date %></small>
-                        </h4>
+                      <h4 class="media-heading"><%= rows[i].session_id %>
+                      <small><%= rows[i].comment_date %></small>
+                      </h4>
                       <textarea id="area" name="comment" class="edit<%=i %> form-control" disabled><%= rows[i].comment_detail  %></textarea>
                         <% if(rows[i].session_id === session_id ) { %>
-                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" >수정 완료</button>
-                          </form>
+                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'">수정 완료</button>
                             <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
                             <button class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
                         <% } else if(session_id === 'sooksmarket') { %>
@@ -290,16 +289,18 @@
                       <img class="media-object" src="http://placehold.it/32x32" alt="">
                     </a>
                       <div class="media-body">
-                        <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit' method='post' role="form">
+                        <!-- <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit' method='post' role="form"> -->
                           <h4 class="media-heading"><%= rows[i].session_id %>
                           <small><%= rows[i].comment_date %></small>
                           </h4>
                           <textarea name="comment" class="edit<%=i %> form-control" disabled><%= rows[i].comment_detail  %></textarea>
                           <% if(rows[i].session_id === session_id ) { %>
-                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" type="submit">수정 완료</button>
-                              </form>
+                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" type="submit" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'">수정 완료</button>
+                              <!-- </form> -->
                               <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
                               <button class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
+                              <% } else if(session_id === 'sooksmarket') { %>
+                                <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
                             <% } %>
 
                       </div>
