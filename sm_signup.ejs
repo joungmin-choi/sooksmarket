@@ -4,19 +4,20 @@
     <head>
         <% include ./sm_head %>
         <script language="JavaScript">
-        var idExistence = <%= idExistence %>;
+
         var checkingId = 0;
         var checkingSookmyung = 0;
 
         function checkId(){
+          var form = document.getElementById("form");
           var idText = document.getElementById("id");
-          var nameText = document.getElementById("name");
           if(idText.value==""){
             alert("입력된 아이디가 없습니다.");
           }
           else{
-            var str = "/checkId/?id="+idText.value;
-            window.open(str,"","width=400 height=150");
+            var str = "/sm_signup/checkId";
+            form.action = str;
+            form.submit();
           }
         }
 
@@ -80,6 +81,7 @@
           }
           else {
             alert("회원가입 완료!");
+            form.action = "/sm_signup";
             form.submit();
             return true;
           }
@@ -110,7 +112,7 @@
                   <label for="" class="col-sm-3 control-label">아이디 :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="username" id="id"  placeholder="아이디를 입력해주세요." style="width:68%;display:inline;float:left;">
-                    <input type="" class="col-sm-4 btn btn-primary"  onClick="checkId();" value="중복확인" style="width:30%;float:right;">
+                    <input type="button" class="col-sm-4 btn btn-primary"  onClick="checkId();" value="중복확인" style="width:30%;float:right;">
                   </div>
                 </div>
                 <!--
