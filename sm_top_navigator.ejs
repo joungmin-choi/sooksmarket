@@ -5,82 +5,93 @@
   }
   </style>
 
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/sm_main"><img src="/img/snow.gif" href="#" alt="logo"></a>
+          <!-- Brand and toggle get grouped for better mobile display -->
+          <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="/sm_main"><img src="/img/snow.gif" href="#" alt="logo"></a>
 
-            <button class="btn btn-primary" type="button" onclick="location.href='/sm_alermList/<%= session_id %>'" style="margin-top:8px;float:right;">
-              알림 <span class="badge"><%= alerm %></span>
-            </button>
+              <button class="btn btn-primary" type="button" onclick="location.href='/sm_alermList/<%= session_id %>'" style="margin-top:8px;float:right;">
+                알림 <span class="badge"><%= alerm %></span>
+              </button>
 
-        </div>
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-                <li>
-                    <a href="#">About</a>
-                </li>
-                <li>
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"> 카테고리 <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                      <li><a href="/sm_main">전체</a></li>
-                      <li><a href="/category/옷">옷</a></li>
-                      <li><a href="/category/화장품">화장품</a></li>
-                      <li><a href="/category/책">책</a></li>
-                      <li><a href="/category/음식">음식</a></li>
-                      <li><a href="/category/전자기기">전자기기</a></li>
-                      <li><a href="/category/필기류">필기류</a></li>
-                      <li><a href="/category/티켓 양도">티켓 양도</a></li>
-                      <li><a href="/category/기타">기타</a></li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="/sm_review">후기게시판</a>
-                </li>
-                <li>
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">mypage <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                      <li><a href="/sm_enter_changeInfo">회원정보수정</a></li>
-                      <li><a href="/sm_tradeState">나의거래내역</a></li>
-                      <li><a href="/sm_scrap">스크랩</a></li>
-                      <li><a href="/sm_reserve_list">예약내역</a></li>
-                      <li><a href="/sm_complainList">신고내역</a></li>
-                      <li><a href="/sm_suggestList">건의내역</a></li>
-                    </ul>
-                </li>
+          </div>
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav">
+                  <li>
+                      <a href="#">About</a>
+                  </li>
+                  <li>
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown"> 카테고리 <b class="caret"></b></a>
+                      <ul class="dropdown-menu">
+                        <li><a href="/sm_main">전체</a></li>
+                        <li><a href="/category/옷">옷</a></li>
+                        <li><a href="/category/화장품">화장품</a></li>
+                        <li><a href="/category/책">책</a></li>
+                        <li><a href="/category/음식">음식</a></li>
+                        <li><a href="/category/전자기기">전자기기</a></li>
+                        <li><a href="/category/필기류">필기류</a></li>
+                        <li><a href="/category/티켓 양도">티켓 양도</a></li>
+                        <li><a href="/category/기타">기타</a></li>
+                      </ul>
+                  </li>
+                  <li>
+                      <a href="/sm_review">후기게시판</a>
+                  </li>
+                  <li>
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown">mypage <b class="caret"></b></a>
+                      <ul class="dropdown-menu">
+                        <li><a href="/sm_enter_changeInfo">회원정보수정</a></li>
+                        <li><a href="/sm_tradeState">나의거래내역</a></li>
+                        <li><a href="/sm_scrap">스크랩</a></li>
+                        <li><a href="/sm_reserve_list">예약내역</a></li>
+                        <li><a href="/sm_complainList">신고내역</a></li>
+                        <li><a href="/sm_suggestList">건의내역</a></li>
+                      </ul>
+                  </li>
 
-                <li>
-                    <a href="/sm_complain">신고하기</a>
-                </li>
-                <li>
-                    <a href="/sm_suggest">개발자건의하기</a>
-                </li>
-                <li>
-                  <a href="/sm_unsign">회원탈퇴</a>
-                </li>
-                <li>
-                    <a href="/sm_logout"><%=session_id%>님 로그아웃</a>
-                </li>
-            </ul>
+                  <% if('sooksmarket' != `${session_id}`){ %>
+                  <li>
+                      <a href="/sm_complain">신고하기</a>
+                  </li>
+                  <li>
+                      <a href="/sm_suggest">개발자건의하기</a>
+                  </li>
+                  <li>
+                    <a href="/sm_unsign">회원탈퇴</a>
+                  </li>
 
-        </div>
+                  <% } %>
 
-        <!-- /.navbar-collapse -->
+                  <li>
+                      <a href="/sm_logout"><%=session_id%>님 로그아웃</a>
+                  </li>
+              </ul>
+
+          </div>
+
+          <!-- /.navbar-collapse -->
+
 
     </div>
 </nav>
 
-<div class="container" style="margin-top:1%; width:50%">  <!--display:none; -->
-  <div class="alert alert-info alert-dismissable" onclick="location.href='/sm_alermList/<%= session_id %>'">
-    <a href="" class="close" aria-label="close">&times;</a>
-    <strong style="text-align:center"><%= alerm %></strong>개의 알림이 도착했습니다!
+<!-- <% if (`${alerm.length > 0}`){ %>
+  <div class="container">
+    <div id="notify">
+      <div class="alert alert-info alert-dismissable" style="margin-top:1%; max-width: 230px;">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <a href="/sm_alermList/<%= session_id %>" class="alert-link" style="cursor: pointer;">
+          <strong style="text-align:center;"><%= alerm %></strong>개의 알림
+        </a>이 도착했습니다!
+      </div>
+    </div>
   </div>
-</div>
+<% } %> -->

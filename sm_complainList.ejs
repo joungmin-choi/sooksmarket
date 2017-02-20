@@ -23,7 +23,7 @@
     }
 
     $(document).ready(function(){
-      if("<%= `${admin}` %>" != "<%= `${session}` %>"){
+      if('sooksmarket' != "<%= `${session_id}` %>"){
         location.href='404.html';
       }
     });
