@@ -6,6 +6,13 @@
 
 
     <style>
+    body {
+      padding-top: 50px;
+    }
+    .navbar-template {
+      padding: 40px 15px;
+    }
+
     a:link {text-decoration: none;}
     a:visited {text-decoration: none; color: #000066;}
     div.thumbnail:hover { border: 1px solid #777; }
@@ -110,6 +117,19 @@
   <body>
     <% include ./sm_top_navigator %>
 
+    <!-- /.container -->
+    <div class="container">
+      <div class="navbar-template text-center">
+        <h1>
+          Sook's Market
+        </h1>
+        <p class="lead text-info"><small>
+          <img src="/img/cart.png" width="25" style="margin-right:2%;"/>숙명여대 중고장터 입니다
+          <img src="/img/cart.png" width="25" style="margin-left:2%;"/>
+        </small></p>
+      </div>
+    </div><!-- /.container -->
+
     <div class="container">
       <div class="row">
         <div class="col-xs-8 col-xs-offset-2">
@@ -159,7 +179,7 @@
 
             <div class="thumbnail">
               <p style="float:left; margin-left: 0.5%">
-                <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%" onclick="scrap(<%= i %>)">
+                <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%; font-family: arial;" onclick="scrap(<%= i %>)">
                 <% for(j=0; j<(scrap.length); j++){
                   if(rows[i].product_id == scrap[j].product_id){
                     flag = 1; %>

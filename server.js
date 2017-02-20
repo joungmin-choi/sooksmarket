@@ -1810,9 +1810,19 @@ app.post('/sm_changeInfo', function(req, res) {
 
 app.get('/sm_itemDetail/:id/delete', function(request, response) {
     var id = request.params.id;
-    client.query('DELETE FROM ProductInfo WHERE product_id=?', [id], function() {
-        response.redirect('/');
-    });
+
+    async.series([
+      function(callback){
+        client.query('DELETE FROM ScrapInfo WHERE product_id=?', [id], function() {
+            callback(null);
+        });
+      },
+      function(callback){
+        client.query('DELETE FROM ProductInfo WHERE product_id=?', [id], function() {
+            response.redirect('/');
+        });
+      }
+    ]);
 }); //삭제
 
 app.get('/sm_changeDetail/:id', function(request, response) {
@@ -1851,6 +1861,13 @@ app.get('/sm_changeDetail/:id', function(request, response) {
 
                     callback(null, result);
                 });
+            },
+            function(callback){
+              sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+              client.query(sql, [loginId[1]], function(err, result){
+                alerm = result.length;
+                callback(null);
+              });
             }
         ],
 
@@ -1864,7 +1881,9 @@ app.get('/sm_changeDetail/:id', function(request, response) {
                 way: before_way,
                 category: before_category,
                 detail: before_detail,
-                photoState: photoState
+                photoState: photoState,
+                session_id: loginId[1],
+                alerm: alerm
             });
         });
 });
@@ -1892,17 +1911,20 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
 
     var change_photo = [];
 
+    var scrapLength = 0;
+
     async.series([
             function(callback) {
-                if (hiddenValue === 0) {
+                if (hiddenValue == 0) {
                     client.query('SELECT * FROM ProductInfo WHERE product_id=?', [request.params.id], function(err, result) {
-                        outputPath[0] = result.photo1;
-                        outputPath[1] = result.photo2;
-                        outputPath[2] = result.photo3;
+                        outputPath[0] = result[0].photo1;
+                        outputPath[1] = result[0].photo2;
+                        outputPath[2] = result[0].photo3;
 
                         callback(null);
                     });
-                } else if (hiddenValue == 1) {
+                }
+                else if (hiddenValue == 1) {
                     for (var i = 0; i < 3; i++) {
                         if (request.files.file[i].size !== 0) {
                             file.push(request.files.file[i]);
@@ -1934,23 +1956,31 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
                         }
                     } // else 문
                     callback(null);
-                } else if (hiddenValue == 2) {
+                }
+                else if (hiddenValue == 2) {
                     outputPath[0] = "";
                     outputPath[1] = "";
                     outputPath[2] = "";
                     callback(null);
                 }
 
+            },
+            function(callback){ // 선영
+              var update = 'UPDATE ProductInfo SET product_name=?, product_price=?, product_category=?, photo1=?, photo2=?, photo3=?, product_way=?, product_detail=? where product_id=?';
+              client.query(update, [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, request.params.id], function(err, result) {
+                callback(null);
+              });
+            },
+            function(callback){
+              var sql = 'UPDATE ScrapInfo SET scrap_name=?, scrap_photo=?, category=? where product_id=?';
+              client.query(sql, [body.name, outputPath[0], category, request.params.id], function(err, result) {
+                callback(null);
+              });
             }
         ],
-        // callback (final)
         function(err) {
-
-            var update = 'UPDATE ProductInfo SET product_name=?, product_price=?, photo1=?, photo2=?, photo3=?, product_way=?, product_detail=? where product_id= ?';
-            client.query(update, [body.name, body.price, outputPath[0], outputPath[1], outputPath[2], value, detail, request.params.id], function() {
-                var str = '/sm_itemDetail/' + request.params.id;
-                response.redirect(str);
-            });
+            var str = '/sm_itemDetail/' + request.params.id;
+            response.redirect(str);
         });
 });
 
@@ -2167,17 +2197,25 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
         });
 });
 
-app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) { // 대댓글
+app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { // 대댓글
+  var iNum = req.params.i;
     var id = req.params.id;
     var pid = req.params.parent_id;
     var m = moment();
-    var contents = req.body.each_comment_detail;
+    var content = req.body.each_comment_detail;
+    var contents = content[iNum-1];
+    console.log("콘텐트",content);
+    console.log("iNUM",iNum);
     var child_id_max = 0;
     // console.log('제품 id', id, '상품 부모 id', pid, '내용', contents);
     var arrow;
+    var receiver = "";
 
     async.series([
             function(callback) {
+              console.log(id);
+              console.log(pid);
+              console.log("contents",contents);
                 var sql = 'SELECT MAX(child_id) FROM comments WHERE product_id=? AND parent_id=?';
                 client.query(sql, [id, pid], function(err, result) {
                     if (err) {
@@ -2211,6 +2249,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) { // 
             },
 
             function(callback) {
+              console.log("들어옴2");
                 var comment = {
                     product_id: req.params.id,
                     session_id: loginId[1],
@@ -2231,6 +2270,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) { // 
 
             },
             function(callback) { // 선영
+              console.log("들어옴3");
                 var time = getTimeStamp();
 
                 var notify = {
@@ -3327,8 +3367,11 @@ var sendMessage = function(email, callback) {
 };
 
 app.get('/sm_complainOK/:id', function(req, res) {
+
     var row = [];
     var OK = 0;
+    var complainID;
+    var mail;
 
     var queryData = url.parse(req.url, true).query;
     var auto = req.query.auto;
@@ -3337,21 +3380,29 @@ app.get('/sm_complainOK/:id', function(req, res) {
 
     async.series([
             function(callback) {
-                var str = 'SELECT * FROM complainInfo WHERE auto=?';
-                client.query(str, [auto], function(err, result) {
+                sql = 'SELECT * FROM complainInfo WHERE auto=?';
+                client.query(sql, [auto], function(err, result) {
                     row = result[0];
+                    complainID = result[0].complainID;
                     callback(null);
                 });
             },
             function(callback) {
-                var str = 'UPDATE complainInfo SET flag=? WHERE auto=?';
-                client.query(str, [1, auto], function(err, result) {
+                sql = 'UPDATE complainInfo SET flag=? WHERE auto=?';
+                client.query(sql, [1, auto], function(err, result) {
                     callback(null);
                 });
             },
             function(callback) {
-                var str = 'SELECT * FROM ComplainIdHistory WHERE complainID=?';
-                client.query(str, [row.complainID], function(err, result) {
+                sql = 'SELECT login_email FROM users WHERE username=?';
+                client.query(sql, [complainID], function(err, result) {
+                    mail = result[0];
+                    callback(null);
+                });
+            },
+            function(callback) {
+                sql = 'SELECT * FROM ComplainIdHistory WHERE complainID=?';
+                client.query(sql, [row.complainID], function(err, result) {
                     if (result[0] !== undefined) { // 이미 있을 때
                         OK = 1;
                     }
@@ -3362,14 +3413,14 @@ app.get('/sm_complainOK/:id', function(req, res) {
                 if (OK !== 0) { // 이미 history DB에 있으면
                     callback(null);
                 } else {
-                    var email = "sooksmarket@sm.ac.kr";
+                    var email = mail;
                     sendMessage(email, function() {
                         console.log("메일보냄");
                     });
 
                     var time = ProhibitAccessTime();
-                    var str = 'INSERT INTO ComplainIdHistory (complainID, date, reason) VALUES (?,?,?)';
-                    client.query(str, [row.complainID, time, row.detail], function(err, result) {
+                    sql = 'INSERT INTO ComplainIdHistory (complainID, date, reason) VALUES (?,?,?)';
+                    client.query(sql, [row.complainID, time, row.detail], function(err, result) {
                         callback(null);
                     });
                 }
@@ -4635,7 +4686,7 @@ app.get('sm_reserveAlarm_no/:pid',function(req,res){
   var sql, reserve_count;
   var msg_date, temp, product_name;
 
-  var task=[
+  var task = [
     function(callback) {
         sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
         client.query(sql, [product_id], function(err, result) {
@@ -4661,9 +4712,10 @@ app.get('sm_reserveAlarm_no/:pid',function(req,res){
     function(callback){
       if(reserve_count === 1){
         chatFlag=1;
-      } else (reserve_count === 2){
-        chatFlag=0;
       }
+      else if(reserve_count === 2){
+        chatFlag=0;
+      };
     },
     function(callback){
       if(chatFlag === 0){
@@ -4694,7 +4746,7 @@ app.get('sm_reserveAlarm_no/:pid',function(req,res){
         product_name = result[0].product_name;
       });
     }
-    }
+  },
     function(callback){
       if(chatFlag === 0){
       var m = moment();
