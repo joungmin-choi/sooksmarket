@@ -117,6 +117,17 @@
             location.href='/sm_request/<%= id %>/reserve_no/<%= session_id%>';
           }
 
+          function submitCheck(link){
+            var myForm = document.getElementById("myForm");
+            alert(link);
+            myForm.action = link;
+            alert("submit함");
+            myForm.submit();
+            alert("submit");
+          }
+
+
+
 
 
         </script>
@@ -240,18 +251,19 @@
 
             <hr>
 
+      <form id="myForm" method='post'>
 
             <div class="write_comment">
                 <h5>문의는 댓글로 남겨주세요:)</h5>
-                <form action='/sm_itemDetail/<%= id %>/comments' method='post' role="form">
+
 
                   <input type="hidden" name="hidden" id="hidden" value="<%= seller %>" />
 
                     <div class="form-group">
                         <textarea class="form-control" rows="3" name="comment_detail"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-warning btn-sm">보내기</button>
-                </form>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="submitCheck('/sm_itemDetail/<%= id %>/comments');">보내기</button>
+                <!-- </form> -->
             </div>
 
             <!-- Comment -->
@@ -262,23 +274,25 @@
                       <h4 class="media-heading"><%= rows[i].session_id %>
                       <small><%= rows[i].comment_date %></small>
                       </h4>
+                      <!-- <form id="myForm1" method='post' action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'> -->
                       <textarea id="area" name="comment" class="edit<%=i %> form-control" disabled><%= rows[i].comment_detail  %></textarea>
                         <% if(rows[i].session_id === session_id ) { %>
-                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'">수정 완료</button>
+                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit');">수정 완료</button>
                             <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
-                            <button class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
+                            <button type="button" class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
                         <% } else if(session_id === 'sooksmarket') { %>
                           <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
                         <% } %>
-                            <button class="reply btn btn-warning btn-xs" id=reply<%=i %> >답글</button>
+                      <!-- </form> -->
+                            <button type="button" class="reply btn btn-warning btn-xs" id="reply<%=i %>" >답글</button>
                             <div id=reply_element class="re">
                                 <h5>댓글을 남겨주세요:)</h5>
-                                <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply' method='post' role="form">
+                                <!-- <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply' method='post' role="form"> -->
                                     <div class="form-group">
                                         <textarea class="form-control" rows="3" name="each_comment_detail"></textarea>
                                     </div>
-                                    <button type="submit" class="btn btn-default btn-sm">보내기</button>
-                                </form>
+                                    <button type="button" class="btn btn-default btn-sm" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply/<%=i%>');">보내기</button>
+                                <!-- </form> -->
                             </div>
                     </div>
                 </div>
@@ -293,20 +307,29 @@
                           <h4 class="media-heading"><%= rows[i].session_id %>
                           <small><%= rows[i].comment_date %></small>
                           </h4>
+
+                          <!-- <form id="myForm" method='post' action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'> -->
                           <textarea name="comment" class="edit<%=i %> form-control" disabled><%= rows[i].comment_detail  %></textarea>
+
                           <% if(rows[i].session_id === session_id ) { %>
-                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" type="submit" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'">수정 완료</button>
+
+
+                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit');">수정 완료</button>
+
                               <!-- </form> -->
                               <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
-                              <button class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
+                              <button type="button" class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
                               <% } else if(session_id === 'sooksmarket') { %>
                                 <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
                             <% } %>
+
 
                       </div>
                   </div>
             <%  }
               } %>
+
+              </form>
                     <!-- Footer -->
                     <% include ./sm_footer %>
 
