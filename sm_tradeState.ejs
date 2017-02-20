@@ -35,7 +35,7 @@
             </tr>
           </thead>
           <tbody class="text-center">
-          <% if(results.length != 0){ %>
+          <% if(length != 0){ %>
             <% for(var i=0; i<results.length; i++){ %>
             <tr onclick="moveTo(<%= `${results[i].product_id}` %>, <%= `${results[i].request_num}` %>);">
               <td><strong><%= i+1 %></strong></td>
@@ -62,7 +62,7 @@
             <% } %>
           <% }else{ %>
             <tr>
-              <td colspan="3">거래 내역이 없습니다.</td>
+              <td colspan="4">거래 내역이 없습니다.</td>
             </tr>
           <% } %>
           </tbody>

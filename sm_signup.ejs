@@ -5,8 +5,8 @@
         <% include ./sm_head %>
         <script language="JavaScript">
 
-        var checkingId = 0;
-        var checkingSookmyung = 0;
+        var checkingId = <%= checkingId %>;
+        var checkingSookmyung = <%= checkingSookmyung %>;
 
         function checkId(){
           var form = document.getElementById("form");
@@ -22,13 +22,15 @@
         }
 
         function authenticate(){
+          var form = document.getElementById("form");
           var emailText = document.getElementById("email");
           if(emailText.value==""){
             alert("숙명 이메일 아이디를 입력해주세요.");
           }
           else{
             var str = "/authenticateSookmyung/?email="+emailText.value+"@sm.ac.kr";
-            window.open(str,"","width=400 height=300");
+            form.action = str;
+            form.submit();
           }
         }
 
@@ -45,26 +47,32 @@
 
           if(nameText.value==""){
             alert("이름을 입력하세요.");
+            nameText.focus();
             return false;
           }
           else if(idText.value==""){
             alert("아이디를 입력하세요.");
+            idText.focus();
             return false;
           }
           else if(pwText.value==""){
             alert("비밀번호를 입력하세요.");
+            pwText.focus();
             return false;
           }
           else if(emailText.value==""){
             alert("이메일을 입력하세요.");
+            emailText.focus();
             return false;
           }
           else if(phoneText.value==""){
             alert("전화번호를 입력하세요.");
+            phoneText.focus();
             return false;
           }
           else if (pwText.value != pwCheckText.value) {
             alert("비밀번호 중복확인 실패!\n다시 입력하세요!");
+            pwCheckText.focus();
             return false;
           }
           else if(checkingId==0){
@@ -73,10 +81,6 @@
           }
           else if(checkingSookmyung==0){
             alert("숙명인 인증 해주세요!");
-            return false;
-          }
-          else if(allias.value == ""){
-            alert("닉네임을 정래주세요!");
             return false;
           }
           else {
@@ -105,40 +109,33 @@
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">이름 :</label>
                   <div class="col-sm-5">
-                    <input type="text" class="form-control" name="name" id="name"  placeholder="이름을 입력해주세요.">
+                    <input type="text" class="form-control" name="name" id="name" placeholder="이름을 입력해주세요." value="<%=nameText%>">
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">아이디 :</label>
                   <div class="col-sm-5">
-                    <input type="text" class="form-control" name="username" id="id"  placeholder="아이디를 입력해주세요." style="width:68%;display:inline;float:left;">
+                    <input type="text" class="form-control" name="username" id="id" placeholder="아이디를 입력해주세요." value="<%=idText%>" style="width:68%;display:inline;float:left;">
                     <input type="button" class="col-sm-4 btn btn-primary"  onClick="checkId();" value="중복확인" style="width:30%;float:right;">
                   </div>
                 </div>
-                <!--
-                <div class="form-group">
-                  <label for="" class="col-sm-3 control-label"></label>
-                  <div class="col-sm-5" style="text-align:center;">
-                    <input type="" class="col-sm-4 btn btn-primary"  onClick="checkId();"  value="중복확인">
-                  </div>
-                </div>-->
 
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">비밀번호 :</label>
                   <div class="col-sm-5">
-                    <input type="password" class="form-control" name="password" id="pw"  placeholder="비밀번호를 입력해주세요.">
+                    <input type="password" class="form-control" name="password" id="pw"  placeholder="비밀번호를 입력해주세요." value="<%=pwText%>">
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">비밀번호 확인 :</label>
                   <div class="col-sm-5">
-                    <input type="password" class="form-control" name="pwcheck" id="pwCheck"  placeholder="비밀번호를 입력해주세요.">
+                    <input type="password" class="form-control" name="pwcheck" id="pwCheck"  placeholder="비밀번호를 한 번 더 입력해주세요." value="<%=pwCheckText%>">
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">이메일 :</label>
                   <div class="col-sm-5 text-center">
-                    <input style="width:40%;" type="text" class="col-sm-3 col-xs-3 form-control" name="email" id="email"  placeholder="숙명이메일 ID">
+                    <input style="width:40%;" type="text" class="col-sm-3 col-xs-3 form-control" name="email" id="email"  placeholder="숙명이메일 ID" value="<%=emailText%>">
                     <div style="margin-top:2%;" class="col-sm-2 col-xs-2" style="width:50%;">
                       @sm.ac.kr
                     </div>
@@ -153,20 +150,20 @@
                 <div class="form-group"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">전화번호 :</label>
                   <div class="col-sm-5">
-                    <input type="text" class="form-control" name="phone" id="phone"  placeholder="전화번호를 입력해주세요.">
+                    <input type="text" class="form-control" name="phone" id="phone"  placeholder="전화번호를 입력해주세요." value="<%=phoneText%>">
                     (※'-'없이 숫자만 입력해주세요!)
                   </div>
                 </div>
                 <div class="form-group" style="display:none;"> <!--has-success has-feedback-->
                   <label for="" class="col-sm-3 control-label">별명 :</label>
                   <div class="col-sm-5">
-                    <input type="text" class="form-control" name="displayName" id="allias"  placeholder="사용할 닉네임를 입력해주세요.">
+                    <input type="text" class="form-control" name="displayName" id="allias">
                   </div>
                 </div><br/>
                 <div class="form-group"> <!--has-success has-feedback-->
                   <div class="col-md-8 col-md-offset-1 text-center">
                     <input type="submit" value="가입하기" class="btn btn-primary">
-                    <input type="reset" value="취소하기" class="btn btn-danger"  onclick="location.href='/'">
+                    <input type="reset" value="취소하기" class="btn btn-danger"  onclick="location.href='/sm_signup/cancel'">
                   </div>
                 </div>
               </form>

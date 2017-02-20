@@ -13,26 +13,23 @@
         alert("해당 숙명 웹메일로 인증번호가 전송되었습니다.\n웹메일에서 받으신 인증번호를 밑에 적어주세요.");
       }else{
         alert("이미 등록된 이메일입니다.\n\n다른 숙명 웹메일 아이디를 입력하세요.");
-        window.close();
-        opener.checkingSookmyung = 0;
-        opener.form.email.value="";
-        opener.form.email.focus();
+        location.href = '/sm_signup';
       }
     }
     function authenticate(){
       var codeText = document.getElementById("code");
       if(codeText.value==""){
         alert("인증번호를 입력해주세요!");
+        codeText.focus();
       }
       else{
         if(codeText.value == authenticationCode){
           alert("인증되었습니다!");
-          window.close();
-          opener.checkingSookmyung = 1;
-          opener.form.phone.focus();
+          location.href='/complete/authenticate';
         }
         else{
           alert("인증번호가 다릅니다.\n다시 입력하세요.");
+          codeText.focus();
         }
       }
     }

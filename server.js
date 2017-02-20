@@ -498,29 +498,45 @@ app.post(
 var idExistence = -1;
 var checkingId = 0;
 var checkingSookmyung = 0;
-var idText = null;
-var nameText = null;
-var pwText = null;
-var emailText = null;
-var pwCheckText = null;
+var idText = '';
+var nameText = '';
+var pwText = '';
+var emailText = '';
+var pwCheckText = '';
+var phoneText = '';
 
 
 app.get('/sm_signup', function(request, response) {
-    var context = {
-        checkingId: checkingId,
-        checkingSookmyung: checkingSookmyung,
-        idText: idText,
-        nameText: nameText,
-        pwText: pwText,
-        emailText: emailText,
-        pwCheckText: pwCheckText
-    };
-    request.app.render('sm_signup.ejs', context, function(err, html) {
-        if (err) {
-            throw err;
+    var context;
+
+    var tasks = [
+        function(callback) {
+            context = {
+                checkingId: checkingId,
+                checkingSookmyung: checkingSookmyung,
+                idText: idText,
+                nameText: nameText,
+                pwText: pwText,
+                emailText: emailText,
+                pwCheckText: pwCheckText,
+                phoneText: phoneText
+            };
+            console.log(context);
+            callback(null);
+        },
+
+        function(callback) {
+            request.app.render('sm_signup.ejs', context, function(err, html) {
+                if (err) {
+                    throw err;
+                }
+                response.end(html);
+            });
+            callback(null);
         }
-        response.end(html);
-    });
+    ];
+
+    async.series(tasks, function(err, result) {});
 });
 
 app.post('/sm_signup', function(req, res) {
@@ -558,51 +574,65 @@ app.post('/sm_signup', function(req, res) {
     });
 });
 
+app.get('/sm_signup/cancel', function(request, response) {
+    idExistence = -1;
+    checkingId = checkingSookmyung = 0;
+    idText = nameText = pwText = emailText = pwCheckText = phoneText = '';
+
+    response.redirect('/');
+});
+
 app.post('/sm_signup/checkId', function(request, response) {
-    console.log("잘 들어옴");
+    var body = request.body;
+    var context;
+
+    var tasks = [
+        function(callback) {
+            idText = body.username;
+            pwText = body.password;
+            pwCheckText = body.pwcheck;
+            nameText = body.name;
+            emailText = body.email;
+            phoneText = body.phone;
+
+            callback(null);
+        },
+
+        function(callback) {
+            var id = idText;
+            client.query('select username from users where username=' + mysql.escape(id), function(err, rows) {
+                if (err) {
+                    console.log(err);
+                    throw err;
+                }
+                if (rows.length > 0) {
+                    idExistence = 1;
+                    checkingId = 0;
+                    callback(null);
+                } else {
+                    idExistence = 0;
+                    checkingId = 1;
+                    callback(null);
+                }
+            });
+        },
+
+        function(callback) {
+            context = {
+                idExistence: idExistence
+            };
+            request.app.render('checkId.ejs', context, function(err, html) {
+                if (err) {
+                    throw err;
+                }
+                response.end(html);
+                callback(null);
+            });
+        }
+    ];
+    async.series(tasks, function(err, result) {});
 });
 
-app.get('/checkId', function(request, response) {
-    console.log("잘못 들어옴");
-    var id = request.query.id;
-
-    readData(id, function() {
-        var context = {
-            userId: id,
-            idExistence: idExistence
-        };
-        request.app.render('checkId.ejs', context, function(err, html) {
-            if (err) {
-                throw err;
-            }
-            response.end(html);
-        });
-    });
-});
-
-var checkUserId = function(id, callback) {
-
-    var exec = client.query('select username from users where username=' + mysql.escape(id), function(err, rows) {
-        //console.log('실행대상 SQL :' + exec.sql);
-
-        if (rows.length > 0) {
-            idExistence = 1;
-            callback(null, rows);
-        } else {
-            idExistence = 0;
-            callback(null, null);
-        }
-    });
-};
-
-var readData = function(id, callback) {
-    checkUserId(id, function(err, rows) {
-        if (err) {
-            throw err;
-        }
-        callback();
-    });
-};
 
 var smtpTransport = nodemailer.createTransport(smtpTransport({
     host: "smtp.gmail.com",
@@ -626,18 +656,30 @@ var sendCode = function(authenticationCode, email, callback) {
         if (error) {
             console.log(error);
         } else {
-            console.log("Message sent : " + response.message);
+            console.log("Message sent");
         }
         smtpTransport.close();
         callback();
     });
 };
 
-app.get('/authenticateSookmyung', function(request, response) {
-    var email, isExisted, context;
-    isExisted = 0;
+app.post('/authenticateSookmyung', function(request, response) {
+    var email, context;
+    var isExisted = 0;
+    var body = request.body;
 
     var tasks = [
+        function(callback) {
+            idText = body.username;
+            pwText = body.password;
+            pwCheckText = body.pwcheck;
+            nameText = body.name;
+            emailText = body.email;
+            phoneText = body.phone;
+
+            callback(null);
+        },
+
         function(callback) {
             email = request.query.email;
             var sqlQuery = 'SELECT * FROM users WHERE login_email=?';
@@ -688,6 +730,11 @@ app.get('/authenticateSookmyung', function(request, response) {
     ];
 
     async.series(tasks, function(err, result) {});
+});
+
+app.get('/complete/authenticate', function(request, response) {
+    checkingSookmyung = 1;
+    response.redirect('/sm_signup');
 });
 
 function getTimeStamp() {
@@ -1004,7 +1051,6 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     ];
     async.series(tasks, function(err, results) {});
 });
-
 
 app.get('/sm_request/:id', function(request, response) {
     var product_id, product_way, reserve_count;
@@ -1765,13 +1811,15 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
     //console.log("aa: ",req.body.hidden);
     var itemDetailMainID = req.body.hidden;
     var arrow;
+    var sql;
+    var receiver = "";
+
 
     async.series([
             function(callback) {
 
-                var sql = 'SELECT MAX(parent_id) FROM comments';
+                sql = 'SELECT MAX(parent_id) FROM comments';
                 client.query(sql, function(err, result) {
-                    console.log('1번');
                     if (err) {
                         console.log(err);
                         res.status(500);
@@ -1835,6 +1883,38 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
                     }
                     callback(null, 3);
                 });
+            },
+
+            function(callback) {
+                if (arrow !== null) {
+                    sql = 'SELECT phoneToken FROM users WHERE username=?';
+                    client.query(sql, [arrow], function(err, result) {
+                        if (result[0].phoneToken !== null) {
+                            receiver = result[0].phoneToken;
+                            callback(null);
+                        }else{
+                          receiver = "";
+                          callback(null);
+                        }
+                    });
+                } else {
+                    callback(null);
+                }
+            },
+
+            function(callback) {
+                if (arrow !== null) {
+                    if (receiver !== "") {
+                        var content = req.body.comment_detail;
+                        var link = "http://172.30.1.20/sm_alermList/" + arrow;
+                        sendTopicMessage("숙스마켓", content, link, receiver);
+                        callback(null);
+                    }else{
+                      callback(null);
+                    }
+                }else{
+                  callback(null);
+                }
             }
         ],
         function(err, results) {
@@ -1844,17 +1924,25 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
         });
 });
 
-app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) { // 대댓글
+app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { // 대댓글
+  var iNum = req.params.i;
     var id = req.params.id;
     var pid = req.params.parent_id;
     var m = moment();
-    var contents = req.body.each_comment_detail;
+    var content = req.body.each_comment_detail;
+    var contents = content[iNum];
+    console.log("콘텐트",content);
+    console.log("iNUM",iNum);
     var child_id_max = 0;
     // console.log('제품 id', id, '상품 부모 id', pid, '내용', contents);
     var arrow;
+    var receiver = "";
 
     async.series([
             function(callback) {
+              console.log(id);
+              console.log(pid);
+              console.log("contents",contents);
                 var sql = 'SELECT MAX(child_id) FROM comments WHERE product_id=? AND parent_id=?';
                 client.query(sql, [id, pid], function(err, result) {
                     if (err) {
@@ -1888,6 +1976,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) { // 
             },
 
             function(callback) {
+              console.log("들어옴2");
                 var comment = {
                     product_id: req.params.id,
                     session_id: loginId[1],
@@ -1908,6 +1997,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply', function(req, res) { // 
 
             },
             function(callback) { // 선영
+              console.log("들어옴3");
                 var time = getTimeStamp();
 
                 var notify = {
@@ -2004,6 +2094,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit', function(req, r
 
     async.series([
             function(callback) {
+              console.log("여기여기");
                 var sql = 'UPDATE comments SET comment_detail=? WHERE product_id=? AND parent_id=? AND child_id=?';
                 client.query(sql, [comment, id, pid, cid], function(err, rows, fields) {
                     if (err) {
@@ -2323,6 +2414,7 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
 
 app.get('/sm_rejectTrade/:id/:num', function(request, response) {
     var product_id, sqlQuery, product_name, request_num;
+    var alerm;
 
     var tasks = [
         function(callback) {
@@ -2340,10 +2432,20 @@ app.get('/sm_rejectTrade/:id/:num', function(request, response) {
         },
 
         function(callback) {
+            sqlQuery = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+            client.query(sqlQuery, [loginId[1]], function(err, result) {
+                alerm = result.length;
+                callback(null);
+            });
+        },
+
+        function(callback) {
             var context = {
                 name: product_name,
                 id: product_id,
-                num: request_num
+                num: request_num,
+                session_id: loginId[1],
+                alerm: alerm
             };
             response.render('sm_rejectTrade.ejs', context, function(err, html) {
                 if (err) {
@@ -2471,7 +2573,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
 
         function(callback) {
             sqlQuery = 'UPDATE TradeInfo SET isClicked=1 WHERE product_id=?';
-            client.query(SqlQuery, [product_id], function(err, result) {
+            client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
                     throw err;
@@ -3209,6 +3311,7 @@ app.post('/category/:id', function(req, res) {
 app.get('/sm_tradeState', function(request, response) {
     var sqlQuery, haveCompletion;
     var sessionId = loginId[1];
+    var length = 0;
     var searchResults = [];
     var isExisted = 0;
 
@@ -3230,20 +3333,27 @@ app.get('/sm_tradeState', function(request, response) {
                     throw err;
                 }
 
-                searchResults[0] = result[0];
-                for (var i = 1; i < result.length; i++) {
-                    for (var j = 0; j < searchResults.length; j++) {
-                        if (searchResults[j].product_id == result[i].product_id) {
-                            isExisted = 1;
+                if (result.length !== 0) {
+
+                    searchResults[0] = result[0];
+                    for (var i = 1; i < result.length; i++) {
+                        for (var j = 0; j < searchResults.length; j++) {
+                            if (searchResults[j].product_id == result[i].product_id) {
+                                isExisted = 1;
+                            }
+                        }
+                        if (isExisted != 1) {
+                            searchResults[j] = result[i];
+                        } else {
+                            isExisted = 0;
                         }
                     }
-                    if (isExisted != 1) {
-                        searchResults[j] = result[i];
-                    } else {
-                        isExisted = 0;
-                    }
+                    length = 1;
+                    callback(null);
+                } else {
+                    length = 0;
+                    callback(null);
                 }
-                callback(null);
             });
         },
 
@@ -3252,7 +3362,8 @@ app.get('/sm_tradeState', function(request, response) {
                 results: searchResults,
                 id: sessionId,
                 session_id: loginId[1],
-                alerm: alerm
+                alerm: alerm,
+                length: length
             }, function(err, html) {
                 if (err)
                     throw err;
@@ -3263,7 +3374,6 @@ app.get('/sm_tradeState', function(request, response) {
     ];
     async.series(tasks, function(err, results) {});
 });
-
 
 app.get('/sm_tradeStateDetail/:id/:num', function(request, response) {
     var product_id, request_num, results, sessionId;
@@ -3442,7 +3552,6 @@ app.get('/sm_review/search/:id', function(request, response) {
 
     async.series(tasks, function(err, result) {});
 });
-
 
 app.get('/sm_request/:id/reserve/:sid', function(req, res) {
     var product_id = req.params.id;
@@ -4082,64 +4191,25 @@ app.post('/fcm/register', function(request, response) {
     var isExisted = 0;
     console.log("come");
     token = request.body.Token;
+    console.log(token);
     response.redirect('/');
-
-    // var tasks = [
-    //     function(callback) {
-    //         token = request.body.Token;
-    //         console.log(token);
-    //         sqlQuery = 'SELECT * FROM pushTest WHERE Token=?';
-    //         client.query(sqlQuery, [token], function(err, result) {
-    //             if (err) {
-    //                 console.log(err);
-    //                 throw err;
-    //             }
-    //             if (result.length === 0) {
-    //                 isExisted = 0;
-    //             } else {
-    //                 isExisted = 1;
-    //             }
-    //             callback(null);
-    //         });
-    //     },
-    //
-    //     function(callback) {
-    //         if (isExisted === 0) {
-    //           console.log("기존에 없음");
-    //             sqlQuery = 'INSERT INTO pushTest SET ?';
-    //             client.query(sqlQuery, {
-    //                 Token: token
-    //             }, function(err, result) {
-    //                 callback(null);
-    //             });
-    //         } else {
-    //             console.log("이미 있음");
-    //             callback(null);
-    //         }
-    //     },
-    //
-    //     function(callback){
-    //       response.redirect('/');
-    //       callback(null);
-    //     }
-    // ];
-    //
-    // async.series(tasks, function(err, results) {});
 });
 
 
 app.get('/push', function(request, response) {
-    console.log("진입1");
-    sendTopicMessage("제목", "내용", "/noti.png", "/");
-    console.log("진입5");
+    var receiver = "eORx7GiQY2U:APA91bFK8LixHNK53NRd6-yxQXlPw0RcI6Jp2unV0DtGdfqSMvrvmE3AYggiVxDNj8O9tooW_Wk71pTwYl_BJO6Xpl1jchTPPyjd4TLTcVvC3t061vqjYOzdiRi_wydvQUVaTsRsYNBW";
+    var content = "내용";
+    var link = "http://172.30.1.20/sm_tradeState";
+
+    sendTopicMessage("제목", content, link, receiver);
+
 });
 
 
-function sendTopicMessage(title, content, imgUrl, link) {
+function sendTopicMessage(title, content, link, receiver) {
     var message = {
         title: title,
         content: content,
-        imgUrl: imgUrl,
         link: link
     };
     request({
@@ -4151,10 +4221,9 @@ function sendTopicMessage(title, content, imgUrl, link) {
         },
         body: JSON.stringify({
             "data": {
-                "message": "알람 테스트",
-                "senMsg": message
+                "message": message
             },
-            "to": "eORx7GiQY2U:APA91bFK8LixHNK53NRd6-yxQXlPw0RcI6Jp2unV0DtGdfqSMvrvmE3AYggiVxDNj8O9tooW_Wk71pTwYl_BJO6Xpl1jchTPPyjd4TLTcVvC3t061vqjYOzdiRi_wydvQUVaTsRsYNBW"
+            "to": receiver
         })
     }, function(error, response, body) {
         if (error) {

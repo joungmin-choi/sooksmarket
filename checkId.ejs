@@ -5,17 +5,14 @@
     <title>아이디 중복체크</title>
     <script>
     var idExistence = <%= idExistence %>;
+
     if(idExistence == 1){
       alert("해당 아이디는 이미 사용중입니다.\n다른 아이디를 입력하세요.");
-      window.close();
-      opener.form.id.value="";
-      // top.opener.form.id.focus();
+      location.href = '/sm_signup';
     }
     else{
       alert("사용 가능한 아이디입니다.");
-      window.close();
-      opener.checkingId = 1;
-      // opener.form.pw.focus();
+      location.href = '/sm_signup';
     }
     </script>
   </head>
