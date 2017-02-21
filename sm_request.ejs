@@ -63,6 +63,11 @@
             }
         }
 
+        if (dayAdditionCount == 2) {/////
+            var dayAddBtnDiv = document.getElementById("dayAddBtnDiv");
+            dayAddBtnDiv.innerHTML = "";
+        }
+
         function setDate(dayNum) {
             var dateText;
             var datepicker;
@@ -262,8 +267,12 @@
             dayDiv.innerHTML += str;
             if (dayDeletionCount == 1) {
                 if (temp != -1) {
+                  if(temp == 0){/////
+                    temp = -1;/////
+                  }else{/////
                     dayAdditionCount++;
                     temp = -1;
+                  }
                 }
                 dayDeletionCount = 0;
             }
@@ -471,7 +480,7 @@
 
             // var socket = io();
             // var str = "소켓 테스트";
-            // 
+            //
             // socket.emit('chat message', "a");
 
 

@@ -51,7 +51,6 @@
                 });
 
                 $('.edit').click(function(){
-                  alert('edit');
                   var id = $(this).attr('id');
                   $('.' + id).removeAttr("disabled");
                   $('#_'+id).show();
@@ -119,11 +118,8 @@
 
           function submitCheck(link){
             var myForm = document.getElementById("myForm");
-            alert(link);
             myForm.action = link;
-            alert("submit함");
             myForm.submit();
-            alert("submit");
           }
 
 
