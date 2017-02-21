@@ -1167,7 +1167,6 @@ app.post('/sm_request/:id', function(request, response) {
         },
 
         function(callback) {
-            console.log(maxReqNum);
             if (maxReqNum !== 0) {
                 SqlQuery = 'UPDATE TradeInfo SET isClicked=1 WHERE product_id=?';
                 client.query(SqlQuery, [product_id], function(err, result) {
@@ -1379,11 +1378,12 @@ app.post('/sm_request/:id', function(request, response) {
                 });
             }
         },
+
         function(callback) {
             var chatAlarm = {
                 category: 2,
                 product_id: product_id,
-                detail: msg,
+                detail: '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.",
                 date: msg_date,
                 flag: 0,
                 link: '/sm_chat/' + product_id,
@@ -1620,6 +1620,7 @@ io.on('connection', function(socket) {
     socket.on('chat message', function(msg) {
         //console.log('4 socket.on의 chat message [서버에서 받음]');
         //console.log('4', msg);
+        var product_name;
         var seller, customer, state, sql, temp;
         var room = socket.room;
         var m = moment();
@@ -1630,7 +1631,16 @@ io.on('connection', function(socket) {
             msg_date: msg_date,
             msg_room: room //roomname에서 바꿈
         };
+
         var tasks = [
+          function(callback){
+            sql = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
+            client.query(sql, [room], function(err, result){
+              product_name = result[0];
+              callback(null);
+            });
+          },
+
             function(callback) {
                 sql = 'INSERT INTO chat_msg SET ?';
                 client.query(sql, chat, function(err, result) {
@@ -1680,7 +1690,7 @@ io.on('connection', function(socket) {
                 var chatAlarm = {
                     category: 2,
                     product_id: socket.room,
-                    detail: msg,
+                    detail: '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.",
                     date: msg_date,
                     flag: 0,
                     link: '/sm_chat/' + socket.room,
@@ -2040,12 +2050,14 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
                 }
 
             },
-            function(callback) { // 선영
-                var update = 'UPDATE ProductInfo SET product_name=?, product_price=?, product_category=?, photo1=?, photo2=?, photo3=?, product_way=?, product_detail=? where product_id=?';
-                client.query(update, [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, request.params.id], function(err, result) {
-                    callback(null);
-                });
+
+            function(callback){
+              var update = 'UPDATE ProductInfo SET product_name=?, product_price=?, product_category=?, photo1=?, photo2=?, photo3=?, product_way=?, product_detail=? where product_id=?';
+              client.query(update, [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, request.params.id], function(err, result) {
+                callback(null);
+              });
             },
+
             function(callback) {
                 var sql = 'UPDATE ScrapInfo SET scrap_name=?, scrap_photo=?, category=? where product_id=?';
                 client.query(sql, [body.name, outputPath[0], category, request.params.id], function(err, result) {
@@ -2084,15 +2096,15 @@ app.post('/sm_enter_changeInfo', function(req, res) {
 });
 
 app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
+
+    var product_name;
     var id;
     var m = moment();
     var parent_id_max;
-    //console.log("aa: ",req.body.hidden);
     var itemDetailMainID = req.body.hidden;
     var arrow;
     var sql;
     var receiver = "";
-
 
     async.series([
             function(callback) {
@@ -2139,13 +2151,20 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
                 });
 
             },
-            function(callback) { // 선영
+            function(callback){
+              sql = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
+              client.query(sql, [req.params.id], function(err, result){
+                product_name = result[0].product_name;
+                callback(null);
+              });
+            },
+            function(callback) {
                 var time = getTimeStamp();
 
                 var notify = {
                     category: 1,
                     product_id: req.params.id,
-                    detail: req.body.comment_detail,
+                    detail: '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 댓글을 남기셨습니다.",
                     date: time,
                     link: '/sm_itemDetail/' + id,
                     arrow: arrow,
@@ -2171,9 +2190,9 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
                         if (result[0].phoneToken !== null) {
                             receiver = result[0].phoneToken;
                             callback(null);
-                        } else {
-                            receiver = "";
-                            callback(null);
+                        }else{
+                          receiver = "";
+                          callback(null);
                         }
                     });
                 } else {
@@ -2188,11 +2207,11 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
                         var link = "http://172.30.1.20/sm_alermList/" + arrow;
                         sendTopicMessage("숙스마켓", content, link, receiver);
                         callback(null);
-                    } else {
-                        callback(null);
+                    }else{
+                      callback(null);
                     }
-                } else {
-                    callback(null);
+                }else{
+                  callback(null);
                 }
             }
         ],
@@ -2204,6 +2223,8 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
 });
 
 app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { // 대댓글
+
+    var product_name;
     var iNum = req.params.i;
     var id = req.params.id;
     var pid = req.params.parent_id;
@@ -2271,13 +2292,20 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
                 });
 
             },
+            function(callback){
+              var sql = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
+              client.query(sql, [req.params.id], function(err, result){
+                product_name = result[0].product_name;
+                callback(null);
+              });
+            },
             function(callback) {
                 var time = getTimeStamp();
 
                 var notify = {
                     category: 1,
                     product_id: req.params.id,
-                    detail: contents,
+                    detail: '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 답글을 남기셨습니다.",
                     date: time,
                     link: '/sm_itemDetail/' + id,
                     arrow: arrow,
@@ -2410,7 +2438,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/:child_id/edit', function(req, r
                     callback(null, 1);
                 });
             },
-            function(callback) { // 선영
+            function(callback) {
                 var sql = 'UPDATE notifyMessage SET detail=? WHERE category=1 AND product_id=? AND parent_id=? AND child_id=?';
                 client.query(sql, [comment, id, pid, cid], function(err, rows, fields) {
                     if (err) {
@@ -2737,7 +2765,7 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
             var chatAlarm = {
                 category: 2,
                 product_id: product_id,
-                detail: msg,
+                detail: '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.",
                 date: msg_date,
                 flag: 0,
                 link: '/sm_chat/' + product_id,
@@ -2932,7 +2960,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
             var chatAlarm = {
                 category: 2,
                 product_id: product_id,
-                detail: msg,
+                detail: '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.",
                 date: msg_date,
                 flag: 0,
                 link: '/sm_chat/' + product_id,
@@ -4087,14 +4115,14 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
             });
         },
 
-        function(callback) { // 선영
+        function(callback) {
             var time = getTimeStamp();
             var link = '/sm_itemDetail/' + product_id;
 
             var notify = {
                 category: 3,
                 product_id: product_id,
-                detail: productName,
+                detail: '"'+productName+'"'+" 상품 구매 요청이 도착했습니다.",
                 date: time,
                 link: link,
                 arrow: session_id,
@@ -4226,7 +4254,7 @@ app.get('/sm_request/:id/reserve_no/:sid', function(req, res) {
                 }
             });
         },
-        function(callback) { // 선영
+        function(callback) {
             sql = 'DELETE FROM notifyMessage WHERE category=3 AND product_id=? AND arrow=?';
             client.query(sql, [product_id, session_id], function(err, result) {
                 if (err) {
@@ -4248,7 +4276,7 @@ app.get('/sm_request/:id/reserve_no/:sid', function(req, res) {
             }
             callback(null);
         },
-        function(callback) { //선영
+        function(callback) {
             var temp = session_reserve_count + 1;
 
             for (var i = temp; i < reserve_count; i++) {
@@ -4867,7 +4895,7 @@ app.get('sm_reserveAlarm_no/:pid', function(req, res) {
                 var reserveAlarm = {
                     category: 3,
                     product_id: product_id,
-                    detail: '예약하신' + product_name + '상품 거래를...진행하겠습니까..?',
+                    detail: "예약하신 " + '"'+product_name+'"'+" 상품이 도착하였습니다.",
                     date: msg_date,
                     flag: 0,
                     link: '/sm_itemDetail/' + product_id,
@@ -4923,4 +4951,5 @@ app.get('sm_reserveAlarm_no/:pid', function(req, res) {
         }
     ];
     async.series(tasks, function(err, results) {});
+
 });
