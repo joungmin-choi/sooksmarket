@@ -141,6 +141,14 @@ app.get('/sm_logout', function(req, res) {
     }
 });
 
+app.get('/sm_about', function(req, res){
+  sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+  client.query(sql, [loginId[1]], function(err, result){
+    alerm = result.length;
+    res.render('sm_about.ejs', {session_id:loginId[1], alerm: alerm});
+  });
+});
+
 
 app.get('/sm_main', function(req, res) {
     var queryData = url.parse(req.url, true).query;
@@ -4698,6 +4706,17 @@ app.get('/sm_alermList/:id', function(req, res) {
             });
         });
 });
+
+
+app.get('/sm_alermList/deleteAll/:id', function(req, res) {
+  var sql = 'DELETE FROM notifyMessage WHERE arrow=?';
+  client.query(sql, [loginId[1]], function(err, result){
+    var str = '/sm_alermList/'+ req.params.id;
+    res.redirect(str);
+  });
+});
+
+
 
 app.get('/sm_readAlerm/:id', function(req, res) {
     var row = [];
