@@ -6,6 +6,12 @@
   </head>
 
   <script>
+  function deleteAll(){
+    var retVal = confirm("전체 삭제를 하시겠습니까?");
+    if( retVal == true ){
+      location.href='/sm_alermList/deleteAll/<%= session_id %>';
+    }
+  }
   </script>
 
 <body>
@@ -35,6 +41,9 @@
         <col style="width:20%;">
         <col style="width:80%;">
         </colgroup>
+        <% if (`${rows.length}` > 0){ %>
+          <button class="btn btn-primary" type="button" onclick="deleteAll()" style="margin-bottom:5px;float:right;">전체 삭제</button>
+        <% } %>
         <thead>
             <tr>
                 <th style="text-align:center"></th>
