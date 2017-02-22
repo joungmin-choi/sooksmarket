@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+
+<head>
+  <% include ./sm_head %>
+  <style>
+    #star{
+      color:#ffa500;
+      font-family: arial;
+    }
+    .star{
+      font-size: 10px;
+      color: #ffa500;
+      font-family: arial;
+    }
+
+    .not{
+      font-size: :10px;
+      color: #ffdb99;
+      font-family: arial;
+    }
+  </style>
+
+</head>
+
+<body>
+  <!-- 네이게이션 상단 부분 -->
+  <% include ./sm_top_navigator %>
+  <script>
+    function addKeyword(){
+      var keyWordText = document.getElementById("keyword");
+      var price = document.getElementById("maxPrice");
+      var form = document.getElementById("myForm");
+
+      if(keyWordText.value == ""){
+        alert("키워드를 입력해주세요.");
+        return false;
+      }else if(price.value == ""){
+        alert("최대 가격을 입력해주세요.\n없을 시 '0'을 입력해주세요.");
+        return false;
+      }else{
+        form.submit();
+        return true;
+      }
+    }
+
+    function deleteKeyWord(id){
+      var link = "/sm_keyword/delete/" +id;
+      location.href = link;
+    }
+  </script>
+
+  <div class="container" style="height:480px;">
+    <div class="col-xs-12 col-md-10 col-md-offset-1">
+    <h2 style="margin-left:2%;"><strong> 키워드 알림 List </strong></h2>
+    <small >키워드를 등록하면, 해당 키워드가 들어간 새 상품이 등록될 때마다 알림이 옵니다:)</small>
+    <hr/>
+    <button type="button" class="btn btn-default" style="float:right;margin-bottom:1%;" data-toggle="collapse" data-target="#reportDiv">+</button>
+    <br/><br/>
+  </div>
+
+      <div class="row" style="width:94%; margin-left:3%;">
+
+        <div class="col-xs-12 col-md-8 col-md-offset-2">
+        <div id="reportDiv" class="collapse text-center">
+          <form id="myForm" method='post'>
+          <table class="table table-bordered">
+            <thead class="text-center">
+              <tr>
+                <td style="width:30%;">키워드</td>
+                <td style="width:30%;">최대 가격</td>
+                <td style="width:40%;">판매자 별점</td>
+              </tr>
+            </thead>
+            <tbody class="text-center">
+              <tr>
+                <td>
+                  <input type="text" class="form-control" id="keyword" name="keyword">
+                </td>
+                <td>
+                  <input type="text" class="form-control" id="maxPrice" name="maxPrice" style="width:83%;display:inline;" placeholder="5000">원<br/>이하
+                </td>
+                <td>
+                  <select id="starSelect" name="starSelect" class="form-control" style="color:#ffa500;font-family: arial;font-size: 11px;">
+                    <option value="5" id="star">★★★★★</option>
+                    <option value="4" id="star">★★★★</option>
+                    <option value="3" id="star" selected>★★★</option>
+                    <option value="2" id="star">★★</option>
+                    <option value="1" id="star">★</option>
+                  </select>
+                  이상
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <button type="button" class="btn btn-success" onclick="addKeyword();" style="margin-bottom:5%;">키워드 추가</button>
+        </form>
+        </div>
+        </div>
+
+        <table class="table table-hover table-striped table-bordered">
+          <thead class="text-center">
+            <tr style="background:#fff2cc;">
+              <td style="width:5%;"><strong>No.</strong></td>
+              <td style="width:30%;"><strong>키워드</strong></td>
+              <td style="width:30%;"><strong>최대 가격</strong></td>
+              <td style="width:30%;"><strong>최소 신뢰도</strong></td>
+              <td></td>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            <% if(haveKeyword == 0){ %>
+              <tr>
+                <td colspan="5">등록된 키워드가 없습니다.</td>
+              </tr>
+            <% }else{ %>
+              <% for(var i=0; i<results.length; i++){ %>
+                <tr>
+                  <td>
+                    <%= i+1 %>
+                  </td>
+                  <td>
+                    <%= `${results[i].keyword}` %>
+                  </td>
+                  <td>
+                    <%= `${results[i].maxPrice}` %>원
+                  </td>
+                  <td>
+                    <% switch (results[i].minStarRating) {
+                      case 1: %> <label class="star">★</label>
+                              <% break;
+                      case 2: %> <label class="star">★★</label>
+                              <% break;
+                      case 3: %> <label class="star">★★★</label>
+                              <% break;
+                      case 4: %> <label class="star">★★★★</label>
+                              <% break;
+                      case 5: %> <label class="star">★★★★★</label>
+                              <% break;
+                    } %>
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteKeyWord(<%= `${results[i].id}` %>);">-</button>
+                  </td>
+                </tr>
+              <% } %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+  </div>
+  <hr>
+  <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+
+</html>

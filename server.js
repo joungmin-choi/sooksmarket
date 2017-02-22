@@ -1120,6 +1120,7 @@ app.post('/sm_request/:id', function(request, response) {
     var SqlQuery, state, maxReqNum;
     var chatstate, temp, msg_date, msg;
     var receiver = "";
+    var detail;
     var tasks = [
         function(callback) {
             product_id = request.params.id;
@@ -1323,9 +1324,11 @@ app.post('/sm_request/:id', function(request, response) {
 
 
             if (state == 2) {
+                detail = '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.";
                 str[0] = "<br/><div style='text-align:center;margin:0 auto;'>";
                 str[1] = "<strong>시간을 변경하고 싶습니다.</strong>";
             } else {
+                detail = '"'+product_name+'"'+" 상품 구매 요청이 도착했습니다.";
                 str[0] = "<div style='text-align:center;'><div style='text-align:center;margin:0 auto;'>";
                 str[1] = product_name + "</div><br/><strong>구매를 요청합니다.</strong>";
             }
@@ -1383,7 +1386,7 @@ app.post('/sm_request/:id', function(request, response) {
             var chatAlarm = {
                 category: 2,
                 product_id: product_id,
-                detail: '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.",
+                detail: detail,
                 date: msg_date,
                 flag: 0,
                 link: '/sm_chat/' + product_id,
@@ -1422,7 +1425,7 @@ app.post('/sm_request/:id', function(request, response) {
         function(callback) {
             if (temp !== null) {
                 if (receiver !== "") {
-                    var content = request.body.comment_detail;
+                    var content = detail;
                     var link = "http://172.30.1.20/sm_alermList/" + temp;
                     sendTopicMessage("숙스마켓", content, link, receiver);
                     callback(null);
@@ -1435,7 +1438,6 @@ app.post('/sm_request/:id', function(request, response) {
         },
 
         function(callback) {
-          console.log("진입");
             var id = request.params.id;
             var str = '/sm_chat/' + id;
             response.redirect(str);
@@ -2203,7 +2205,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
             function(callback) {
                 if (arrow !== null) {
                     if (receiver !== "") {
-                        var content = req.body.comment_detail;
+                        var content = '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 댓글을 남기셨습니다.";
                         var link = "http://172.30.1.20/sm_alermList/" + arrow;
                         sendTopicMessage("숙스마켓", content, link, receiver);
                         callback(null);
@@ -2345,7 +2347,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
             function(callback) {
                 if (arrow !== null) {
                     if (receiver !== "") {
-                        var content = req.body.comment_detail;
+                        var content = '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 답글을 남기셨습니다.";
                         var link = "http://172.30.1.20/sm_alermList/" + arrow;
                         sendTopicMessage("숙스마켓", content, link, receiver);
                         callback(null);
@@ -2765,7 +2767,7 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
             var chatAlarm = {
                 category: 2,
                 product_id: product_id,
-                detail: '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.",
+                detail: '"'+product_name+'"'+" 의 거래가 확정되었습니다.",
                 date: msg_date,
                 flag: 0,
                 link: '/sm_chat/' + product_id,
@@ -2804,7 +2806,7 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
         function(callback) {
             if (temp !== null) {
                 if (receiver !== "") {
-                    var content = request.body.comment_detail;
+                    var content = '"'+product_name+'"'+" 의 거래가 확정되었습니다.";
                     var link = "http://172.30.1.20/sm_alermList/" + temp;
                     sendTopicMessage("숙스마켓", content, link, receiver);
                     callback(null);
@@ -2999,7 +3001,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
         function(callback) {
             if (temp !== null) {
                 if (receiver !== "") {
-                    var content = request.body.comment_detail;
+                    var content = '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.";
                     var link = "http://172.30.1.20/sm_alermList/" + temp;
                     sendTopicMessage("숙스마켓", content, link, receiver);
                     callback(null);
@@ -4163,7 +4165,7 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
         function(callback) {
             if (session_id !== null) {
                 if (receiver !== "") {
-                    var content = req.body.comment_detail;
+                    var content = '"'+productName+'"'+" 상품 구매 요청이 도착했습니다.";
                     var link = "http://172.30.1.20/sm_alermList/" + session_id;
                     sendTopicMessage("숙스마켓", content, link, receiver);
                     callback(null);
@@ -4734,7 +4736,6 @@ app.post('/fcm/register', function(request, response) {
     response.redirect('/');
 });
 
-
 app.get('/push', function(request, response) {
     var receiver = "eORx7GiQY2U:APA91bFK8LixHNK53NRd6-yxQXlPw0RcI6Jp2unV0DtGdfqSMvrvmE3AYggiVxDNj8O9tooW_Wk71pTwYl_BJO6Xpl1jchTPPyjd4TLTcVvC3t061vqjYOzdiRi_wydvQUVaTsRsYNBW";
     var content = "내용";
@@ -4743,7 +4744,6 @@ app.get('/push', function(request, response) {
     sendTopicMessage("제목", content, link, receiver);
 
 });
-
 
 function sendTopicMessage(title, content, link, receiver) {
     var message = {
@@ -4932,7 +4932,7 @@ app.get('sm_reserveAlarm_no/:pid', function(req, res) {
         function(callback) {
             if (temp !== null) {
                 if (receiver !== "") {
-                    var content = req.body.comment_detail;
+                    var content = "예약하신 " + '"'+product_name+'"'+" 상품이 도착하였습니다.";
                     var link = "http://172.30.1.20/sm_alermList/" + temp;
                     sendTopicMessage("숙스마켓", content, link, receiver);
                     callback(null);
@@ -4952,4 +4952,125 @@ app.get('sm_reserveAlarm_no/:pid', function(req, res) {
     ];
     async.series(tasks, function(err, results) {});
 
+});
+
+app.get('/sm_keyword', function(request, response){
+
+  var sql;
+  var results, haveKeyword = 0;
+  var user = loginId[1];
+
+  var tasks = [
+    function(callback) {
+        sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+        client.query(sql, [loginId[1]], function(err, result) {
+            alerm = result.length;
+            callback(null);
+        });
+    },
+
+    function(callback){
+      sql = 'SELECT * FROM KeyWord WHERE username=?';
+      client.query(sql, [user], function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+
+        if(result.length !== 0){
+          haveKeyword = 1;
+          results = result;
+          callback(null);
+        }else{
+          haveKeyword = 0;
+          results = [];
+          callback(null);
+        }
+      });
+    },
+
+    function(callback){
+      response.render('sm_keyword.ejs', {
+        haveKeyword : haveKeyword,
+        results : results,
+        session_id : user,
+        alerm : alerm
+      }, function(err, html) {
+          if (err) {
+              throw err;
+          }
+          response.end(html);
+      });
+      callback(null);
+    }
+  ];
+
+  async.series(tasks, function(err, result){});
+});
+
+app.post('/sm_keyword', function(request, response){
+  var sqlQuery;
+  var body = request.body;
+  var keyword, maxPrice, minStarRating, username;
+
+  var tasks = [
+    function(callback){
+      keyword = body.keyword;
+      maxPrice = body.maxPrice;
+      minStarRating = body.starSelect;
+      username = loginId[1];
+      callback(null);
+    },
+
+    function(callback){
+      var data = {
+        username : username,
+        keyword : keyword,
+        maxPrice : maxPrice,
+        minStarRating : minStarRating
+      };
+      sqlQuery = 'INSERT INTO KeyWord SET ?';
+      client.query(sqlQuery, data, function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      response.redirect('/sm_keyword');
+      callback(null);
+    }
+  ];
+
+  async.series(tasks, function(err, results){});
+});
+
+app.get('/sm_keyword/delete/:id', function(request, response){
+  var keywordId;
+  var sqlQuery;
+
+  var tasks = [
+    function(callback){
+      keywordId = request.params.id;
+      sqlQuery = 'DELETE FROM KeyWord WHERE id=?';
+
+      client.query(sqlQuery, [keywordId], function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      response.redirect('/sm_keyword');
+      callback(null);
+    }
+  ];
+
+  async.series(tasks, function(err, result){});
 });
