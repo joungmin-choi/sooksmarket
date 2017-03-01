@@ -223,6 +223,14 @@
             </table>
 
             <center>
+              <h1><%= nextReserveCustomer%></h1>
+              <% if(session_id === nextReserveCustomer) { %>
+                <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_yes/<%= id %>'">수락</button>
+                <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_no/<%= id %>'">거부</button>
+              <% } else if( nextReserveCustomer !== null) { %>
+                 <h2> 거래 진행중입니다 :) </h2>
+               <% } else { %>
+
 
             <% if(session_id === 'sooksmarket') { %>
               <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
@@ -241,6 +249,7 @@
               <button id="button_change" type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
             <% } %>
 
+            <% } %>
             <% } %>
 
             </center>
@@ -299,8 +308,7 @@
                             </div>
                     </div>
                 </div>
-                <% }
-                else { %>
+                <% } else { %>
                   <div class="media">
                     <a class="pull-left" href="#">
                       <img class="media-object" src="http://placehold.it/32x32" alt="">
@@ -329,8 +337,7 @@
 
                       </div>
                   </div>
-            <%  }
-              } %>
+            <%  } } %>
 
               </form>
                     <!-- Footer -->

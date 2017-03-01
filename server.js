@@ -773,6 +773,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var reserve_flag;
     var reserve_member;
     var flag = 0;
+    var nextReserveCustomer;
 
     if (loginId[1] === undefined) {
         response.redirect('/');
@@ -881,10 +882,17 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 function(callback) {
                     sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
                     client.query(sql, [loginId[1]], function(err, result) {
-                        alerm = result.length;
+                        alerm = result.length; // 이거 뭔가 괭장히 불안한뎅??????????????
                         //console.log(result.length);
                         callback(null, 6);
                     });
+                },
+                function(callback){
+                  sql = 'SELECT customer FROM reserveAlarmState WHERE pid=?';
+                  client.query(sql, [detail_id], function(err, result) {
+                      nextReserveCustomer=result[0].customer;
+                      callback(null,7);
+                  });
                 }
 
             ],
@@ -909,7 +917,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                     reserveMember: reserve_member,
                     reserveFlag: reserve_flag,
                     flag: flag,
-                    isDone: isDone
+                    isDone: isDone,
+                    nextReserveCustomer : nextReserveCustomer
                 });
             });
     }
@@ -1059,6 +1068,19 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
               }
               callback(null, 4);
           });
+        },
+        function(callback){
+          var reserveState = {
+              pid: productId,
+              customer : null
+          };
+          var stateSql = 'INSERT INTO reserveAlarmState SET ?';
+          client.query(stateSql, reserveState, function(err, result) {
+              if (err) {
+                  console.log(err);
+              }
+              callback(null, 5);
+          });
         }
     ];
     async.series(tasks, function(err, results) {});
@@ -1121,6 +1143,7 @@ app.post('/sm_request/:id', function(request, response) {
     var chatstate, temp, msg_date, msg;
     var tasks = [
         function(callback) {
+          console.log(1);
             product_id = request.params.id;
             SqlQuery = 'SELECT product_seller, product_way, product_name, product_price FROM ProductInfo WHERE product_id=?';
             client.query(SqlQuery, [product_id], function(err, result) {
@@ -1133,6 +1156,7 @@ app.post('/sm_request/:id', function(request, response) {
         },
 
         function(callback) {
+          console.log(2);
             SqlQuery = 'SELECT MAX(request_num) AS maxRequestNum, customer FROM TradeInfo WHERE product_id=?';
 
             client.query(SqlQuery, [product_id], function(err, result) {
@@ -1353,8 +1377,10 @@ app.post('/sm_request/:id', function(request, response) {
                 }
                 callback(null, 1);
             });
+            console.log('3');
         },
         function(callback){
+          console.log('4');
           if(loginId[1] == seller){
             temp= customer;
             sql='SELECT * FROM chat_state WHERE pid=?';
@@ -1378,6 +1404,7 @@ app.post('/sm_request/:id', function(request, response) {
           }
         },
         function(callback){
+          console.log('5');
           var chatAlarm = {
             category : 2,
             product_id : product_id,
@@ -1397,6 +1424,8 @@ app.post('/sm_request/:id', function(request, response) {
               }
               callback(null);
             });
+          } else {
+            callback(null);
           }
         },
         function(callback) {
@@ -1683,13 +1712,16 @@ io.on('connection', function(socket) {
     var seller;
     if(socket.room !== undefined){
     var tasks= [
+      function(callback){
+
+      },
       function(callback) {
-        var findChatState = 'SELECT * FROM TradeInfo WHERE product_id=?';
+        var findChatState = 'SELECT * FROM ProductInfo WHERE product_id=?';
         client.query(findChatState, chatroom, function(err, result){
           if(err) {
             console.log(err);
           } else {
-            seller= result[0].seller;
+            seller= result[0].product_seller;
             console.log(seller);
             callback(null);
           }
@@ -1698,7 +1730,6 @@ io.on('connection', function(socket) {
       function(callback){
         var sql;
         if(socket.user == seller){
-          console.log('if문 들어왔엉');
           sql='UPDATE chat_state SET seller_state=0 WHERE pid=?';
           client.query(sql, [chatroom], function(err, result){
             if(err){
@@ -1731,9 +1762,13 @@ http.listen(80, function() {
 
 app.get('/sm_chat/:id/reject', function(request, response) {
     var product_id, sqlQuery;
+    var temp, msg_date, reserve_count, product_name;
+    var state=0; // state값 = 예약자가 있는지 확인하는 변수
+    alarmFlag=1;
 
     var tasks = [
         function(callback) {
+          console.log('1');
             product_id = request.params.id;
             var updatestateSql = 'UPDATE btn_state SET delete_btn=1 WHERE product_id=?';
             client.query(updatestateSql, [product_id], function(err, result) {
@@ -1744,7 +1779,109 @@ app.get('/sm_chat/:id/reject', function(request, response) {
             });
         },
 
+        //세진--
+        function(callback){
+          // 예약자가 있는지 예약자 수 확인하기
+          console.log('2');
+          sqlQuery = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
+          client.query(sqlQuery, [product_id], function(err, result) {
+              if (err) {
+                  console.log(err);
+              } else {
+                  reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
+                  callback(null);
+              }
+          });
+        },
+        function(callback){
+          //예약자 없을 경우에 state 설정
+          console.log('3');
+          console.log('reserve_count :',reserve_count);
+          if(reserve_count == 1){
+            state=1; //예
+            console.log("state1 = ",state);
+            callback(null);
+          }
+          else {
+            state=0;
+            console.log("state2 = ",state);
+            callback(null);
+          }
+          console.log("state3 = ",state);
+        },
+
+        function(callback){
+          //1. 제품 이름 찾기
+          console.log('4');
+          sql='SELECT * FROM ProductInfo WHERE product_id=?';
+          client.query(sql, product_id, function(err, result){
+            if(err){
+              console.log(err);
+            } else {
+              product_name = result[0].product_name;
+              callback(null);
+            }
+          });
+      },
+      //예약자 없을 경우도 찾아야 합니다
+        function(callback){
+          //2. next 예약자 이름 찾기
+          console.log('5');
+          if(state === 0){
+          sqlQuery = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
+          client.query(sqlQuery,product_id,function(err,result){
+            if(err){
+                console.log(err);
+            } else {
+            temp=result[0].session_id;
+            callback(null);
+          }
+          });
+        } else {
+          callback(null);
+        }
+        },
+        function(callback){
+          //3. 알림 DB에 INSERT
+          console.log('6');
+          if(state === 0){
+          var m = moment();
+          msg_date = m.format("YYYY-MM-DD HH:mm:ss");
+            var reserveAlarm = {
+              category : 3,
+              product_id : product_id,
+              detail : '예약하신'+product_name+'상품 거래를...진행하겠습니까..?',
+              date : msg_date,
+              flag : 0,
+              link : '/sm_itemDetail/'+product_id,
+              arrow : temp,
+              id : null
+            };
+            sqlQuery='INSERT INTO notifyMessage SET ?';
+            client.query(sqlQuery, reserveAlarm, function(err, result){
+              if(err){
+                console.log(err);
+              } else {
+                  callback(null);
+              }
+            });
+          } else {
+            callback(null);
+          }
+        },
+        function(callback){
+          console.log('7');
+          sqlQuery='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
+          client.query(sqlQuery,[temp,product_id],function(err,result){
+            if(err){
+              console.log(err);
+            }
+            callback(null);
+          });
+        },
+        //--세진
         function(callback) {
+          console.log('8');
             sqlQuery = 'UPDATE TradeRejection SET confirmRejection=1 WHERE product_id=? AND username=?';
             client.query(sqlQuery, [product_id, loginId[1]], function(err, result) {
                 if (err) {
@@ -1756,6 +1893,7 @@ app.get('/sm_chat/:id/reject', function(request, response) {
         },
 
         function(callback) {
+          console.log('9');
             sqlQuery = 'DELETE FROM TradeInfo WHERE product_id=?';
 
             client.query(sqlQuery, [product_id], function(err, result) {
@@ -1801,7 +1939,9 @@ app.get('/sm_chat/:id/reject', function(request, response) {
         },
 
         function(callback) {
+          console.log('9');
             sqlQuery = 'DELETE FROM CompletionInfo WHERE product_id=?';
+            console.log('last');
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
@@ -1810,11 +1950,9 @@ app.get('/sm_chat/:id/reject', function(request, response) {
                 callback(null, 5);
             });
         },
-
-
         function(callback) {
             response.redirect('/sm_main');
-            callback(null, 6);
+            callback(null);
         }
     ];
 
@@ -2054,92 +2192,125 @@ app.post('/sm_enter_changeInfo', function(req, res) {
     });
 });
 
-// app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
-//     var id;
-//     var m = moment();
-//     var parent_id_max;
-//     //console.log("aa: ",req.body.hidden);
-//     var itemDetailMainID = req.body.hidden;
-//     var arrow;
-//
-//     async.series([
-//             function(callback) {
-//
-//                 var sql = 'SELECT MAX(parent_id) FROM comments';
-//                 client.query(sql, function(err, result) {
-//                     console.log('1번');
-//                     if (err) {
-//                         console.log(err);
-//                         res.status(500);
-//                     } else {
-//                         parent_id_max = `${result[0]['MAX(parent_id)']+1}`;
-//                         //console.log('1번 값',parent_id_max);
-//                     }
-//                     callback(null, 1);
-//                 });
-//             },
-//
-//             function(callback) {
-//                 id = req.params.id;
-//
-//                 if (itemDetailMainID == loginId[1]) {
-//                     arrow = null;
-//                 } else {
-//                     arrow = itemDetailMainID;
-//                 }
-//
-//                 var comment = {
-//                     product_id: req.params.id,
-//                     session_id: loginId[1],
-//                     comment_detail: req.body.comment_detail,
-//                     comment_date: m.format("YYYY-MM-DD HH:mm"),
-//                     parent_id: parent_id_max,
-//                     child_id: 0,
-//                     arrow: arrow
-//                 };
-//
-//                 var sql1 = 'INSERT INTO comments SET ?';
-//                 client.query(sql1, comment, function(err, result) {
-//                     if (err) {
-//                         console.log(err);
-//                         res.status(500);
-//                     }
-//                     callback(null, 2);
-//                 });
-//
-//             },
-//             function(callback) { // 선영
-//                 var time = getTimeStamp();
-//
-//                 var notify = {
-//                     category: 1,
-//                     product_id: req.params.id,
-//                     detail: req.body.comment_detail,
-//                     date: time,
-//                     link: '/sm_itemDetail/' + id,
-//                     arrow: arrow,
-//                     id: loginId[1],
-//                     parent_id: parent_id_max,
-//                     child_id: 0
-//                 };
-//
-//                 var sql2 = 'INSERT INTO notifyMessage SET ?';
-//                 client.query(sql2, notify, function(err, result) {
-//                     if (err) {
-//                         console.log(err);
-//                         res.status(500);
-//                     }
-//                     callback(null, 3);
-//                 });
-//             }
-//         ],
-//         function(err, results) {
-//             var str = '/sm_itemDetail/' + id;
-//             res.redirect(str);
-//             //console.log('3번',`${results[0]}`,`${results[1]}`);
-//         });
-// });
+app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
+    var id;
+    var m = moment();
+    var parent_id_max;
+    //console.log("aa: ",req.body.hidden);
+    var itemDetailMainID = req.body.hidden;
+    var arrow;
+    var sql;
+    var receiver = "";
 
+
+    async.series([
+            function(callback) {
+
+                sql = 'SELECT MAX(parent_id) FROM comments';
+                client.query(sql, function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500);
+                    } else {
+                        parent_id_max = `${result[0]['MAX(parent_id)']+1}`;
+                        //console.log('1번 값',parent_id_max);
+                    }
+                    callback(null, 1);
+                });
+            },
+
+            function(callback) {
+                id = req.params.id;
+
+                if (itemDetailMainID == loginId[1]) {
+                    arrow = null;
+                } else {
+                    arrow = itemDetailMainID;
+                }
+
+                var comment = {
+                    product_id: req.params.id,
+                    session_id: loginId[1],
+                    comment_detail: req.body.comment_detail,
+                    comment_date: m.format("YYYY-MM-DD HH:mm"),
+                    parent_id: parent_id_max,
+                    child_id: 0,
+                    arrow: arrow
+                };
+
+                var sql1 = 'INSERT INTO comments SET ?';
+                client.query(sql1, comment, function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500);
+                    }
+                    callback(null, 2);
+                });
+
+            },
+            function(callback) { // 선영
+                var time = getTimeStamp();
+
+                var notify = {
+                    category: 1,
+                    product_id: req.params.id,
+                    detail: req.body.comment_detail,
+                    date: time,
+                    link: '/sm_itemDetail/' + id,
+                    arrow: arrow,
+                    id: loginId[1],
+                    parent_id: parent_id_max,
+                    child_id: 0
+                };
+
+                var sql2 = 'INSERT INTO notifyMessage SET ?';
+                client.query(sql2, notify, function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500);
+                    }
+                    callback(null, 3);
+                });
+            },
+
+            function(callback) {
+                if (arrow !== null) {
+                    sql = 'SELECT phoneToken FROM users WHERE username=?';
+                    client.query(sql, [arrow], function(err, result) {
+                        if (result[0].phoneToken !== null) {
+                            receiver = result[0].phoneToken;
+                            callback(null);
+                        }else{
+                          receiver = "";
+                          callback(null);
+                        }
+                    });
+                } else {
+                    callback(null);
+                }
+            },
+
+            function(callback) {
+                if (arrow !== null) {
+                    if (receiver !== "") {
+                        var content = req.body.comment_detail;
+                        var link = "http://172.30.1.20/sm_alermList/" + arrow;
+                        sendTopicMessage("숙스마켓", content, link, receiver);
+                        callback(null);
+                    }else{
+                      callback(null);
+                    }
+                }else{
+                  callback(null);
+                }
+            }
+        ],
+        function(err, results) {
+            var str = '/sm_itemDetail/' + id;
+            res.redirect(str);
+            //console.log('3번',`${results[0]}`,`${results[1]}`);
+        });
+});
 
 app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { // 대댓글
   var iNum = req.params.i;
@@ -2722,10 +2893,9 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
     var product_id, request_num, sqlQuery, product_name, reject_reason, seller, customer, user;
     var trader, data, m;
     var body = request.body;
-    var msg_date, chatstate,temp;
+    var msg_date, chatstate,temp, msg;
 
     var tasks = [
-
         function(callback) {
             product_id = request.params.id;
             request_num = request.params.num;
@@ -2743,7 +2913,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
         },
 
         function(callback) {
-            var msg = "";
+            msg = "";
             var str = [];
 
             reject_reason = body.reason;
@@ -2784,7 +2954,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                 console.log(err);
               }
               chatstate=result[0].customer_state;
-              callback(null);
+              callback(null,3);
             });
           } else {
             temp=seller;
@@ -2794,7 +2964,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                 console.log(err);
               }
               chatstate=result[0].seller_state;
-              callback(null);
+              callback(null,4);
             });
           }
         },
@@ -2816,8 +2986,10 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
               if(err){
                 console.log(err);
               }
-              callback(null);
+              callback(null,5);
             });
+          }else{
+            callback(null,5);
           }
         },
         function(callback) {
@@ -2834,7 +3006,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                 } else {
                     trader = seller;
                 }
-                callback(null);
+                callback(null,6);
             });
         },
 
@@ -2853,7 +3025,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                     console.log(err);
                     throw err;
                 }
-                callback(null);
+                callback(null,7);
             });
         },
 
@@ -2872,7 +3044,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                     console.log(err);
                     throw err;
                 }
-                callback(null);
+                callback(null,8);
             });
         },
 
@@ -2883,14 +3055,14 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                     console.log(err);
                     throw err;
                 }
-                callback(null);
+                callback(null,9);
             });
         },
 
         function(callback) {
             var link = '/sm_chat/' + product_id;
             response.redirect(link);
-            callback(null, 3);
+            callback(null, 10);
         }
     ];
 
@@ -4327,17 +4499,21 @@ app.get('/sm_reportRejector/:id', function(request, response) {
 });
 
 app.post('/sm_reportRejector/:id', function(request, response) {
-    var body = req.body;
+    var body = request.body;
     var userID = loginId[1];
     var complainID = body.complainID;
     var detail = body.detail;
     var product_id;
     var sqlQuery;
+    var temp, msg_date, reserve_count, product_name;
+    var state=0; // state값 = 예약자가 있는지 확인하는 변수
 
     var flag = 0;
+    alarmFlag=1;
 
     var tasks = [
         function(callback) {
+          console.log('1');
             product_id = request.params.id;
 
             sqlQuery = 'SELECT * FROM users WHERE username LIKE ?';
@@ -4350,6 +4526,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
+          console.log('2');
             if (flag == 1) {
                 var time = getTimeStamp();
                 sqlQuery = 'INSERT INTO complainInfo (userID, complainID, detail, date, flag) VALUES (?,?,?,?,?)';
@@ -4362,7 +4539,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
-
+            console.log('3');
             var updatestateSql = 'UPDATE btn_state SET delete_btn=1 WHERE product_id=?';
             client.query(updatestateSql, [product_id], function(err, result) {
                 if (err) {
@@ -4373,6 +4550,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
+          console.log('4');
             sqlQuery = 'UPDATE TradeRejection SET confirmRejection=1 WHERE product_id=? AND username=?';
             client.query(sqlQuery, [product_id, loginId[1]], function(err, result) {
                 if (err) {
@@ -4384,6 +4562,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
+          console.log('5');
             sqlQuery = 'DELETE FROM TradeInfo WHERE product_id=?';
 
             client.query(sqlQuery, [product_id], function(err, result) {
@@ -4396,6 +4575,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
+          console.log('6');
             sqlQuery = 'DELETE FROM TradeTimePlace WHERE product_id=?';
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
@@ -4407,6 +4587,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
+          console.log('7');
             sqlQuery = 'DELETE FROM chat_msg WHERE msg_room=?';
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
@@ -4418,6 +4599,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
+          console.log('8');
             sqlQuery = 'DELETE FROM FinalTrade WHERE product_id=?';
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
@@ -4429,6 +4611,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
+          console.log('9');
             sqlQuery = 'DELETE FROM CompletionInfo WHERE product_id=?';
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
@@ -4438,6 +4621,97 @@ app.post('/sm_reportRejector/:id', function(request, response) {
                 callback(null, 5);
             });
         },
+        //세진--
+        function(callback){
+          console.log('10');
+          // 예약자가 있는지 예약자 수 확인하기
+          sqlQuery = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
+          client.query(sqlQuery, [product_id], function(err, result) {
+              if (err) {
+                  console.log(err);
+              } else {
+                  reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
+                  callback(null);
+              }
+          });
+        },
+        function(callback){
+          console.log('11');
+          //예약자 없을 경우에 state 설정
+          if(reserve_count == 1){
+            state=1; //예
+            callback(null);
+          }
+          else {
+            state=0;
+            callback(null);
+          }
+        },
+        function(callback){
+          console.log('12');
+          //1. 제품 이름 찾기
+          sql='SELECT * FROM ProductInfo WHERE product_id=?';
+          client.query(sql, product_id, function(err, result){
+            if(err){
+              console.log(err);
+            }
+            product_name = result[0].product_name;
+            callback(null);
+          });
+      },
+        function(callback){
+          console.log('13');
+          //2. next 예약자 이름 찾기
+          if(state === 0){
+          sqlQuery = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
+          client.query(sqlQuery,product_id,function(err,result){
+            if(err){
+              console.log(err);
+            }
+            temp=result[0].session_id;
+          });
+        }
+        callback(null);
+        },
+
+        function(callback){
+          console.log('14');
+          //3. 알림 DB에 INSERT
+          if(state === 0){
+          var m = moment();
+          msg_date = m.format("YYYY-MM-DD HH:mm:ss");
+            var reserveAlarm = {
+              category : 3,
+              product_id : product_id,
+              detail : '예약하신'+product_name+'상품 거래를...진행하겠습니까..?',
+              date : msg_date,
+              flag : 0,
+              link : '/sm_itemDetail/'+product_id,
+              arrow : temp,
+              id : null
+            };
+            sqlQuery='INSERT INTO notifyMessage SET ?';
+            client.query(sqlQuery, reserveAlarm, function(err, result){
+              if(err){
+                console.log(err);
+              }
+
+            });
+          }
+          callback(null);
+        },
+        function(callback){
+          console.log('15');
+          sqlQuery='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
+          client.query(sqlQuery,[temp,product_id],function(err,result){
+            if(err){
+              console.log(err);
+            }
+            callback(null);
+          });
+        },
+        //--세진
+
 
         function(callback) {
             response.redirect('/sm_main');
@@ -4552,12 +4826,15 @@ function sendTopicMessage(title, content, link, receiver) {
     });
 }
 
-app.get('sm_reserveAlarm_yes/:pid',function(req,res){
+app.get('/sm_reserveAlarm_yes/:pid',function(req,res){
+
   var product_id=req.params.pid;
   var sql, reserve_count;
+  alarmFlag=0;
 
   var tasks=[
     function(callback) {
+      console.log('1');
         sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
         client.query(sql, [product_id], function(err, result) {
             if (err) {
@@ -4569,6 +4846,7 @@ app.get('sm_reserveAlarm_yes/:pid',function(req,res){
         });
     },
     function(callback){
+      console.log('2');
       sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
       client.query(sql, [product_id], function(err, result) {
           if (err) {
@@ -4580,6 +4858,8 @@ app.get('sm_reserveAlarm_yes/:pid',function(req,res){
       });
     },
     function(callback){
+      console.log('3');
+      if(reserve_count != 1){
       for (var i = 2; i < reserve_count; i++) {
           sql = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
           client.query(sql, [i - 1, product_id, i], function(err, result) {
@@ -4588,7 +4868,19 @@ app.get('sm_reserveAlarm_yes/:pid',function(req,res){
               } else {}
           });
       }
-      callback(null);
+      //callback(null);
+    }
+    callback(null);
+    },
+    function(callback){
+      console.log('4');
+      sql='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
+      client.query(sql,[null,product_id],function(err,result){
+        if(err){
+          console.log(err);
+        }
+        callback(null);
+      });
     },
     function(callback){
       var str = '/sm_request/'+product_id;
@@ -4599,13 +4891,15 @@ app.get('sm_reserveAlarm_yes/:pid',function(req,res){
   async.series(tasks, function(err, result) {});
 });
 
-app.get('sm_reserveAlarm_no/:pid',function(req,res){
+app.get('/sm_reserveAlarm_no/:pid',function(req,res){
   var product_id=req.params.pid;
   var sql, reserve_count;
   var msg_date, temp, product_name;
+  var state = 0;
 
-  var task = [
+  var tasks = [
     function(callback) {
+      console.log('1');
         sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
         client.query(sql, [product_id], function(err, result) {
             if (err) {
@@ -4617,6 +4911,7 @@ app.get('sm_reserveAlarm_no/:pid',function(req,res){
         });
     },
     function(callback){
+      console.log('2');
       sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
       client.query(sql, [product_id], function(err, result) {
           if (err) {
@@ -4628,15 +4923,25 @@ app.get('sm_reserveAlarm_no/:pid',function(req,res){
       });
     },
     function(callback){
-      if(reserve_count === 1){
-        chatFlag=1;
+      console.log('3');
+      if(reserve_count == 1){
+        state=1;
+          sql='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
+          client.query(sql,[null,product_id],function(err,result){
+            if(err){
+              console.log(err);
+            }
+            callback(null);
+          });
       }
-      else if(reserve_count === 2){
-        chatFlag=0;
+      else {
+        state=0;
+        callback(null);
       }
     },
     function(callback){
-      if(chatFlag === 0){
+      console.log('4');
+      if(state === 0){
         for (var i = 2; i < reserve_count; i++) {
           sql = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
             client.query(sql, [i - 1, product_id, i], function(err, result) {
@@ -4645,28 +4950,34 @@ app.get('sm_reserveAlarm_no/:pid',function(req,res){
                 } else {}
             });
         }
-        callback(null);
+        //callback(null);
       }
+      callback(null);
     },
+    //다음 1번 디비에 있는거 알람 추가
     function(callback){
-      //다음 1번 디비에 있는거 알람 추가
-      if(chatFlag === 0){
+      console.log('5');
+      if(state === 0){
       sql='SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
       client.query(sql, product_id, function(err, result){
         temp=result[0].session_id;
       });
       }
+      callback(null);
     },
     function(callback){
-      if(chatFlag === 0){
+      console.log('6');
+      if(state === 0){
       sql='SELECT * FROM productInfo WHERE product_id=?';
       client.query(sql, product_id, function(err, result){
         product_name = result[0].product_name;
       });
     }
+    callback(null);
   },
     function(callback){
-      if(chatFlag === 0){
+      console.log('7');
+      if(state === 0){
       var m = moment();
       msg_date = m.format("YYYY-MM-DD HH:mm:ss");
         var reserveAlarm = {
@@ -4684,9 +4995,20 @@ app.get('sm_reserveAlarm_no/:pid',function(req,res){
           if(err){
             console.log(err);
           }
-        callback(null);
+        //callback(null);
         });
       }
+      callback(null);
+      },
+      function(callback){
+        console.log('8');
+        sql='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
+        client.query(sql,[temp,product_id],function(err,result){
+          if(err){
+            console.log(err);
+          }
+          callback(null);
+        });
       },
     function(callback){
       var str = '/sm_main';
