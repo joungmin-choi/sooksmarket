@@ -143,14 +143,9 @@
                 });
 
                 socket.on('first', function(data) {
-                    alert('first 클라이언트에서 받음');
-                    //alert(1);
+
                     var length = data.msg.length;
-                    //alert("길이값");
-                    //alert(length);
-                    //alert(users);
-                    //alert(data.user);
-                    //alert("여기부터");
+
                     if (users == data.user) {
                       //alert("진입1");
                         for (i = 0; i < data.msg.length; i++) {

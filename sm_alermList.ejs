@@ -6,6 +6,12 @@
   </head>
 
   <script>
+  function deleteAll(){
+    var retVal = confirm("전체 삭제를 하시겠습니까?");
+    if( retVal == true ){
+      location.href='/sm_alermList/deleteAll/<%= session_id %>';
+    }
+  }
   </script>
 
 <body>
@@ -35,6 +41,9 @@
         <col style="width:20%;">
         <col style="width:80%;">
         </colgroup>
+        <% if (`${rows.length}` > 0){ %>
+          <button class="btn btn-primary" type="button" onclick="deleteAll()" style="margin-bottom:5px;float:right;">전체 삭제</button>
+        <% } %>
         <thead>
             <tr>
                 <th style="text-align:center"></th>
@@ -44,49 +53,26 @@
         <tbody>
           <% for (i=0; i<`${rows.length}`; i++) { %>
             <% if (`${rows[i].flag}` == 1){ %>
-              <% if (rows[i].category == 1) { %>
                 <tr style="background-color:#777; opacity: 0.5">
                   <td style="text-align:center; color:black"><%= i+1 %></td>
                   <td style="color:black">
                     <a href="/sm_readAlerm/<%= i %>/?auto=<%= rows[i].auto %>" style="color:black">
-                      <strong><%= session_id %></strong>님의 글에 <strong style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= rows[i].detail %></strong>라고 댓글/답글이 달렸습니다.
+                      <%= rows[i].detail %>
                     </a>
                   </td>
                 </tr>
-              <% } else if (rows[i].category == 3) { %>
-                <tr style="background-color:#777; opacity: 0.3">
-                  <td style="text-align:center; color:black"><%= i+1 %></td>
-                  <td style="color:black">
-                    <a href="/sm_readAlerm/<%= i %>/?auto=<%= rows[i].auto %>" style="color:black">
-                      <strong><%= session_id %></strong>님은 <strong style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= rows[i].detail %></strong> 상품의 예약순위가 <strong><%= rows[i].reserve_count %></strong> 입니다.
-                    </a>
-                  </td>
-                </tr>
-              <% } %>
             <% }
             else { %>
-              <% if (rows[i].category == 1) { %>
                 <tr>
                   <td style="text-align:center"><%= i+1 %></td>
                   <td>
                     <a href="/sm_readAlerm/<%= i %>/?auto=<%= rows[i].auto %>">
-                      <strong><%= session_id %></strong>님의 글에 <strong style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= rows[i].detail %></strong>라고 댓글/답글이 달렸습니다.
+                      <%= rows[i].detail %>
                     </a>
                   </td>
                 </tr>
-              <% } else if (rows[i].category == 3) { %>
-                <tr>
-                  <td style="text-align:center"><%= i+1 %></td>
-                  <td>
-                    <a href="/sm_readAlerm/<%= i %>/?auto=<%= rows[i].auto %>">
-                      <strong><%= session_id %></strong>님은 <strong style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><%= rows[i].detail %></strong> 상품의 예약순위가 <strong><%= rows[i].reserve_count %></strong> 입니다.
-                    </a>
-                  </td>
-                </tr>
-              <% } %>
-            <% } %>
-
           <% } %>
+        <% } %>
         </tbody>
     </table>
 
