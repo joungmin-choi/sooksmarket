@@ -244,7 +244,7 @@
             <% if(way==1){ %>
             dayDivStr[3][1] = "<div class='col-xs-5' style='width: 60%; display:block;'>";
             dayDivStr[3][2] = "<label><input type='checkbox' value='직거래' name='dway" + dayAdditionCount + "' onclick='writeTradePlace(" + dayAdditionCount + ");' />";
-            dayDivStr[3][3] = "직거래</label><br/>";
+            dayDivStr[3][3] = "직거래</label><br/><div class='col-xs-5' style='width: 95%;' id='directText" + dayAdditionCount + "'></div><br/></div></div><hr/>";
 
             <% }else if(way==2){ %>
             dayDivStr[3][1] = "<div class='col-xs-5' style='width: 60%; display:block;'>";
@@ -493,10 +493,14 @@
 
 <body>
     <% include ./sm_top_navigator %>
-        <!-- 바디 달력 창 -->
+
         <div class="container">
+          <% if(isExisted == 0){ %>
             <h1 style="margin-left:5%;"><strong> 구매 신청 </strong></h1>
             <small style="margin-left:5%;">거래가 가능한 시간을 작성해 주세요.</small>
+          <% }else { %>
+            <h1 style="margin-left:5%;"><strong> 시간 변경 </strong></h1>
+          <% } %>
             <hr>
 
             <form id="eventFrom" action="/sm_request/<%= id %>" method="post" class="form-horizontal" onsubmit="return submitCheck()">
@@ -539,7 +543,7 @@
 
                 <div class="form-group" id="timeDiv04" ></div>
 
-                <!--전체 페이지 완성되면, 해당 방법 받아와서 그 방법만 보이게 해야함!-->
+
                 <div class="form-group" >
                     <label class="col-xs-3 control-label text-center">- 방법 : </label>
                     <div class="col-xs-5" style="width: 60%; display:block;">
@@ -574,7 +578,11 @@
 
                 <div class="form-group">
                     <div class="col-xs-5" style="text-align:center;width:60%;margin-left:20%;">
+                      <% if(isExisted == 0){ %>
                         <button type="submit" class="btn btn-success">거래신청</button>
+                      <% }else{ %>
+                        <button type="submit" class="btn btn-success">시간 변경 신청</button>
+                      <% } %>
                         <button type="button" class="btn btn-default" onclick="location.href='/sm_request/<%= id %>/cancel'"> 취소</button>
                     </div>
                 </div>

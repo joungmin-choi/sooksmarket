@@ -83,7 +83,6 @@ app.use(cors());
 // });
 
 app.get('/', function(req, res) {
-
     var flag = req.user && req.user.displayName;
 
     if (flag !== undefined) {
@@ -112,7 +111,7 @@ app.get('/sm_enter_main', function(req, res) {
 });
 
 var unsign = 0;
-////--
+
 app.get('/sm_logout', function(req, res) {
     if (unsign === 1) { // 회원탈퇴 시
         async.series([
@@ -501,7 +500,7 @@ app.post(
     )
 );
 
-//아이디 중복체크 함수
+//아이디 중복체크
 var idExistence = -1;
 var checkingId = 0;
 var checkingSookmyung = 0;
@@ -533,8 +532,9 @@ app.get('/sm_signup', function(request, response) {
         },
 
         function(callback) {
-            request.app.render('sm_signup.ejs', context, function(err, html) {
+            request.app.render('sm_signup', context, function(err, html) {
                 if (err) {
+                  console.log(err);
                     throw err;
                 }
                 response.end(html);
@@ -551,6 +551,20 @@ app.post('/sm_signup', function(req, res) {
     return hasher({
         password: req.body.password
     }, function(err, pass, salt, hash) {
+
+      var data = {
+        username: req.body.username,
+        urgencyCount : 0
+      };
+
+      var sqlQuery = 'INSERT INTO UrgencyHistory SET ?';
+      client.query(sqlQuery, data, function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+      });
+
         var user = {
             authId: 'local:' + req.body.username,
             username: req.body.username,
@@ -578,6 +592,8 @@ app.post('/sm_signup', function(req, res) {
             }
 
         });
+
+
     });
 });
 
@@ -1096,6 +1112,8 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
 
 app.get('/sm_request/:id', function(request, response) {
     var product_id, product_way, reserve_count;
+    var isExisted = 0;
+
     var tasks = [
         function(callback) {
             product_id = request.params.id;
@@ -1111,6 +1129,7 @@ app.get('/sm_request/:id', function(request, response) {
             client.query(updatestateSql, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
+                    throw err;
                 }
                 callback(null);
             });
@@ -1120,9 +1139,22 @@ app.get('/sm_request/:id', function(request, response) {
             sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
             client.query(sql, [loginId[1]], function(err, result) {
                 alerm = result.length;
-                //console.log(result.length);
                 callback(null);
             });
+        },
+
+        function(callback){
+          sql = 'SELECT * FROM TradeInfo WHERE product_id=?';
+          client.query(sql, [product_id], function(err, result){
+            if(err){
+              console.log(err);
+              throw err;
+            }
+            if(result.length !== 0){
+              isExisted = 1;
+            }
+            callback(null);
+          });
         },
 
         function(callback) {
@@ -1130,7 +1162,8 @@ app.get('/sm_request/:id', function(request, response) {
                 id: product_id,
                 way: product_way,
                 session_id: loginId[1],
-                alerm: alerm
+                alerm: alerm,
+                isExisted : isExisted
             };
             request.app.render('sm_request.ejs', context, function(err, html) {
                 if (err) {
@@ -1356,7 +1389,7 @@ app.post('/sm_request/:id', function(request, response) {
 
 
             if (state == 2) {
-                detail = '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.";
+                detail = '"'+product_name+'"'+" 상품의 거래 시간 변경 요청이 도착했습니다.";
                 str[0] = "<br/><div style='text-align:center;margin:0 auto;'>";
                 str[1] = "<strong>시간을 변경하고 싶습니다.</strong>";
             } else {
@@ -1421,7 +1454,7 @@ app.post('/sm_request/:id', function(request, response) {
           var chatAlarm = {
             category : 2,
             product_id : product_id,
-            detail : msg,
+            detail : detail,
             date : msg_date,
             flag : 0,
             link : '/sm_chat/'+product_id,
@@ -3139,6 +3172,7 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                         receiver = result[0].phoneToken;
                         callback(null);
                     } else {
+                      console.log("token없음");
                         receiver = "";
                         callback(null);
                     }
@@ -4492,57 +4526,7 @@ app.get('/find', function(req, res) {
 });
 
 app.post('/find/:type', function(req, res) {
-    var type = req.params.type;
-    var login_email, str;
-
-    if (type === "id") {
-        if (req.body.id !== undefined) {
-            login_email = req.body.id + '@sm.ac.kr';
-            str = 'SELECT * FROM users WHERE login_email=?';
-
-            client.query(str, [login_email], function(err, result) { //console.log(result[0]);
-                if (result[0] !== undefined) {
-                    sendId(result[0].username, login_email, function() {
-                        console.log("메일보냄");
-                    });
-                }
-            });
-        }
-    } else if (type === "pwd") {
-        if (req.body.pwd !== undefined) {
-            login_email = req.body.pwd + '@sm.ac.kr';
-            str = 'SELECT * FROM users WHERE login_email=?';
-            var tempPass = cuid.slug();
-
-            async.series([
-                    function(callback) {
-                        client.query(str, [login_email], function(err, result) { //console.log(result[0]);
-                            if (result[0] !== undefined) {
-                                sendPwd(tempPass, login_email, function() {
-                                    console.log("메일보냄11");
-                                });
-                            }
-                            callback(null);
-                        });
-                    }
-                ],
-                function(err) {
-                    return hasher({
-                        password: tempPass
-                    }, function(err, pass, salt, hash) {
-
-                        var password = hash;
-                        var salts = salt;
-
-                        //users.push(user);
-                        var sql = 'UPDATE users SET password=?, salt=? WHERE login_email=?';
-                        client.query(sql, [password, salts, login_email], function(err, result) {});
-                    });
-                });
-
-        }
-    }
-
+  res.redirect('/sm_signup');
 });
 
 var sendId = function(id, email, callback) {
@@ -4959,8 +4943,6 @@ app.get('/sm_alermList/deleteAll/:id', function(req, res) {
   });
 });
 
-
-
 app.get('/sm_readAlerm/:id', function(req, res) {
     var row = [];
     var link;
@@ -5264,163 +5246,55 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
   async.series(tasks, function(err, results) {});
 });
 
-app.post('/sm_keyword', function(request, response){
-  var sqlQuery;
-  var body = request.body;
-  var keyword, maxPrice, minStarRating, username;
+app.get('/sm_urgent/:pid', function(request, response){
+
+  var sql, remainCounts=0;
+  var id = loginId[1];
+  var product_id = request.params.pid;
+  var request_num=1;
 
   var tasks = [
     function(callback){
-      keyword = body.keyword;
-      maxPrice = body.maxPrice;
-      minStarRating = body.starSelect;
-      username = loginId[1];
-      callback(null);
-    },
-    function(callback){
-      var data = {
-        username : username,
-        keyword : keyword,
-        maxPrice : maxPrice,
-        minStarRating : minStarRating
-      };
-      sqlQuery = 'INSERT INTO KeyWord SET ?';
-      client.query(sqlQuery, data, function(err, result){
+      sql = 'SELECT urgencyCount FROM UrgencyHistory WHERE username=?';
+      client.query(sql, [id], function(err, result){
         if(err){
           console.log(err);
           throw err;
         }
+        remainCounts = result[0].urgencyCount;
+        remainCounts = 3 - remainCounts;
         callback(null);
       });
     },
+
     function(callback){
-      response.redirect('/sm_keyword');
-      callback(null);
+      sql = 'SELECT MAX(request_num) as maxRequestNum FROM TradeInfo WHERE product_id=?';
+      client.query(sql, [product_id], function(err, result){
+        if(err){
+          console.log(err);
+          throw err;
+        }
+        request_num = result[0].maxRequestNum;
+        callback(null);
+      });
+    },
+
+    function(callback){
+      response.render('sm_urgent.ejs',{
+        session_id : id,
+        alerm : alerm,
+        remainCounts : remainCounts,
+        product_id : product_id,
+        request_num : request_num
+      }, function(err, html) {
+          if (err)
+              throw err;
+          response.end(html);
+          callback(null);
+      });
     }
   ];
 
   async.series(tasks, function(err, results){});
+
 });
-
-app.get('/sm_keyword/delete/:id', function(request, response){
-  var keywordId;
-  var sqlQuery;
-
-  var tasks = [
-    function(callback){
-      keywordId = request.params.id;
-      sqlQuery = 'DELETE FROM KeyWord WHERE id=?';
-
-      client.query(sqlQuery, [keywordId], function(err, result){
-        if(err){
-          console.log(err);
-          throw err;
-        }
-        callback(null);
-      });
-    },
-    function(callback){
-      response.redirect('/sm_keyword');
-      callback(null);
-    }
-  ];
-
-  async.series(tasks, function(err, result){});
-});
-
-
-// app.get('/sm_keyword', function(request, response){
-//
-//   var sql;
-//   var results, haveKeyword = 0;
-//   var user = loginId[1];
-//
-//   var tasks = [
-//     function(callback) {
-//         sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-//         client.query(sql, [loginId[1]], function(err, result) {
-//             alerm = result.length;
-//             callback(null);
-//         });
-//     },
-//
-//     function(callback){
-// <<<<<<< HEAD
-//       console.log('2');
-//       sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
-//       client.query(sql, [product_id], function(err, result) {
-//           if (err) {
-//               console.log(err);
-//           } else {
-//               reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
-//               callback(null);
-//           }
-// =======
-//       sql = 'SELECT * FROM KeyWord WHERE username=?';
-//       client.query(sql, [user], function(err, result){
-//         if(err){
-//           console.log(err);
-//           throw err;
-//         }
-//
-//         if(result.length !== 0){
-//           haveKeyword = 1;
-//           results = result;
-//           callback(null);
-//         }else{
-//           haveKeyword = 0;
-//           results = [];
-//           callback(null);
-//         }
-// >>>>>>> a5eaf5e11fe7eab066753fa6ad15f94fafc1c9a2
-//       });
-//     },
-//
-//     function(callback){
-// <<<<<<< HEAD
-//       console.log('3');
-//       if(reserve_count != 1){
-//       for (var i = 2; i < reserve_count; i++) {
-//           sql = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
-//           client.query(sql, [i - 1, product_id, i], function(err, result) {
-//               if (err) {
-//                   console.log(err);
-//               } else {}
-//           });
-//       }
-//       //callback(null);
-//     }
-//     callback(null);
-//     },
-//     function(callback){
-//       console.log('4');
-//       sql='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
-//       client.query(sql,[null,product_id],function(err,result){
-//         if(err){
-//           console.log(err);
-//         }
-//         callback(null);
-//       });
-//     },
-//     function(callback){
-//       var str = '/sm_request/'+product_id;
-//       res.redirect(str);
-// =======
-//       response.render('sm_keyword.ejs', {
-//         haveKeyword : haveKeyword,
-//         results : results,
-//         session_id : user,
-//         alerm : alerm
-//       }, function(err, html) {
-//           if (err) {
-//               throw err;
-//           }
-//           response.end(html);
-//       });
-// >>>>>>> a5eaf5e11fe7eab066753fa6ad15f94fafc1c9a2
-//       callback(null);
-//     }
-//   ];
-//
-//   async.series(tasks, function(err, result){});
-// });
