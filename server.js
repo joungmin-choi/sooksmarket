@@ -588,6 +588,7 @@ app.post('/sm_signup', function(req, res) {
                 // req.login(user,function(err){
                 //   req.session.save(function(){
                 res.redirect('/');
+                token = null;
                 //   });
                 // });
             }
