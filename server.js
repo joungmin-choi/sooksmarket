@@ -34,6 +34,7 @@ var loginFlag = 0;
 var alerm = 0;
 var token = null;
 var alarmFlag = 0;
+var pushAlarmLink = "http://172.30.1.20/sm_alermList/";
 
 //DB 설정//
 var client = mysql.createConnection({
@@ -1110,13 +1111,14 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     async.series(tasks, function(err, results) {});
 });
 
-app.get('/sm_request/:id', function(request, response) {
-    var product_id, product_way, reserve_count;
+app.get('/sm_request/:id/:isUrgent', function(request, response) {
+    var product_id, product_way, reserve_count, isUrgent;
     var isExisted = 0;
 
     var tasks = [
         function(callback) {
             product_id = request.params.id;
+            isUrgent = request.params.isUrgent;
             var findTradeWaySql = 'SELECT product_way FROM ProductInfo WHERE product_id=?';
             client.query(findTradeWaySql, [product_id], function(err, result) {
                 product_way = result[0].product_way;
@@ -1163,7 +1165,8 @@ app.get('/sm_request/:id', function(request, response) {
                 way: product_way,
                 session_id: loginId[1],
                 alerm: alerm,
-                isExisted : isExisted
+                isExisted : isExisted,
+                isUrgent : isUrgent
             };
             request.app.render('sm_request.ejs', context, function(err, html) {
                 if (err) {
@@ -1177,10 +1180,10 @@ app.get('/sm_request/:id', function(request, response) {
     async.series(tasks, function(err, results) {});
 });
 
-app.post('/sm_request/:id', function(request, response) {
+app.post('/sm_request/:id/:isUrgent', function(request, response) {
 
     var id, product_id, seller, customer, request_num, requestor, trade_way, product_name, product_price;
-    var SqlQuery, state, maxReqNum;
+    var SqlQuery, state, maxReqNum, isUrgent;
     var chatstate, temp, msg_date, msg;
     var receiver = "";
     var detail;
@@ -1188,14 +1191,34 @@ app.post('/sm_request/:id', function(request, response) {
         function(callback) {
           //console.log(1);
             product_id = request.params.id;
+            isUrgent = request.params.isUrgent;
             SqlQuery = 'SELECT product_seller, product_way, product_name, product_price FROM ProductInfo WHERE product_id=?';
             client.query(SqlQuery, [product_id], function(err, result) {
+              if(err){
+                console.log(err);
+                throw err;
+              }
                 seller = result[0].product_seller;
                 trade_way = result[0].product_way;
                 product_name = result[0].product_name;
                 product_price = result[0].product_price;
                 callback(null);
             });
+        },
+
+        function(callback){
+          if(isUrgent == 1){
+            SqlQuery = 'UPDATE UrgencyHistory SET urgencyCount = (urgencyCount +1) WHERE username=?';
+            client.query(SqlQuery, [loginId[1]], function(err, result){
+              if(err){
+                console.log(err);
+                throw err;
+              }
+              callback(null);
+            });
+          }else{
+            callback(null);
+          }
         },
 
         function(callback) {
@@ -1387,7 +1410,6 @@ app.post('/sm_request/:id', function(request, response) {
             var str = [];
             msg = "";
 
-
             if (state == 2) {
                 detail = '"'+product_name+'"'+" 상품의 거래 시간 변경 요청이 도착했습니다.";
                 str[0] = "<br/><div style='text-align:center;margin:0 auto;'>";
@@ -1422,11 +1444,9 @@ app.post('/sm_request/:id', function(request, response) {
                 }
                 callback(null, 1);
             });
-            //console.log('3');
         },
 
         function(callback){
-        //  console.log('4');
           if(loginId[1] == seller){
             temp= customer;
             sql='SELECT * FROM chat_state WHERE pid=?';
@@ -1449,8 +1469,8 @@ app.post('/sm_request/:id', function(request, response) {
             });
           }
         },
+
         function(callback){
-        //  console.log('5');
           var chatAlarm = {
             category : 2,
             product_id : product_id,
@@ -1461,6 +1481,7 @@ app.post('/sm_request/:id', function(request, response) {
             arrow : temp,
             id : loginId[1]
           };
+
           //알림 추가
           if(chatstate === 0){
             var alarmSql='INSERT INTO notifyMessage SET ?';
@@ -1476,6 +1497,7 @@ app.post('/sm_request/:id', function(request, response) {
         },
 
         function(callback) {
+          if(chatstate === 0){
             if (temp !== null) {
                 sql = 'SELECT phoneToken FROM users WHERE username=?';
                 client.query(sql, [temp], function(err, result) {
@@ -1490,14 +1512,17 @@ app.post('/sm_request/:id', function(request, response) {
             } else {
                 callback(null);
             }
+          }else{
+            callback(null);
+          }
         },
 
         function(callback) {
+          if(chatstate === 0){
             if (temp !== null) {
                 if (receiver !== "") {
-                    var content = detail;
-                    var link = "http://172.30.1.20/sm_alermList/" + temp;
-                    sendTopicMessage("숙스마켓", content, link, receiver);
+                    pushAlarmLink = pushAlarmLink + temp;
+                    sendTopicMessage("숙스마켓", detail, pushAlarmLink, receiver);
                     callback(null);
                 } else {
                     callback(null);
@@ -1505,6 +1530,9 @@ app.post('/sm_request/:id', function(request, response) {
             } else {
                 callback(null);
             }
+          }else{
+            callback(null);
+          }
         },
 
         function(callback) {
@@ -1514,14 +1542,13 @@ app.post('/sm_request/:id', function(request, response) {
             callback(null, 2);
         }
     ];
-    async.series(tasks, function(err, results) {
-        //console.log("결과 :",results);
-    });
+    async.series(tasks, function(err, results) {});
 
 });
 
 app.get('/sm_chat/:id', function(req, res) {
     var id, sql, object, seller, customer;
+    var urgencyCount = -1;
     var context;
 
     var tasks = [
@@ -1548,6 +1575,18 @@ app.get('/sm_chat/:id', function(req, res) {
             });
         },
 
+        function(callback){
+          sql = 'SELECT urgencyCount FROM UrgencyHistory WHERE username=?';
+          client.query(sql, [loginId[1]], function(err, result){
+            if(err){
+              console.log(err);
+              throw err;
+            }
+            urgencyCount = result[0].urgencyCount;
+            callback(null);
+          });
+        },
+
         function(callback) {
             sql = 'SELECT trade_date, trade_time FROM FinalTrade WHERE product_id=?';
             client.query(sql, [id], function(err, result) {
@@ -1566,7 +1605,8 @@ app.get('/sm_chat/:id', function(req, res) {
                         trade_date: 0,
                         trade_time: 0,
                         session_id: loginId[1],
-                        alerm: alerm
+                        alerm: alerm,
+                        urgencyCount : urgencyCount
                     };
                 } else {
                     context = {
@@ -1577,7 +1617,8 @@ app.get('/sm_chat/:id', function(req, res) {
                         trade_date: result[0].trade_date,
                         trade_time: result[0].trade_time,
                         session_id: loginId[1],
-                        alerm: alerm
+                        alerm: alerm,
+                        urgencyCount : urgencyCount
                     };
                 }
                 callback(null);
@@ -1593,7 +1634,6 @@ app.get('/sm_chat/:id', function(req, res) {
     async.series(tasks, function(err, results) {});
 });
 
-
 io.on('connection', function(socket) {
     var result = [];
     var roomname;
@@ -1601,25 +1641,14 @@ io.on('connection', function(socket) {
     var seller;
     var user;
 
-    // sample=socket.conn;
-    //
-    // fs.writeFile('text.txt', sample, 'utf8', function(err) {
-    // console.log('비동기적 파일 쓰기 완료');
-    // });
-
-
     socket.on('join', function(data) {
 
         async.series([
                 function(callback) {
-                    //console.log('2-1 socket.on의 join [서버에서 받음]');
                     socket.user = data.userid;
-                    //console.log('2-2 socket.on의 join 받아온값 : ', data);
-                    //console.log('socket.on의 join socket : ', data);
                     socket.room = data.room;
                     roomname = data.room;
                     socket.join(data.room);
-                    //console.log('2',data.userid);
 
                     //2번 내용 추가
                     var findChatState = 'SELECT * FROM TradeInfo WHERE product_id=?';
@@ -1632,6 +1661,7 @@ io.on('connection', function(socket) {
                         }
                     });
                 },
+
                 function(callback) {
                     var sql;
                     if (socket.user == seller) {
@@ -1652,6 +1682,7 @@ io.on('connection', function(socket) {
                         });
                     }
                 },
+
                 function(callback) {
                     var sql = 'SELECT * FROM chat_msg WHERE msg_room=? ORDER BY msg_date ASC';
                     client.query(sql, roomname, function(err, results) {
@@ -1659,12 +1690,12 @@ io.on('connection', function(socket) {
                             console.log(err);
                         } else {
                             result = results;
-                            //console.log("check1",result);
                         }
                         callback(null, result);
                     });
 
                 },
+
                 function(callback) {
                     if (chatFlag == 1) {
                         chatFlag = 0;
@@ -1680,8 +1711,6 @@ io.on('connection', function(socket) {
                         });
                         callback(null, result);
                     }
-                    //console.log('5 io.emit의 first [클라이언트로 보냄]');
-
                 }
             ],
             function(err, result) {
@@ -1690,10 +1719,9 @@ io.on('connection', function(socket) {
     });
 
     socket.on('chat message', function(msg) {
-        //console.log('4 socket.on의 chat message [서버에서 받음]');
-        //console.log('4', msg);
         var product_name;
         var seller, customer, state, sql, temp;
+        var content;
         var room = socket.room;
         var m = moment();
         var msg_date = m.format("YYYY-MM-DD HH:mm:ss");
@@ -1723,6 +1751,7 @@ io.on('connection', function(socket) {
                     callback(null);
                 });
             },
+
             function(callback) {
                 var findChatState = 'SELECT * FROM TradeInfo WHERE product_id=?';
                 client.query(findChatState, roomname, function(err, result) {
@@ -1735,6 +1764,7 @@ io.on('connection', function(socket) {
                     }
                 });
             },
+
             function(callback) {
                 if (socket.user == seller) {
                     temp = customer;
@@ -1758,17 +1788,20 @@ io.on('connection', function(socket) {
                     });
                 }
             },
+
             function(callback) {
+                content = '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.";
                 var chatAlarm = {
                     category: 2,
                     product_id: socket.room,
-                    detail: '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.",
+                    detail: content,
                     date: msg_date,
                     flag: 0,
                     link: '/sm_chat/' + socket.room,
                     arrow: temp,
                     id: socket.user
                 };
+
                 //알림 추가
                 if (state === 0) {
                     var alarmSql = 'INSERT INTO notifyMessage SET ?';
@@ -1779,7 +1812,46 @@ io.on('connection', function(socket) {
                         callback(null);
                     });
                 }
+            },
+
+            function(callback) {
+              if(state === 0){
+                if (temp !== null) {
+                    sql = 'SELECT phoneToken FROM users WHERE username=?';
+                    client.query(sql, [temp], function(err, result) {
+                        if (result[0].phoneToken !== null) {
+                            receiver = result[0].phoneToken;
+                            callback(null);
+                        } else {
+                            receiver = "";
+                            callback(null);
+                        }
+                    });
+                } else {
+                    callback(null);
+                }
+              }else{
+                callback(null);
+              }
+            },
+
+            function(callback) {
+              if(state === 0){
+                if (temp !== null) {
+                    if (receiver !== "") {
+                        pushAlarmLink = pushAlarmLink + temp;
+                        sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
+                        callback(null);
+                    } else {
+                        callback(null);
+                    }
+                } else {
+                    callback(null);
+                }
+            }else{
+              callback(null);
             }
+          }
         ];
         async.series(tasks, function(err, results) {});
 
@@ -1851,12 +1923,12 @@ http.listen(80, function() {
 app.get('/sm_chat/:id/reject', function(request, response) {
     var product_id, sqlQuery;
     var temp, msg_date, reserve_count, product_name;
+    var content;
     var state=0; // state값 = 예약자가 있는지 확인하는 변수
     alarmFlag=1;
 
     var tasks = [
         function(callback) {
-          //console.log('1');
             product_id = request.params.id;
             var updatestateSql = 'UPDATE btn_state SET delete_btn=1 WHERE product_id=?';
             client.query(updatestateSql, [product_id], function(err, result) {
@@ -1867,10 +1939,9 @@ app.get('/sm_chat/:id/reject', function(request, response) {
             });
         },
 
-        //세진--
+        //세진
         function(callback){
           // 예약자가 있는지 예약자 수 확인하기
-          //console.log('2');
           sqlQuery = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
           client.query(sqlQuery, [product_id], function(err, result) {
               if (err) {
@@ -1883,24 +1954,18 @@ app.get('/sm_chat/:id/reject', function(request, response) {
         },
         function(callback){
           //예약자 없을 경우에 state 설정
-          //console.log('3');
-          console.log('reserve_count :',reserve_count);
           if(reserve_count == 1){
             state=1; //예
-            console.log("state1 = ",state);
             callback(null);
           }
           else {
             state=0;
-            console.log("state2 = ",state);
             callback(null);
           }
-          console.log("state3 = ",state);
         },
 
         function(callback){
           //1. 제품 이름 찾기
-          //console.log('4');
           sql='SELECT * FROM ProductInfo WHERE product_id=?';
           client.query(sql, product_id, function(err, result){
             if(err){
@@ -1911,34 +1976,35 @@ app.get('/sm_chat/:id/reject', function(request, response) {
             }
           });
       },
+
       //예약자 없을 경우도 찾아야 합니다
         function(callback){
           //2. next 예약자 이름 찾기
-        //  console.log('5');
           if(state === 0){
-          sqlQuery = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
-          client.query(sqlQuery,product_id,function(err,result){
-            if(err){
+            sqlQuery = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
+            client.query(sqlQuery,product_id,function(err,result){
+              if(err){
                 console.log(err);
-            } else {
-            temp=result[0].session_id;
+              } else {
+                temp=result[0].session_id;
+                callback(null);
+              }
+            });
+          } else {
             callback(null);
           }
-          });
-        } else {
-          callback(null);
-        }
         },
+
         function(callback){
           //3. 알림 DB에 INSERT
-        //  console.log('6');
           if(state === 0){
           var m = moment();
           msg_date = m.format("YYYY-MM-DD HH:mm:ss");
+          content = '예약하신'+product_name+'상품이 도착하였습니다.';
             var reserveAlarm = {
               category : 3,
               product_id : product_id,
-              detail : '예약하신'+product_name+'상품 거래를...진행하겠습니까..?',
+              detail : content,
               date : msg_date,
               flag : 0,
               link : '/sm_itemDetail/'+product_id,
@@ -1957,8 +2023,47 @@ app.get('/sm_chat/:id/reject', function(request, response) {
             callback(null);
           }
         },
+
+        function(callback) {
+          if(state === 0){
+                if (temp !== null) {
+                    sql = 'SELECT phoneToken FROM users WHERE username=?';
+                    client.query(sql, [temp], function(err, result) {
+                        if (result[0].phoneToken !== null) {
+                            receiver = result[0].phoneToken;
+                            callback(null);
+                        } else {
+                            receiver = "";
+                            callback(null);
+                        }
+                    });
+                } else {
+                    callback(null);
+                }
+              }else{
+                callback(null);
+              }
+            },
+
+            function(callback) {
+              if(state === 0){
+                if (temp !== null) {
+                    if (receiver !== "") {
+                        pushAlarmLink = pushAlarmLink + temp;
+                        sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
+                        callback(null);
+                    } else {
+                        callback(null);
+                    }
+                } else {
+                    callback(null);
+                }
+              }else{
+                callback(null);
+              }
+            },
+
         function(callback){
-        //  console.log('7');
           sqlQuery='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
           client.query(sqlQuery,[temp,product_id],function(err,result){
             if(err){
@@ -1967,9 +2072,9 @@ app.get('/sm_chat/:id/reject', function(request, response) {
             callback(null);
           });
         },
-        //--세진
+
+        //세진
         function(callback) {
-          //console.log('8');
             sqlQuery = 'UPDATE TradeRejection SET confirmRejection=1 WHERE product_id=? AND username=?';
             client.query(sqlQuery, [product_id, loginId[1]], function(err, result) {
                 if (err) {
@@ -1981,7 +2086,6 @@ app.get('/sm_chat/:id/reject', function(request, response) {
         },
 
         function(callback) {
-        //  console.log('9');
             sqlQuery = 'DELETE FROM TradeInfo WHERE product_id=?';
 
             client.query(sqlQuery, [product_id], function(err, result) {
@@ -2027,9 +2131,7 @@ app.get('/sm_chat/:id/reject', function(request, response) {
         },
 
         function(callback) {
-          //console.log('9');
             sqlQuery = 'DELETE FROM CompletionInfo WHERE product_id=?';
-            //console.log('last');
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
@@ -2290,6 +2392,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
     var arrow;
     var sql;
     var receiver = "";
+    var content;
 
     async.series([
             function(callback) {
@@ -2345,11 +2448,12 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
             },
             function(callback) {
                 var time = getTimeStamp();
+                content = '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 댓글을 남기셨습니다.";
 
                 var notify = {
                     category: 1,
                     product_id: req.params.id,
-                    detail: '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 댓글을 남기셨습니다.",
+                    detail: content,
                     date: time,
                     link: '/sm_itemDetail/' + id,
                     arrow: arrow,
@@ -2388,9 +2492,8 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
             function(callback) {
                 if (arrow !== null) {
                     if (receiver !== "") {
-                        var content = '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 댓글을 남기셨습니다.";
-                        var link = "http://172.30.1.20/sm_alermList/" + arrow;
-                        sendTopicMessage("숙스마켓", content, link, receiver);
+                        pushAlarmLink = pushAlarmLink + arrow;
+                        sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
                         callback(null);
                     }else{
                       callback(null);
@@ -2416,6 +2519,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
     var m = moment();
     var content = req.body.each_comment_detail;
     var contents = content[iNum];
+    var detail;
 
     var child_id_max = 0;
     // console.log('제품 id', id, '상품 부모 id', pid, '내용', contents);
@@ -2486,11 +2590,12 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
             },
             function(callback) {
                 var time = getTimeStamp();
+                detail = '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 답글을 남기셨습니다.";
 
                 var notify = {
                     category: 1,
                     product_id: req.params.id,
-                    detail: '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 답글을 남기셨습니다.",
+                    detail: detail,
                     date: time,
                     link: '/sm_itemDetail/' + id,
                     arrow: arrow,
@@ -2530,9 +2635,8 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
             function(callback) {
                 if (arrow !== null) {
                     if (receiver !== "") {
-                        var content = '"'+product_name+'"'+" 게시글에 "+loginId[1]+"님이 답글을 남기셨습니다.";
-                        var link = "http://172.30.1.20/sm_alermList/" + arrow;
-                        sendTopicMessage("숙스마켓", content, link, receiver);
+                        pushAlarmLink = pushAlarmLink + arrow;
+                        sendTopicMessage("숙스마켓", detail, pushAlarmLink, receiver);
                         callback(null);
                     } else {
                         callback(null);
@@ -2710,6 +2814,7 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
     var data, isUpdated;
     var temp, chatstate, msg, msg_date;
     var receiver = "";
+    var content;
     isUpdated = 0;
 
     var tasks = [
@@ -2947,10 +3052,11 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
             }
         },
         function(callback) {
+          content = '"'+product_name+'"'+" 의 거래가 확정되었습니다.";
             var chatAlarm = {
                 category: 2,
                 product_id: product_id,
-                detail: '"'+product_name+'"'+" 의 거래가 확정되었습니다.",
+                detail: content,
                 date: msg_date,
                 flag: 0,
                 link: '/sm_chat/' + product_id,
@@ -2966,10 +3072,13 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
                     }
                     callback(null);
                 });
+            }else{
+              callback(null);
             }
         },
 
         function(callback) {
+          if(chatstate === 0){
             if (temp !== null) {
                 sql = 'SELECT phoneToken FROM users WHERE username=?';
                 client.query(sql, [temp], function(err, result) {
@@ -2982,16 +3091,19 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
                     }
                 });
             } else {
-                callback(null);
+              callback(null);
             }
+          }else{
+            callback(null);
+          }
         },
 
         function(callback) {
+          if(chatstate === 0){
             if (temp !== null) {
                 if (receiver !== "") {
-                    var content = '"'+product_name+'"'+" 의 거래가 확정되었습니다.";
-                    var link = "http://172.30.1.20/sm_alermList/" + temp;
-                    sendTopicMessage("숙스마켓", content, link, receiver);
+                    pushAlarmLink = pushAlarmLink + temp;
+                    sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
                     callback(null);
                 } else {
                     callback(null);
@@ -2999,6 +3111,9 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
             } else {
                 callback(null);
             }
+          }else{
+            callback(null);
+          }
         },
 
         function(callback) {
@@ -3011,14 +3126,16 @@ app.post('/sm_selectTime/:id/:num', function(request, response) {
     async.series(tasks, function(err, results) {});
 });
 
-app.get('/sm_rejectTrade/:id/:num', function(request, response) {
+app.get('/sm_rejectTrade/:id/:num/:urgent', function(request, response) {
     var product_id, sqlQuery, product_name, request_num;
+    var isUrgent;
     var alerm;
 
     var tasks = [
         function(callback) {
             product_id = request.params.id;
             request_num = request.params.num;
+            isUrgent = request.params.urgent;
             sqlQuery = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
@@ -3059,17 +3176,20 @@ app.get('/sm_rejectTrade/:id/:num', function(request, response) {
     async.series(tasks, function(err, results) {});
 });
 
-app.post('/sm_rejectTrade/:id/:num', function(request, response) {
+app.post('/sm_rejectTrade/:id/:num/:isUrgent', function(request, response) {
     var product_id, request_num, sqlQuery, product_name, reject_reason, seller, customer, user;
     var trader, data, m;
     var body = request.body;
     var msg_date, chatstate,temp, msg;
     var receiver = "";
+    var isUrgent = -1;
+    var content;
 
     var tasks = [
         function(callback) {
             product_id = request.params.id;
             request_num = request.params.num;
+            isUrgent = request.params.isUrgent;
 
             sqlQuery = 'SELECT product_name, product_seller FROM ProductInfo WHERE product_id=?';
             client.query(sqlQuery, [product_id], function(err, result) {
@@ -3081,6 +3201,21 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                 }
                 callback(null, 1);
             });
+        },
+
+        function(callback){
+          if(isUrgent == 1){
+            sqlQuery = 'UPDATE UrgencyHistory SET urgencyCount = (urgencyCount +1) WHERE username=?';
+            client.query(sqlQuery, [loginId[1]], function(err, result){
+              if(err){
+                console.log(err);
+                throw err;
+              }
+              callback(null);
+            });
+          }else{
+            callback(null);
+          }
         },
 
         function(callback) {
@@ -3114,87 +3249,6 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                 chatFlag = 1;
                 callback(null, 2);
             });
-        },
-        // 세진추가
-        function(callback){
-          if(loginId[1] == seller){
-            temp= customer;
-            sql='SELECT * FROM chat_state WHERE pid=?';
-            client.query(sql,product_id,function(err,result){
-              if(err){
-                console.log(err);
-              }
-              chatstate=result[0].customer_state;
-              callback(null,3);
-            });
-          } else {
-            temp=seller;
-            sql='SELECT * FROM chat_state WHERE pid=?';
-            client.query(sql,product_id,function(err,result){
-              if(err){
-                console.log(err);
-              }
-              chatstate=result[0].seller_state;
-              callback(null,4);
-            });
-          }
-        },
-        function(callback){
-          var chatAlarm = {
-            category : 2,
-            product_id : product_id,
-            detail: '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.",
-            date : msg_date,
-            flag : 0,
-            link : '/sm_chat/'+product_id,
-            arrow : temp,
-            id : loginId[1]
-          };
-          //알림 추가
-          if(chatstate === 0){
-            var alarmSql='INSERT INTO notifyMessage SET ?';
-            client.query(alarmSql, chatAlarm, function(err, result){
-              if(err){
-                console.log(err);
-              }
-              callback(null,5);
-            });
-          }else{
-            callback(null,5);
-          }
-        },
-
-        function(callback) {
-            if (temp !== null) {
-                sql = 'SELECT phoneToken FROM users WHERE username=?';
-                client.query(sql, [temp], function(err, result) {
-                    if (result[0].phoneToken !== null) {
-                        receiver = result[0].phoneToken;
-                        callback(null);
-                    } else {
-                      console.log("token없음");
-                        receiver = "";
-                        callback(null);
-                    }
-                });
-            } else {
-                callback(null);
-            }
-        },
-
-        function(callback) {
-            if (temp !== null) {
-                if (receiver !== "") {
-                    var content = '"'+product_name+'"'+" 채팅방에 메시지가 도착했습니다.";
-                    var link = "http://172.30.1.20/sm_alermList/" + temp;
-                    sendTopicMessage("숙스마켓", content, link, receiver);
-                    callback(null);
-                } else {
-                    callback(null);
-                }
-            } else {
-                callback(null);
-            }
         },
 
         function(callback){
@@ -3263,6 +3317,97 @@ app.post('/sm_rejectTrade/:id/:num', function(request, response) {
                 callback(null,9);
             });
         },
+
+
+        // 세진추가
+        function(callback){
+          if(loginId[1] == seller){
+            temp= customer;
+            sql='SELECT * FROM chat_state WHERE pid=?';
+            client.query(sql,product_id,function(err,result){
+              if(err){
+                console.log(err);
+              }
+              chatstate=result[0].customer_state;
+              callback(null,3);
+            });
+          } else {
+            temp=seller;
+            sql='SELECT * FROM chat_state WHERE pid=?';
+            client.query(sql,product_id,function(err,result){
+              if(err){
+                console.log(err);
+              }
+              chatstate=result[0].seller_state;
+              callback(null,4);
+            });
+          }
+        },
+
+        function(callback){
+          content = '"'+product_name+'"'+" 상품 거래 취소 요청이 도착했습니다.";
+          var chatAlarm = {
+            category : 2,
+            product_id : product_id,
+            detail: content,
+            date : msg_date,
+            flag : 0,
+            link : '/sm_chat/'+product_id,
+            arrow : temp,
+            id : loginId[1]
+          };
+          //알림 추가
+          if(chatstate === 0){
+            var alarmSql='INSERT INTO notifyMessage SET ?';
+            client.query(alarmSql, chatAlarm, function(err, result){
+              if(err){
+                console.log(err);
+              }
+              callback(null,5);
+            });
+          }else{
+            callback(null,5);
+          }
+        },
+
+        function(callback) {
+          if(chatstate === 0){
+                if (temp !== null) {
+                    sql = 'SELECT phoneToken FROM users WHERE username=?';
+                    client.query(sql, [temp], function(err, result) {
+                        if (result[0].phoneToken !== null) {
+                            receiver = result[0].phoneToken;
+                            callback(null);
+                        } else {
+                            receiver = "";
+                            callback(null);
+                        }
+                    });
+                } else {
+                    callback(null);
+                }
+          }else {
+            callback(null);
+          }
+        },
+
+            function(callback) {
+              if(chatstate === 0){
+                if (temp !== null) {
+                    if (receiver !== "") {
+                        pushAlarmLink = pushAlarmLink + temp;
+                        sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
+                        callback(null);
+                    } else {
+                        callback(null);
+                    }
+                } else {
+                    callback(null);
+                }
+              }else{
+                callback(null);
+              }
+            },
 
         function(callback) {
             var link = '/sm_chat/' + product_id;
@@ -4255,6 +4400,7 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
     var length;
     var productName;
     var receiver = "";
+    var content;
 
     var tasks = [
         function(callback) {
@@ -4268,6 +4414,7 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
                 }
             });
         },
+
         function(callback) {
             var pSql = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
             client.query(pSql, [product_id], function(err, result) {
@@ -4303,11 +4450,12 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
         function(callback) {
             var time = getTimeStamp();
             var link = '/sm_itemDetail/' + product_id;
+            content = '"'+productName+'"'+" 상품 구매 요청이 도착했습니다.";
 
             var notify = {
                 category: 3,
                 product_id: product_id,
-                detail: '"'+productName+'"'+" 상품 구매 요청이 도착했습니다.",
+                detail: content,
                 date: time,
                 link: link,
                 arrow: session_id,
@@ -4329,6 +4477,7 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
         },
 
         function(callback) {
+          if(reserve_count !== 0){
             if (session_id !== null) {
                 sql = 'SELECT phoneToken FROM users WHERE username=?';
                 client.query(sql, [session_id], function(err, result) {
@@ -4343,14 +4492,17 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
             } else {
                 callback(null);
             }
+          }else{
+            callback(null);
+          }
         },
 
         function(callback) {
+          if(reserve_count !== 0){
             if (session_id !== null) {
                 if (receiver !== "") {
-                    var content = '"'+productName+'"'+" 상품 구매 요청이 도착했습니다.";
-                    var link = "http://172.30.1.20/sm_alermList/" + session_id;
-                    sendTopicMessage("숙스마켓", content, link, receiver);
+                    pushAlarmLink = pushAlarmLink + session_id;
+                    sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
                     callback(null);
                 } else {
                     callback(null);
@@ -4358,20 +4510,10 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
             } else {
                 callback(null);
             }
-        }
-
-        // function(callback) {
-        //   sql='UPDATE product_reserve SET reserve_count=? WHERE product_id=?';
-        //   client.query(sql, [reserve_count ,product_id], function(err, rows, fields){
-        //     if(err){
-        //       console.log(err);
-        //     } else {
-        //       var link = '/sm_itemDetail/'+product_id;
-        //       res.redirect(link);
-        //       callback(null,2);
-        //     }
-        //   });
-        // }
+        }else{
+        callback(null);
+      }
+    }
     ];
     async.series(tasks, function(err, results) {
         var link = '/sm_itemDetail/' + product_id;
@@ -4694,6 +4836,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
     var product_id;
     var sqlQuery;
     var temp, msg_date, reserve_count, product_name;
+    var content;
     var state=0; // state값 = 예약자가 있는지 확인하는 변수
 
     var flag = 0;
@@ -4701,7 +4844,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
 
     var tasks = [
         function(callback) {
-        //  console.log('1');
             product_id = request.params.id;
 
             sqlQuery = 'SELECT * FROM users WHERE username LIKE ?';
@@ -4714,7 +4856,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
-          //console.log('2');
             if (flag == 1) {
                 var time = getTimeStamp();
                 sqlQuery = 'INSERT INTO complainInfo (userID, complainID, detail, date, flag) VALUES (?,?,?,?,?)';
@@ -4727,7 +4868,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
-          //  console.log('3');
             var updatestateSql = 'UPDATE btn_state SET delete_btn=1 WHERE product_id=?';
             client.query(updatestateSql, [product_id], function(err, result) {
                 if (err) {
@@ -4738,7 +4878,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
-        //  console.log('4');
             sqlQuery = 'UPDATE TradeRejection SET confirmRejection=1 WHERE product_id=? AND username=?';
             client.query(sqlQuery, [product_id, loginId[1]], function(err, result) {
                 if (err) {
@@ -4750,7 +4889,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
-        //  console.log('5');
             sqlQuery = 'DELETE FROM TradeInfo WHERE product_id=?';
 
             client.query(sqlQuery, [product_id], function(err, result) {
@@ -4763,7 +4901,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
-        //  console.log('6');
             sqlQuery = 'DELETE FROM TradeTimePlace WHERE product_id=?';
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
@@ -4775,7 +4912,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
-      //    console.log('7');
             sqlQuery = 'DELETE FROM chat_msg WHERE msg_room=?';
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
@@ -4787,7 +4923,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
-      //    console.log('8');
             sqlQuery = 'DELETE FROM FinalTrade WHERE product_id=?';
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
@@ -4799,7 +4934,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
 
         function(callback) {
-      //    console.log('9');
             sqlQuery = 'DELETE FROM CompletionInfo WHERE product_id=?';
             client.query(sqlQuery, [product_id], function(err, result) {
                 if (err) {
@@ -4811,7 +4945,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
         },
         //세진--
         function(callback){
-      //    console.log('10');
           // 예약자가 있는지 예약자 수 확인하기
           sqlQuery = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
           client.query(sqlQuery, [product_id], function(err, result) {
@@ -4823,8 +4956,8 @@ app.post('/sm_reportRejector/:id', function(request, response) {
               }
           });
         },
+
         function(callback){
-      //    console.log('11');
           //예약자 없을 경우에 state 설정
           if(reserve_count == 1){
             state=1; //예
@@ -4835,8 +4968,8 @@ app.post('/sm_reportRejector/:id', function(request, response) {
             callback(null);
           }
         },
+
         function(callback){
-        //  console.log('12');
           //1. 제품 이름 찾기
           sql='SELECT * FROM ProductInfo WHERE product_id=?';
           client.query(sql, product_id, function(err, result){
@@ -4846,9 +4979,9 @@ app.post('/sm_reportRejector/:id', function(request, response) {
             product_name = result[0].product_name;
             callback(null);
           });
-      },
+        },
+
         function(callback){
-        //  console.log('13');
           //2. next 예약자 이름 찾기
           if(state === 0){
           sqlQuery = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
@@ -4857,21 +4990,24 @@ app.post('/sm_reportRejector/:id', function(request, response) {
               console.log(err);
             }
             temp=result[0].session_id;
+            callback(null);
           });
+        }else{
+          callback(null);
         }
-        callback(null);
+
         },
 
         function(callback){
-        //  console.log('14');
           //3. 알림 DB에 INSERT
           if(state === 0){
           var m = moment();
           msg_date = m.format("YYYY-MM-DD HH:mm:ss");
+          content = '예약하신'+product_name+'상품이 도착하였습니다.';
             var reserveAlarm = {
               category : 3,
               product_id : product_id,
-              detail : '예약하신'+product_name+'상품 거래를...진행하겠습니까..?',
+              detail : content,
               date : msg_date,
               flag : 0,
               link : '/sm_itemDetail/'+product_id,
@@ -4888,8 +5024,47 @@ app.post('/sm_reportRejector/:id', function(request, response) {
           }
           callback(null);
         },
+
+        function(callback) {
+          if(state === 0){
+                if (temp !== null) {
+                    sql = 'SELECT phoneToken FROM users WHERE username=?';
+                    client.query(sql, [temp], function(err, result) {
+                        if (result[0].phoneToken !== null) {
+                            receiver = result[0].phoneToken;
+                            callback(null);
+                        } else {
+                            receiver = "";
+                            callback(null);
+                        }
+                    });
+                } else {
+                    callback(null);
+                }
+          }else{
+            callback(null);
+          }
+        },
+
+            function(callback) {
+              if(state === 0){
+                if (temp !== null) {
+                    if (receiver !== "") {
+                        pushAlarmLink = pushAlarmLink + temp;
+                        sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
+                        callback(null);
+                    } else {
+                        callback(null);
+                    }
+                } else {
+                    callback(null);
+                }
+              }else{
+                callback(null);
+              }
+            },
+
         function(callback){
-      //    console.log('15');
           sqlQuery='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
           client.query(sqlQuery,[temp,product_id],function(err,result){
             if(err){
@@ -4899,7 +5074,6 @@ app.post('/sm_reportRejector/:id', function(request, response) {
           });
         },
         //--세진
-
 
         function(callback) {
             response.redirect('/sm_main');
@@ -5090,10 +5264,10 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
   var msg_date, temp, product_name;
   var state = 0;
   var receiver = "";
+  var content;
 
   var tasks = [
     function(callback) {
-      //console.log('1');
         sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
         client.query(sql, [product_id], function(err, result) {
             if (err) {
@@ -5104,8 +5278,8 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
             }
         });
     },
+
     function(callback){
-      //console.log('2');
       sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
       client.query(sql, [product_id], function(err, result) {
           if (err) {
@@ -5116,8 +5290,8 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
           }
       });
     },
+
     function(callback){
-    //  console.log('3');
       if(reserve_count == 1){
         state=1;
           sql='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
@@ -5133,8 +5307,8 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
         callback(null);
       }
     },
+
     function(callback){
-      //console.log('4');
       if(state === 0){
         for (var i = 2; i < reserve_count; i++) {
           sql = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
@@ -5144,13 +5318,12 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
                 } else {}
             });
         }
-        //callback(null);
       }
       callback(null);
     },
+
     //다음 1번 디비에 있는거 알람 추가
     function(callback){
-      //console.log('5');
       if(state === 0){
       sql='SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
       client.query(sql, product_id, function(err, result){
@@ -5159,8 +5332,8 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
       }
       callback(null);
     },
+
     function(callback){
-      //console.log('6');
       if(state === 0){
       sql='SELECT * FROM productInfo WHERE product_id=?';
       client.query(sql, product_id, function(err, result){
@@ -5170,14 +5343,14 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
     callback(null);
   },
     function(callback){
-    //  console.log('7');
       if(state === 0){
       var m = moment();
       msg_date = m.format("YYYY-MM-DD HH:mm:ss");
+      content = '예약하신'+product_name+'상품이 도착하였습니다.';
         var reserveAlarm = {
           category : 3,
           product_id : product_id,
-          detail : '예약하신'+product_name+'상품 거래를...진행하겠습니까..?',
+          detail : content,
           date : msg_date,
           flag : 0,
           link : '/sm_itemDetail/'+product_id,
@@ -5196,39 +5369,45 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
       },
 
       function(callback) {
-          if (temp !== null) {
-              sql = 'SELECT phoneToken FROM users WHERE username=?';
-              client.query(sql, [temp], function(err, result) {
-                  if (result[0].phoneToken !== null) {
-                      receiver = result[0].phoneToken;
-                      callback(null);
-                  } else {
-                      receiver = "";
-                      callback(null);
-                  }
-              });
-          } else {
-              callback(null);
-          }
-      },
-
-      function(callback) {
-          if (temp !== null) {
-              if (receiver !== "") {
-                  var content = "예약하신 " + '"'+product_name+'"'+" 상품이 도착하였습니다.";
-                  var link = "http://172.30.1.20/sm_alermList/" + temp;
-                  sendTopicMessage("숙스마켓", content, link, receiver);
-                  callback(null);
-              } else {
-                  callback(null);
+        if(state === 0){
+                if (temp !== null) {
+                    sql = 'SELECT phoneToken FROM users WHERE username=?';
+                    client.query(sql, [temp], function(err, result) {
+                        if (result[0].phoneToken !== null) {
+                            receiver = result[0].phoneToken;
+                            callback(null);
+                        } else {
+                            receiver = "";
+                            callback(null);
+                        }
+                    });
+                } else {
+                    callback(null);
+                }
+              }else{
+                callback(null);
               }
-          } else {
-              callback(null);
-          }
-      },
+            },
+
+            function(callback) {
+              if(state === 0){
+                if (temp !== null) {
+                    if (receiver !== "") {
+                        pushAlarmLink = pushAlarmLink + temp;
+                        sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
+                        callback(null);
+                    } else {
+                        callback(null);
+                    }
+                } else {
+                    callback(null);
+                }
+              }else{
+                callback(null);
+              }
+            },
 
       function(callback){
-      //  console.log('8');
         sql='UPDATE reserveAlarmState SET customer=? WHERE pid=?';
         client.query(sql,[temp,product_id],function(err,result){
           if(err){
@@ -5237,12 +5416,14 @@ app.get('/sm_reserveAlarm_no/:pid',function(req,res){
           callback(null);
         });
       },
+
     function(callback){
       var str = '/sm_main';
       res.redirect(str);
       callback(null);
     }
   ];
+
   async.series(tasks, function(err, results) {});
 });
 

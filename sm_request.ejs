@@ -503,7 +503,7 @@
           <% } %>
             <hr>
 
-            <form id="eventFrom" action="/sm_request/<%= id %>" method="post" class="form-horizontal" onsubmit="return submitCheck()">
+            <form id="eventFrom" action="/sm_request/<%= id %>/<%= isUrgent %>" method="post" class="form-horizontal" onsubmit="return submitCheck()">
                 <div id="dayAddBtnDiv" style="margin-left:5%;margin-right:5%;">
                     <button type="button" class="btn btn-primary" id="dayAddBtn" onclick="addDay();" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
                     <br/><small>날짜는 3개, 시간은 5개까지 추가 가능합니다 :)</small>

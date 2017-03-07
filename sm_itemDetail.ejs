@@ -233,7 +233,7 @@
             <% } else { %>
 
             <% if (session_id != seller){ %>
-              <button id="button_buy" type="button" class="btn btn-primary" onclick="location.href='/sm_request/<%= id %>'">구매하기</button>
+              <button id="button_buy" type="button" class="btn btn-primary" onclick="location.href='/sm_request/<%= id %>/0'">구매하기</button>
               <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
               <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
             <% } %>

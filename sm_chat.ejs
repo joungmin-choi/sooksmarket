@@ -228,7 +228,9 @@
                 <button type="submit" class="btn btn-warning" id="text_button">확인</button>
           </div>
           <div id="input2">
+            <% if (urgencyCount < 3){ %>
               <button type="button" class="btn btn-danger" id="time_button" onclick="location.href='/sm_urgent/<%= product_id %>'">긴급</button>
+            <% } %>
           </div>
         </div>
         </form>
