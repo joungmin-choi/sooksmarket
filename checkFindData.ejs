@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script>
+
+    var flag = <%= flag %>;
+
+    if(flag == 1){
+      alert("해당 메일에서 확인해 주시길 바랍니다.");
+      location.href = '/find';
+    }
+    else{
+      alert("인증에 실패하셨습니다.");
+      location.href = '/find';
+    }
+    
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

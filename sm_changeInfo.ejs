@@ -50,39 +50,47 @@
             <div class="col-md-9">
               <form action='/sm_changeInfo' class="form-horizontal" role="form" method='post' onsubmit="return submitCheck()" >
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">이름 :</label>
+                  <label for="" class="col-sm-6 control-label">이름 :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="name" value=" <%= `${row.login_name}` %> " disabled>
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">ID :</label>
+                  <label for="" class="col-sm-6 control-label">ID :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="username" id="" value="<%= `${row.username}` %>" disabled>
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">PASSWORD :</label>
+                  <label for="" class="col-sm-6 control-label">PASSWORD :</label>
                   <div class="col-sm-5">
                     <input type="password" class="form-control" name="password" id="pw_1" placeholder="새로운 비밀 번호를 입력해주세요:)">
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">PASSWORD 확인 :</label>
+                  <label for="" class="col-sm-6 control-label">PASSWORD 확인 :</label>
                   <div class="col-sm-5">
                     <input type="password" class="form-control" name="password2" id="pw_2" placeholder="새로운 비밀 번호를 입력해주세요:)">
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">이메일 :</label>
+                  <label for="" class="col-sm-6 control-label">이메일 :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="email" id="<%= row.login_email %>" value="<%= `${row.login_email}` %>" disabled>
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">전화번호 :</label>
+                  <label for="" class="col-sm-6 control-label">전화번호 :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="phone" id="<%= row.login_name %>" value="<%= `${row.login_phone}` %>">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-6">
+
+                  </div>
+                  <div class="col-sm-5">
+                    <input type="button" class="form-control" name="" id="<%= row.login_name %>" onclick="location.href='/sm_unsign'" value="회원탈퇴">
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->

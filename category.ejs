@@ -6,6 +6,53 @@
 
 
     <style>
+    /* Center the loader */
+#loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Add animation to "page content" */
+.animate-bottom {
+  position: relative;
+  -webkit-animation-name: animatebottom;
+  -webkit-animation-duration: 1s;
+  animation-name: animatebottom;
+  animation-duration: 1s
+}
+
+@-webkit-keyframes animatebottom {
+  from { bottom:-100px; opacity:0 }
+  to { bottom:0px; opacity:1 }
+}
+
+@keyframes animatebottom {
+  from{ bottom:-100px; opacity:0 }
+  to{ bottom:0; opacity:1 }
+}
+
     body {
       padding-top: 50px;
     }
@@ -61,6 +108,9 @@
     </style>
 
     <script>
+    $(window).load(function() {
+      $('#loader').hide();
+    });
 
     function confirmation(){
       var searchText = document.getElementById("text").value;
@@ -114,105 +164,121 @@
     </script>
   </head>
 
-  <body>
-    <% include ./sm_top_navigator %>
+  <body id="body" onload="loaded()">
+    <script language=JavaScript>
+    function loaded(){
+      loader.style.display="none";
+      body.style.backgroundColor="#ffffff";
+      loadPage.style.display="";
+      loadPageFooter.style.display="";
+    }
+    </script>
 
-    <!-- /.container -->
-    <div class="container">
-      <div class="navbar-template text-center">
-        <h1>
-          Sook's Market
-        </h1>
-        <p class="lead text-info"><small>
-          <img src="/img/cart.png" width="25" style="margin-right:2%;"/>숙명여대 중고장터 입니다
-          <img src="/img/cart.png" width="25" style="margin-left:2%;"/>
-        </small></p>
-      </div>
-    </div><!-- /.container -->
 
-    <div class="container">
-      <div class="row">
-        <div class="col-xs-8 col-xs-offset-2">
+    <div id="loader"></div>
 
-          <form id="form" name="form" class="input-group" action="" method="get" onsubmit="return confirmation()">
-            <div class="input-group-btn">
-              <select class="btn btn-default selectpicker" id="category" style="height: 34px;">
-                <option value="<%= option %>"><%= option %></option>
-              </select>
-            </div>
-            <input type="text" id="text" name="text" class="form-control" placeholder="Search..." />
-            <span class="input-group-btn">
-              <button class="btn btn-default" type="submit">
-                <span class="glyphicon glyphicon-search"></span>
-              </button>
-            </span>
-          </form>
 
+    <div style="display:none" id="loadPage">
+      <% include ./sm_top_navigator %>
+
+      <!-- /.container -->
+      <div class="container">
+        <div class="navbar-template text-center">
+          <h1>
+            Sook's Market
+          </h1>
+          <p class="lead text-info"><small>
+            <img src="/img/cart.png" width="25" style="margin-right:2%;"/>숙명여대 중고장터 입니다
+            <img src="/img/cart.png" width="25" style="margin-left:2%;"/>
+          </small></p>
         </div>
-      </div>
-    </div>
+      </div><!-- /.container -->
 
-    <!-- Page Content -->
-    <div class="container">
-      <!-- Introduction Row -->
-      <!-- Team Members Row -->
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-8 col-xs-offset-2">
 
+            <form id="form" name="form" class="input-group" action="" method="get" onsubmit="return confirmation()">
+              <div class="input-group-btn">
+                <select class="btn btn-default" id="category" style="height: 34px; -webkit-appearance: none; color:black" disabled>
+                  <option value="<%= option %>"><%= option %></option>
+                </select>
+              </div>
+              <input type="text" id="text" name="text" class="form-control" placeholder="Search..." />
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="submit">
+                  <span class="glyphicon glyphicon-search"></span>
+                </button>
+              </span>
+            </form>
 
-      <div class="row">
-        <!-- 0-->
-        <div class="col-lg-12" style="margin-top:8%;">
-          <h3 style="display:inline;">현재 등록된 물건</h3>
-          <a href="/sm_addItems">
-          <button type="button" class="btn btn-primary" style="display:inline; float:right;">
-            <span class="glyphicon glyphicon-star" aria-hidden="true"></span> 상품 등록
-          </button>
-          </a>
-          <hr/>
-
-        </div>
-        <!-- 1-->
-        <div id="snackbar">스크랩되었습니다.</div>
-
-        <% for (i=((`${rows.length}`)-1), flag=0; i>=0 ; i--, flag=0){%>
-
-          <div class="col-lg-4 col-sm-6 col-xs-6 text-center">
-
-            <div class="thumbnail">
-              <p style="float:left; margin-left: 0.5%">
-                <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%; font-family: arial;" onclick="scrap(<%= i %>)">
-                <% for(j=0; j<(scrap.length); j++){
-                  if(rows[i].product_id == scrap[j].product_id){
-                    flag = 1; %>
-                    ★
-                  <% }
-                 } %>
-                 <% if (flag != 1){ %>
-                   ☆
-                 <% } %>
-                </a>
-              </p>
-
-              <a onclick="itemDetail(<%= i %>)" id="Detail<%= i %>" href="/sm_itemDetail/<%= rows[i].product_id  %>">
-                <% if(rows[i].photo1 != ""){ %>
-                  <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
-                <% } else{ %>
-                  <img class="img-responsive img-center" src="/사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
-                  <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
-                <% } %>
-
-                <h3 id="name<%= i %>" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
-                  <%= rows[i].product_name %>
-                </h3>
-                <small><%= rows[i].product_seller %></small>
-              </a>
-            </div>
           </div>
-        <% } %>
-
+        </div>
       </div>
 
-      <hr>
-    </div> <!-- /container -->
+      <!-- Page Content -->
+      <div class="container">
+        <!-- Introduction Row -->
+        <!-- Team Members Row -->
+
+
+        <div class="row">
+          <!-- 0-->
+          <div class="col-lg-12" style="margin-top:8%;">
+            <h3 style="display:inline;">현재 등록된 물건</h3>
+            <a href="/sm_addItems">
+            <button type="button" class="btn btn-primary" style="display:inline; float:right;">
+              <span class="glyphicon glyphicon-star" aria-hidden="true"></span> 상품 등록
+            </button>
+            </a>
+            <hr/>
+
+          </div>
+          <!-- 1-->
+          <div id="snackbar">스크랩되었습니다.</div>
+
+          <% for (i=((`${rows.length}`)-1), flag=0; i>=0 ; i--, flag=0){%>
+
+            <div class="col-lg-4 col-sm-6 col-xs-6 text-center">
+
+              <div class="thumbnail">
+                <p style="float:left; margin-left: 0.5%">
+                  <a href="#;" id="scrap<%= i %>" style="color:#ff6666; font-size:135%; font-family: arial;" onclick="scrap(<%= i %>)">
+                  <% for(j=0; j<(scrap.length); j++){
+                    if(rows[i].product_id == scrap[j].product_id){
+                      flag = 1; %>
+                      ★
+                    <% }
+                   } %>
+                   <% if (flag != 1){ %>
+                     ☆
+                   <% } %>
+                  </a>
+                </p>
+
+                <a onclick="itemDetail(<%= i %>)" id="Detail<%= i %>" href="/sm_itemDetail/<%= rows[i].product_id  %>">
+                  <% if(rows[i].photo1 != ""){ %>
+                    <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                  <% } else{ %>
+                    <img class="img-responsive img-center" src="/사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                    <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
+                  <% } %>
+
+                  <h3 id="name<%= i %>" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
+                    <%= rows[i].product_name %>
+                  </h3>
+                  <small><%= rows[i].product_seller %></small>
+                </a>
+              </div>
+            </div>
+          <% } %>
+
+        </div>
+
+        <hr>
+      </div> <!-- /container -->
+
+    </div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
@@ -222,6 +288,8 @@
     <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
   </body>
   <!-- Footer -->
-  <% include ./sm_footer %>
+  <div style="display:none" id="loadPageFooter">
+    <% include ./sm_footer %>
+  </div>
 
 </html>

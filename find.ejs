@@ -31,7 +31,7 @@
             alert('이메일을 입력하세요.');
           }
           else{
-            var str = '/find/1';
+            var str = '/find/id';
             form.action = str;
             form.submit();
           }
@@ -48,8 +48,9 @@
             alert('이메일을 입력하세요.');
           }
           else{
-            $.post("/find/pwd", {pwd: pwd.value, userID: userID.value});
-            alert('임시 비밀번호를 전송하였습니다.\n해당 메일에서 확인해 주시길 바랍니다.');
+            var str = '/find/pwd';
+            form.action = str;
+            form.submit();
           }
         }
 
@@ -76,7 +77,8 @@
                   <h3 class="col-sm-3 control-label">ID 찾기</h3>
                   <div class="col-sm-5 box">
                     <input type="text" class="col-sm-3 col-xs-3 form-control" name="userName" id="userName" placeholder="이름을 입력하세요.">
-                    <input style="width:83%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="id" id="id"  placeholder="숙명이메일 ID">
+
+                    <input style="width:70%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="id" id="id"  placeholder="숙명이메일 ID">
                     <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
                       @sm.ac.kr
                     </div>
@@ -88,7 +90,7 @@
                   <h3 class="col-sm-3 control-label">PWD 찾기</h3>
                   <div class="col-sm-5 box">
                     <input type="text" class="col-sm-3 col-xs-3 form-control" name="userID" id="userID" placeholder="ID를 입력하세요.">
-                    <input style="width:83%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="pwd" id="pwd"  placeholder="숙명이메일 ID">
+                    <input style="width:70%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="pwd" id="pwd"  placeholder="숙명이메일 ID">
                     <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
                       @sm.ac.kr
                     </div>
