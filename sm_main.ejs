@@ -39,6 +39,12 @@
       animation: fadein 0.5s, fadeout 0.5s 2.5s;
     }
 
+    .navbar-default {
+    background-color: rgb(248, 248, 248);
+    border-color: rgb(231, 231, 231;
+    }
+
+
     @-webkit-keyframes fadein {
       from {bottom: 0; opacity: 0;}
       to {bottom: 30px; opacity: 1;}
@@ -61,6 +67,8 @@
     </style>
 
     <script>
+
+
     window.onload = function(){
       <% if(haveCompletion ==1){ %>
         var trade_date = `<%= tradeInfo[0].trade_date %>`;

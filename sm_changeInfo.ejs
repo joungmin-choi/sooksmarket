@@ -85,6 +85,11 @@
                     <input type="text" class="form-control" name="phone" id="<%= row.login_name %>" value="<%= `${row.login_phone}` %>">
                   </div>
                 </div>
+                <div class="form-group">
+                  <div class="col-sm-5">
+                    <input type="button" class="form-control" name="" id="<%= row.login_name %>" onclick="location.href='/sm_unsign'" value="회원탈퇴">
+                  </div>
+                </div>
                 <div class="form-group"> <!--has-success has-feedback-->
                   <div class="text-center">
                     <input type="submit" value="수정완료" class="btn btn-primary">
