@@ -33,7 +33,7 @@ var chatFlag = 0;
 var loginFlag = 0;
 var alerm = 0;
 var alarmFlag = 0;
-var pushAlarmLink = "http://172.30.1.20/sm_alermList/";
+var pushAlarmLink = "http://203.153.144.75/sm_alermList/";
 
 //DB 설정//
 var client = mysql.createConnection({
@@ -619,9 +619,9 @@ app.post('/sm_signup', function(req, res) {
         var token;
 
         token = req.cookies.andToken;
-        if(token === undefined){
-          token = null;
-        }
+        // if(token === undefined){
+        //   token = null;
+        // }
 
         var user = {
             authId: 'local:' + req.body.username,
@@ -1143,8 +1143,27 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
         },
         function(callback) {
             var time = getTimeStamp();
-            client.query('INSERT INTO ProductInfo (product_name, product_price, product_category, photo1, photo2, photo3, product_way, product_detail, product_id, product_seller, product_date, isDone) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', [body.name, body.price, category, outputPath[0], outputPath[1], outputPath[2], value, detail, productId, loginId[1], time, 0], function() {
-                response.redirect('/');
+            var sql = 'INSERT INTO ProductInfo SET ?';
+            var data = {
+              product_name : body.name,
+              product_price : body.price,
+              product_category : category,
+              photo1 : outputPath[0],
+              photo2 : outputPath[1],
+              photo3 : outputPath[2],
+              product_way : value,
+              product_detail : detail,
+              product_id : productId,
+              product_seller : loginId[1],
+              product_date : time,
+              isDone : 0
+            };
+
+            client.query(sql, data, function(err, result) {
+              if(err){
+                console.log("err",err);
+
+              }
                 callback(null, 4);
             });
         },
@@ -1201,6 +1220,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
                 callback(null, 4);
             });
         },
+
         function(callback) {
             var reserveState = {
                 pid: productId,
@@ -1213,6 +1233,11 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
                 }
                 callback(null, 5);
             });
+        },
+
+        function(callback){
+          response.redirect('/');
+          callback(null);
         }
     ];
     async.series(tasks, function(err, results) {});
