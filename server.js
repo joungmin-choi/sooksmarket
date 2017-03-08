@@ -21,7 +21,6 @@ var url = require('url');
 var cuid = require('cuid');
 var FCM = require('fcm-node');
 var request = require('request');
-var mac = require('getmac');
 
 var serverKey = 'AAAAS6fpdc4:APA91bEZ0RXGmBKDrfijoO1JQ2cobVuGVNTQorK_tDyNLsfJCO4QF2b3fYmODbouk3nLnACDRUhKZSepqwSRx9FwriTdLitMZ0okqPe8SGn7ysAZEdubL_NIRvweIIe0yoDxqenRJMtQ';
 var fcm = new FCM(serverKey);
@@ -35,7 +34,6 @@ var loginFlag = 0;
 var alerm = 0;
 var alarmFlag = 0;
 var pushAlarmLink = "http://172.30.1.20/sm_alermList/";
-var token = null;
 
 //DB 설정//
 var client = mysql.createConnection({
@@ -99,9 +97,6 @@ app.get('/', function(req, res) {
         res.cookie('emailText', '');
         res.cookie('pwCheckText', '');
         res.cookie('phoneText', '');
-        // if(token !== null){
-        //   res.cookie('andToken', token);
-        // }
 
         if (flag !== undefined) {
             res.redirect('/sm_main');
@@ -557,6 +552,7 @@ app.get('/sm_signup', function(request, response) {
             callback(null);
         },
 
+
         function(callback) {
             context = {
                 checkingId: checkingId,
@@ -587,7 +583,7 @@ app.get('/sm_signup', function(request, response) {
 });
 
 app.post('/sm_signup', function(req, res) {
-    //console.log('password', req.body.password);
+
     return hasher({
         password: req.body.password
     }, function(err, pass, salt, hash) {
@@ -604,6 +600,14 @@ app.post('/sm_signup', function(req, res) {
                 throw err;
             }
         });
+
+        var token;
+
+        token = req.cookies.andToken;
+        if(token === undefined){
+          token = null;
+        }
+
         var user = {
             authId: 'local:' + req.body.username,
             username: req.body.username,
@@ -626,7 +630,6 @@ app.post('/sm_signup', function(req, res) {
                 // req.login(user,function(err){
                 //   req.session.save(function(){
                 res.redirect('/');
-                token = null;
                 //   });
                 // });
             }
