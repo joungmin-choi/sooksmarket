@@ -33,7 +33,7 @@ var chatFlag = 0;
 var loginFlag = 0;
 var alerm = 0;
 var alarmFlag = 0;
-var pushAlarmLink = "http://203.153.144.75/sm_alermList/";
+var pushAlarmLink = "http://203.158.144.75/sm_alermList/";
 
 //DB 설정//
 var client = mysql.createConnection({
@@ -184,6 +184,9 @@ app.get('/sm_main', function(req, res) {
     var haveCompletion = 0;
     var product_id, request_num, tradeInfo, rejectProduct_id = 0;
     var applyRejection, confirmRejection, results, changeSql = 0;
+    var isNeededToBeChanged = 0;
+    var token;
+
 
     product_id = request_num = 0;
 
@@ -389,6 +392,45 @@ app.get('/sm_main', function(req, res) {
                 });
             },
 
+            //정민 추가
+            function(callback){
+
+              token = req.cookies.andToken;
+
+              if((token !== null) && (token !== undefined) && (token != 'null')){
+                sql = 'SELECT phoneToken FROM users WHERE username=?';
+                client.query(sql, [loginId[1]], function(err, result){
+                  if(err){
+                    console.log(err);
+                    throw err;
+                  }
+
+                  if(token != result[0].phoneToken){
+                    isNeededToBeChanged = 1;
+                  }else{
+                    isNeededToBeChanged = 0;
+                  }
+                  callback(null);
+                });
+              }
+            },
+
+            //정민 추가
+            function(callback){
+              if(isNeededToBeChanged == 1){
+                sql = 'UPDATE users SET phoneToken=? WHERE username=?';
+                client.query(sql, [token, loginId[1]], function(err, result){
+                  if(err){
+                    console.log(err);
+                    throw err;
+                  }
+                  callback(null);
+                });
+              }else{
+                callback(null);
+              }
+            },
+
             function(callback) {
                 res.render('sm_main.ejs', {
                     loginon: 1,
@@ -533,7 +575,7 @@ app.post(
 );
 
 app.get('/sm_signup', function(request, response) {
-     var context;
+    var context;
     var haveSignUpInfo = -1;
     var checkingId = 0;
     var checkingSookmyung = 0;
@@ -675,7 +717,6 @@ app.post('/sm_signup/checkId', function(request, response) {
 
     var idExistence = -1;
     var checkingId = 0;
-    var checkingSookmyung = 0;
     var idText = '';
     var nameText = '';
     var pwText = '';
@@ -717,7 +758,6 @@ app.post('/sm_signup/checkId', function(request, response) {
 
         function(callback) {
             response.cookie('checkingId', checkingId);
-            response.cookie('checkingSookmyung', checkingSookmyung);
             response.cookie('idText', idText);
             response.cookie('nameText', nameText);
             response.cookie('pwText', pwText);
@@ -1142,6 +1182,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
             //console.log(outputPath);
         },
         function(callback) {
+          console.log("loginid1 : ", loginId[1]);
             var time = getTimeStamp();
             var sql = 'INSERT INTO ProductInfo SET ?';
             var data = {
@@ -1236,7 +1277,9 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
         },
 
         function(callback){
+          console.log("loginid2 : ", loginId[1]);
           response.redirect('/');
+          console.log("loginid3 : ", loginId[1]);
           callback(null);
         }
     ];
@@ -1868,7 +1911,7 @@ io.on('connection', function(socket) {
             function(callback) {
                 sql = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
                 client.query(sql, [room], function(err, result) {
-                    product_name = result[0];
+                    product_name = result[0].product_name;
                     callback(null);
                 });
             },
@@ -4674,75 +4717,75 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
                     callback(null);
                 }
             });
-        },
+        }//,
 
-        function(callback) {
-            var time = getTimeStamp();
-            var link = '/sm_itemDetail/' + product_id;
-            content = '"' + productName + '"' + " 상품 구매 요청이 도착했습니다.";
-
-            var notify = {
-                category: 3,
-                product_id: product_id,
-                detail: content,
-                date: time,
-                link: link,
-                arrow: session_id,
-                reserve_count: reserve_count
-            };
-
-            if (reserve_count !== 0) {
-                sql = 'INSERT INTO notifyMessage SET ?';
-                client.query(sql, notify, function(err, result) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        callback(null);
-                    }
-                });
-            } else {
-                callback(null);
-            }
-        },
-
-        function(callback) {
-            if (reserve_count !== 0) {
-                if (session_id !== null) {
-                    sql = 'SELECT phoneToken FROM users WHERE username=?';
-                    client.query(sql, [session_id], function(err, result) {
-                        if (result[0].phoneToken !== null) {
-                            receiver = result[0].phoneToken;
-                            callback(null);
-                        } else {
-                            receiver = "";
-                            callback(null);
-                        }
-                    });
-                } else {
-                    callback(null);
-                }
-            } else {
-                callback(null);
-            }
-        },
-
-        function(callback) {
-            if (reserve_count !== 0) {
-                if (session_id !== null) {
-                    if (receiver !== "") {
-                        pushAlarmLink = pushAlarmLink + session_id;
-                        sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
-                        callback(null);
-                    } else {
-                        callback(null);
-                    }
-                } else {
-                    callback(null);
-                }
-            } else {
-                callback(null);
-            }
-        }
+        // function(callback) {
+        //     var time = getTimeStamp();
+        //     var link = '/sm_itemDetail/' + product_id;
+        //     content = '"' + productName + '"' + " 상품 구매 요청이 도착했습니다.";
+        //
+        //     var notify = {
+        //         category: 3,
+        //         product_id: product_id,
+        //         detail: content,
+        //         date: time,
+        //         link: link,
+        //         arrow: session_id,
+        //         reserve_count: reserve_count
+        //     };
+        //
+        //     if (reserve_count !== 0) {
+        //         sql = 'INSERT INTO notifyMessage SET ?';
+        //         client.query(sql, notify, function(err, result) {
+        //             if (err) {
+        //                 console.log(err);
+        //             } else {
+        //                 callback(null);
+        //             }
+        //         });
+        //     } else {
+        //         callback(null);
+        //     }
+        // },
+        //
+        // function(callback) {
+        //     if (reserve_count !== 0) {
+        //         if (session_id !== null) {
+        //             sql = 'SELECT phoneToken FROM users WHERE username=?';
+        //             client.query(sql, [session_id], function(err, result) {
+        //                 if (result[0].phoneToken !== null) {
+        //                     receiver = result[0].phoneToken;
+        //                     callback(null);
+        //                 } else {
+        //                     receiver = "";
+        //                     callback(null);
+        //                 }
+        //             });
+        //         } else {
+        //             callback(null);
+        //         }
+        //     } else {
+        //         callback(null);
+        //     }
+        // },
+        //
+        // function(callback) {
+        //     if (reserve_count !== 0) {
+        //         if (session_id !== null) {
+        //             if (receiver !== "") {
+        //                 pushAlarmLink = pushAlarmLink + session_id;
+        //                 sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
+        //                 callback(null);
+        //             } else {
+        //                 callback(null);
+        //             }
+        //         } else {
+        //             callback(null);
+        //         }
+        //     } else {
+        //         callback(null);
+        //     }
+        // }
     ];
     async.series(tasks, function(err, results) {
         var link = '/sm_itemDetail/' + product_id;
