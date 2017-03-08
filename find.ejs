@@ -18,27 +18,46 @@
         </style>
 
         <script>
+
         function ID(){
           var id = document.getElementById("id");
-          if (id.value == ""){
+          var userName = document.getElementById("userName");
+
+          if (userName.value == ""){
+            alert('사용자 이름을 입력하세요.');
+          }
+          else if (id.value == ""){
             alert('이메일을 입력하세요.');
           }
           else{
-            $.post("/find/id", {id: id.value});
-            alert('해당 메일에서 확인해 주시길 바랍니다.');
+            var str = '/find/id';
+            form.action = str;
+            form.submit();
+            //$.post("/find/id", {id: id.value, userName: userName.value});
           }
         }
 
         function PWD(){
           var pwd = document.getElementById("pwd");
-          if (pwd.value == ""){
+          var userID = document.getElementById("userID");
+
+          if (userID.value == ""){
+            alert('ID를 입력하세요.');
+          }
+          else if (pwd.value == ""){
             alert('이메일을 입력하세요.');
           }
           else{
-            $.post("/find/pwd", {pwd: pwd.value});
-            alert('해당 메일에서 확인해 주시길 바랍니다.');
+            var str = '/find/pwd';
+            form.action = str;
+            form.submit();
+            //$.post("/find/pwd", {pwd: pwd.value, userID: userID.value});
+            //alert('임시 비밀번호를 전송하였습니다.\n해당 메일에서 확인해 주시길 바랍니다.');
           }
         }
+
+
+
         </script>
 
 
@@ -55,11 +74,12 @@
 
           <div class="row">
             <div class="col-md-12 col-md-offset-1 col-xs-12">
-              <form class="form-horizontal" role="form" id="form" name="form">
+              <form class="form-horizontal" role="form" id="form" name="form" method="post">
                 <div class="form-group" style="margin-top:2%">
                   <h3 class="col-sm-3 control-label">ID 찾기</h3>
                   <div class="col-sm-5 box">
-                    <input style="width:83%" type="text" class="col-sm-3 col-xs-3 form-control" name="id" id="id"  placeholder="숙명이메일 ID">
+                    <input type="text" class="col-sm-3 col-xs-3 form-control" name="userName" id="userName" placeholder="이름을 입력하세요.">
+                    <input style="width:70%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="id" id="id"  placeholder="숙명이메일 ID">
                     <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
                       @sm.ac.kr
                     </div>
@@ -70,7 +90,8 @@
                 <div class="form-group" style="margin-top:2%">
                   <h3 class="col-sm-3 control-label">PWD 찾기</h3>
                   <div class="col-sm-5 box">
-                    <input style="width:83%" type="text" class="col-sm-3 col-xs-3 form-control" name="pwd" id="pwd"  placeholder="숙명이메일 ID">
+                    <input type="text" class="col-sm-3 col-xs-3 form-control" name="userID" id="userID" placeholder="ID를 입력하세요.">
+                    <input style="width:70%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="pwd" id="pwd"  placeholder="숙명이메일 ID">
                     <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
                       @sm.ac.kr
                     </div>
@@ -80,7 +101,7 @@
 
                 <div class="form-group" style="margin-top:2%; text-align:center">
                   <div class="col-sm-6 control-label">
-                    <button type="button" class="btn btn-primary" onclick="location.href='/index'">로그인</button>
+                    <button type="button" class="btn btn-primary" onclick="location.href='/index'">돌아가기</button>
                   </div>
 
 

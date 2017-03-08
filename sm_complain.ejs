@@ -5,6 +5,18 @@
     <% include ./sm_head %>
 
     <script>
+    window.onload = function(){
+      var flag = <%= flag %>;
+
+      if(flag == 1){
+        alert('신고되었습니다.');
+      }
+      else if(flag == 2){
+        alert("해당 ID가 존재하지 않습니다.");
+      }
+
+    }
+
     function confirmation(){
       var complainID = document.getElementById("complainID");
       var detail = document.getElementById("detail");
@@ -21,7 +33,6 @@
       else{
         var retVal = confirm("신고하시겠습니까?");
         if( retVal == true ){
-          alert('신고되었습니다.');
           form.submit();
           return true;
         }else{

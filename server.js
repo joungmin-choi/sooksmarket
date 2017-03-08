@@ -160,6 +160,8 @@ app.get('/sm_main', function(req, res) {
     var scrap = [];
     var rows = [];
 
+    var email;
+
     var on = 0;
     var allowDate; //신고가 풀리는 날
     var sql, complainHistory;
@@ -179,9 +181,16 @@ app.get('/sm_main', function(req, res) {
                     callback(null);
                 });
             },
+            function(callback){
+              sql = 'SELECT login_email FROM users WHERE username=?';
+              client.query(sql, [loginId[1]], function(err, result){
+                email = result[0].login_email;
+                callback(null);
+              });
+            },
             function(callback) {
-                sql = 'SELECT * FROM ComplainIdHistory WHERE complainID=? AND date(date)>=date(now())';
-                client.query(sql, [flag], function(err, result) {
+                sql = 'SELECT * FROM ComplainIdHistory WHERE email=? AND date(date)>=date(now())';
+                client.query(sql, [email], function(err, result) {
                     if (result[0] !== undefined) {
                         on = 1;
                         allowDate = result[0].date;
@@ -489,6 +498,12 @@ passport.use(new LocalStrategy(
         });
     }
 ));
+
+app.get('/index', function(req, res){
+  console.log("index 들어옴");
+  res.render('index.ejs', {loginon:0});
+  console.log("렌더링 가능");
+});
 
 app.post(
     '/index',
@@ -992,7 +1007,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
                     type[i] = file[i].type;
 
                     if (type[i].indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
-                        outputPath[i] = './fileUploads/' + name[i] + '_' + Date.now();
+                        outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
                         fs.rename(path[i], outputPath[i], function(err) {});
                     }
                 }
@@ -2204,7 +2219,7 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
                             type[i] = file[i].type;
 
                             if (type[i].indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
-                                outputPath[i] = './fileUploads/' + name[i] + '_' + Date.now();
+                                outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
                                 fs.rename(path[i], outputPath[i], function(err) {});
                             }
                         }
@@ -3545,9 +3560,9 @@ app.get('/sm_complain', function(req, res) {
                     res.render('sm_complain.ejs', {
                         userID: loginId[1],
                         session_id: loginId[1],
-                        alerm: alerm
+                        alerm: alerm,
+                        flag: 0
                     });
-                    callback(null);
                 } else {
                     res.redirect('404.html');
                     callback(null);
@@ -3567,31 +3582,47 @@ app.post('/sm_complain', function(req, res) {
     var detail = body.detail;
 
     var flag = 0;
+    var alerm;
 
     async.series([
+          function(callback) {
+            sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+            client.query(sql, [loginId[1]], function(err, result) {
+                alerm = result.length;
+                callback(null);
+              });
+            },
             function(callback) {
-                var sql = 'SELECT * FROM users WHERE username LIKE ?';
-                client.query(sql, [complainID], function(err, result) {
-                    if (result !== '') {
+              var sql = 'SELECT * FROM users WHERE username IN (?, ?)';
+                //var sql = 'SELECT * FROM users WHERE (username LIKE ?) AND (username LIKE ?)';
+                client.query(sql, [complainID, loginId[1]], function(err, result) {
+                    if (result.length === 2) {
                         flag = 1;
                     }
-                    callback(null, flag);
+                    callback(null);
                 });
             }
         ],
 
-        function(err, flag) {
+        function(err) {
+          console.log("flag", flag);
             if (flag == 1) {
                 var time = getTimeStamp();
                 var sql = 'INSERT INTO complainInfo (userID, complainID, detail, date, flag) VALUES (?,?,?,?,?)';
                 client.query(sql, [userID, complainID, detail, time, 0], function() {
                     res.render('sm_complain.ejs', {
-                        userID: loginId[1]
+                        userID: loginId[1],
+                        session_id: loginId[1],
+                        alerm: alerm,
+                        flag: 1
                     });
                 });
-            } else if (flag === 0) {
+            } else if (flag == 0) {
                 res.render('sm_complain.ejs', {
-                    userID: loginId[1]
+                    userID: loginId[1],
+                    session_id: loginId[1],
+                    alerm: alerm,
+                    flag: 2
                 });
             }
         });
@@ -3611,7 +3642,7 @@ app.get('/sm_complainList', function(req, res) {
                 function(callback) {
                     if ((category !== undefined) && (searchText !== '')) { //첫 화면일 때와 입력 없이 버튼을 눌렸을 때 제외!!
                         if (category === '전체 검색') {
-                            sql = 'SELECT * FROM complainInfo WHERE userID OR detail LIKE ? ORDER BY auto DESC';
+                            sql = 'SELECT * FROM complainInfo WHERE userID LIKE ? OR detail LIKE ? ORDER BY auto DESC';
                             client.query(sql, ['%' + searchText + '%', '%' + searchText + '%'], function(err, result) {
                                 callback(null, result);
                             });
@@ -3694,8 +3725,8 @@ var sendMessage = function(email, callback) {
     var mailOptions = {
         from: '숙스마켓 <miniymay101@gmail.com>',
         to: email,
-        subject: '[숙스마켓] 아래와 같은 이유로 당신은 한달간 사용이 정지됩니다.',
-        text: '다음과 같은 이유로 사용 정지!!'
+        subject: '[숙스마켓] 숙스마켓에서 알립니다.',
+        text: '귀하께서는 다른 사용자에 의해 신고당하셨습니다.\n따라서 한 달 간 사용이 중지됩니다.\n문의사항은 "sooksmarket@sm.ac.kr"로 연락주시기 바랍니다.'
     };
 
     smtpTransport.sendMail(mailOptions, function(error, response) {
@@ -3739,7 +3770,8 @@ app.get('/sm_complainOK/:id', function(req, res) {
             function(callback) {
                 sql = 'SELECT login_email FROM users WHERE username=?';
                 client.query(sql, [complainID], function(err, result) {
-                    mail = result[0];
+                    //console.log(result[0].login_email);
+                    mail = result[0].login_email;
                     callback(null);
                 });
             },
@@ -3761,12 +3793,17 @@ app.get('/sm_complainOK/:id', function(req, res) {
                         //console.log("메일보냄");
                     });
 
-                    var time = ProhibitAccessTime();
-                    sql = 'INSERT INTO ComplainIdHistory (complainID, date, reason) VALUES (?,?,?)';
-                    client.query(sql, [row.complainID, time, row.detail], function(err, result) {
-                        callback(null);
-                    });
+                    console.log("email: ", email);
+                    callback(null);
                 }
+            },
+
+            function(callback){
+              var time = ProhibitAccessTime();
+              sql = 'INSERT INTO ComplainIdHistory (complainID, date, reason, email) VALUES (?,?,?,?)';
+              client.query(sql, [row.complainID, time, row.detail, mail], function(err, result) {
+                  callback(null);
+              });
             },
 
             function(callback) {
@@ -3833,13 +3870,30 @@ app.post('/sm_suggest', function(req, res) {
     var userID = loginId[1];
     var comment = body.comment;
     //console.log(comment);
-    var time = getTimeStamp();
-    var sql = 'INSERT INTO suggestInfo (userID, comment, date) VALUES (?,?,?)';
-    client.query(sql, [userID, comment, time], function() {
-        res.render('sm_suggest.ejs', {
-            userID: loginId[1]
+    var alerm;
+
+    async.series([
+      function(callback){
+        sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+        client.query(sql, [loginId[1]], function(err, result){
+          alerm = result.length;
+          //console.log(result.length);
+          callback(null);
         });
-    });
+      },
+      function(callback){
+        var time = getTimeStamp();
+        var sql = 'INSERT INTO suggestInfo (userID, comment, date) VALUES (?,?,?)';
+        client.query(sql, [userID, comment, time], function() {
+            res.render('sm_suggest.ejs', {
+                userID: loginId[1],
+                session_id: loginId[1],
+                alerm: alerm
+            });
+        });
+      }
+    ], function(err){});
+
 });
 
 app.get('/sm_suggestList', function(req, res) {
@@ -3901,6 +3955,8 @@ app.get('/category/:id', function(req, res) {
     var scrap = [];
     var rows = [];
 
+    var email;
+
     var on = 0;
     var allowDate; //신고가 풀리는 날
     var photo = [];
@@ -3917,9 +3973,17 @@ app.get('/category/:id', function(req, res) {
                     });
                 },
 
+                function(callback){
+                  sql = 'SELECT login_email FROM users WHERE username=?';
+                  client.query(sql, [loginId[1]], function(err, result){
+                    email = result[0].login_email;
+                    callback(null);
+                  });
+                },
+
                 function(callback) {
-                    sql = 'SELECT * FROM ComplainIdHistory WHERE complainID=? AND date(date)>=date(now())';
-                    client.query(sql, [flag], function(err, result) {
+                    sql = 'SELECT * FROM ComplainIdHistory WHERE email=? AND date(date)>=date(now())';
+                    client.query(sql, [email], function(err, result) {
                         if (result[0] !== undefined) {
                             on = 1;
                             allowDate = result[0].date;
@@ -4537,27 +4601,73 @@ app.get('/sm_reserve_list', function(request, response) {
 });
 
 app.get('/find', function(req, res) {
-    res.render('find.ejs');
+    res.render('find.ejs', {flag: 0});
 });
 
 app.post('/find/:type', function(req, res) {
     var type = req.params.type;
     var login_email, str;
+    var flag;
 
     if (type === "id") {
-        if (req.body.id !== undefined) {
-            login_email = req.body.id + '@sm.ac.kr';
-            str = 'SELECT * FROM users WHERE login_email=?';
+        var value;
 
-            client.query(str, [login_email], function(err, result) { //console.log(result[0]);
-                if (result[0] !== undefined) {
-                    sendId(result[0].username, login_email, function() {
-                        console.log("메일보냄");
-                    });
+        if (req.body.id !== undefined) {
+          async.series([
+            function(callback){
+              login_email = req.body.id + '@sm.ac.kr';
+
+              str = 'SELECT id FROM users WHERE login_name=? AND login_email=?';
+
+              client.query(str, [req.body.userName, login_email], function(err, result) {
+                console.log("1: ", result[0]);
+                  value = result[0];
+                  callback(null);
+              });
+            },
+            function(callback){
+              if(value !== undefined){
+                login_email = req.body.id + '@sm.ac.kr';
+                str = 'SELECT * FROM users WHERE login_email=?';
+
+                client.query(str, [login_email], function(err, result) {
+                    if (result[0] !== undefined) {
+                        sendId(result[0].username, login_email, function() {
+                            console.log("메일보냄");
+                        });
+                    }
+                    callback(null);
+                });
+              } else{
+                console.log("인증 실패");
+                flag = 2;
+                callback(null);
+              }
+            }
+          ],
+          function(err){
+            if(err){
+              console.log(err);
+            }
+
+            if(flag != 2){
+              flag = 1;
+            }
+
+            context = {
+                flag: flag
+            };
+            req.app.render('checkFindData.ejs', context, function(err, html) {
+                if (err) {
+                    throw err;
                 }
+                res.end(html);
             });
-        }
+          });
+      } // ENDIF
     } else if (type === "pwd") {
+        var value;
+
         if (req.body.pwd !== undefined) {
             login_email = req.body.pwd + '@sm.ac.kr';
             str = 'SELECT * FROM users WHERE login_email=?';
@@ -4565,6 +4675,15 @@ app.post('/find/:type', function(req, res) {
 
             async.series([
                     function(callback) {
+                      sql = 'SELECT id FROM users WHERE username=? AND login_email=?';
+
+                      client.query(sql, [req.body.userID, login_email], function(err, result) {
+                          value = result[0];
+                          callback(null);
+                      });
+                    },
+                    function(callback) {
+                      if (value !== undefined){
                         client.query(str, [login_email], function(err, result) { //console.log(result[0]);
                             if (result[0] !== undefined) {
                                 sendPwd(tempPass, login_email, function() {
@@ -4573,7 +4692,14 @@ app.post('/find/:type', function(req, res) {
                             }
                             callback(null);
                         });
-                    }
+                      } else{
+                        console.log("인증 실패");
+                        flag = 2;
+                        res.render('checkFindData.ejs', {flag: 2});
+                        //callback(null);
+                      }
+
+                    },
                 ],
                 function(err) {
                     return hasher({
@@ -4585,7 +4711,9 @@ app.post('/find/:type', function(req, res) {
 
                         //users.push(user);
                         var sql = 'UPDATE users SET password=?, salt=? WHERE login_email=?';
-                        client.query(sql, [password, salts, login_email], function(err, result) {});
+                        client.query(sql, [password, salts, login_email], function(err, result) {
+                          res.render('checkFindData.ejs', {flag: 1});
+                        });
                     });
                 });
 
@@ -4673,6 +4801,15 @@ app.post('/sm_unsign', function(req, res) {
                     //console.log(result.length);
                     callback(null);
                 });
+            },
+
+            function(callback){
+              if (flag === 1){
+                sql = 'DELETE FROM UrgencyHistory WHERE username=?';
+                client.query(sql, [loginId[1]], function(err, result){
+                  callback(null);
+                });
+              }
             }
 
         ],
