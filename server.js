@@ -5667,30 +5667,34 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
 
     var tasks = [
         function(callback) {
+          //console.log(1);
             sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
             client.query(sql, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log('예약yes에서 삭제되었습니다');
+                    //console.log('예약yes에서 삭제되었습니다');
                     callback(null);
                 }
             });
         },
 
         function(callback) {
+          //console.log(2);
             sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
             client.query(sql, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
                 } else {
                     reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
+                  //  console.log('reserve_count',reserve_count);
                     callback(null);
                 }
             });
         },
 
         function(callback) {
+          //console.log(3);
             if (reserve_count == 1) {
                 state = 1;
                 sql = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
@@ -5704,9 +5708,11 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
                 state = 0;
                 callback(null);
             }
+          //  console.log('state',state);
         },
 
         function(callback) {
+          //console.log(4,'디비업데이트중');
             if (state === 0) {
                 for (var i = 2; i < reserve_count; i++) {
                     sql = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
@@ -5722,6 +5728,7 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
 
         //다음 1번 디비에 있는거 알람 추가
         function(callback) {
+        //  console.log(5);
             if (state === 0) {
                 sql = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
                 client.query(sql, [product_id], function(err, result) {
@@ -5730,14 +5737,17 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
                     throw err;
                   }
                     temp = result[0].session_id;
-                    console.log("처음 temp :", temp);
-
+                  //  console.log("처음 temp :", temp);
+                    callback(null);
                 });
+            } else {
+                callback(null);
             }
-            callback(null);
+
         },
 
         function(callback) {
+          //console.log(6);
             if (state === 0) {
                 sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
                 client.query(sql, [product_id], function(err, result) {
@@ -5747,6 +5757,8 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
             callback(null);
         },
         function(callback) {
+        //  console.log(7);
+        //  console.log('temp',temp);
             if (state === 0) {
                 var m = moment();
                 msg_date = m.format("YYYY-MM-DD HH:mm:ss");
@@ -5769,13 +5781,15 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
                     //callback(null);
                 });
             }
+
             callback(null);
         },
 
         function(callback) {
+        //  console.log(8);
             if (state === 0) {
                 if (temp !== null) {
-                  console.log("temp :", temp);
+                //  console.log("temp :", temp);
                     sql = 'SELECT phoneToken FROM users WHERE username=?';
                     client.query(sql, [temp], function(err, result) {
                         if (result[0].phoneToken !== null) {
@@ -5795,6 +5809,7 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
         },
 
         function(callback) {
+        //  console.log(9);
             if (state === 0) {
                 if (temp !== null) {
                     if (receiver !== "") {
@@ -5813,6 +5828,7 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
         },
 
         function(callback) {
+        //  console.log(10);
             sql = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
             client.query(sql, [temp, product_id], function(err, result) {
                 if (err) {
