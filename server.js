@@ -1124,6 +1124,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
     var type = [];
     var outputPath = [];
     var productName;
+    var login_id = loginId[1];
 
     var tasks = [
         function(callback) {
@@ -1184,7 +1185,6 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
             //console.log(outputPath);
         },
         function(callback) {
-          console.log("loginid1 : ", loginId[1]);
             var time = getTimeStamp();
             var sql = 'INSERT INTO ProductInfo SET ?';
             var data = {
@@ -1197,7 +1197,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
               product_way : value,
               product_detail : detail,
               product_id : productId,
-              product_seller : loginId[1],
+              product_seller : login_id,
               product_date : time,
               isDone : 0
             };
@@ -1279,9 +1279,8 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
         },
 
         function(callback){
-          console.log("loginid2 : ", loginId[1]);
           response.redirect('/');
-          console.log("loginid3 : ", loginId[1]);
+
           callback(null);
         }
     ];
