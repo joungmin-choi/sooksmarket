@@ -412,6 +412,8 @@ app.get('/sm_main', function(req, res) {
                   }
                   callback(null);
                 });
+              }else{
+                callback(null);
               }
             },
 
