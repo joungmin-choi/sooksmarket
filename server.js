@@ -1461,8 +1461,14 @@ app.post('/sm_request/:id/:isUrgent', function(request, response) {
             };
 
             SqlQuery = 'INSERT INTO TradeInfo SET ?';
-            client.query(SqlQuery, tradeInfoData, function(err, result) {});
-            callback(null);
+            client.query(SqlQuery, tradeInfoData, function(err, result) {
+              if(err){
+                console.log(err);
+                throw err;
+              }
+              callback(null);
+            });
+
         },
 
         function(callback) {
@@ -1567,7 +1573,7 @@ app.post('/sm_request/:id/:isUrgent', function(request, response) {
                         directDetailPlace: directDetailPlace,
                         lockerDetailPlace: lockerDetailPlace,
                         lockerNum: lockerNum,
-                        lockerPw: lockerPw,
+                        lockerPw: lockerPw
                     };
 
                     SqlQuery = 'INSERT INTO TradeTimePlace SET ?';
