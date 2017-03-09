@@ -5649,7 +5649,7 @@ app.get('/sm_reserveAlarm_yes/:pid', function(req, res) {
             });
         },
         function(callback) {
-            var str = '/sm_request/' + product_id;
+            var str = '/sm_request/' + product_id +'/0';
             res.redirect(str);
             callback(null);
         }
