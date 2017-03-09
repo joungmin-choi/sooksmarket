@@ -5724,8 +5724,14 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
         function(callback) {
             if (state === 0) {
                 sql = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
-                client.query(sql, product_id, function(err, result) {
+                client.query(sql, [product_id], function(err, result) {
+                  if(err){
+                    console.log(err);
+                    throw err;
+                  }
                     temp = result[0].session_id;
+                    console.log("처음 temp :", temp);
+
                 });
             }
             callback(null);
@@ -5733,8 +5739,8 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
 
         function(callback) {
             if (state === 0) {
-                sql = 'SELECT * FROM productInfo WHERE product_id=?';
-                client.query(sql, product_id, function(err, result) {
+                sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
+                client.query(sql, [product_id], function(err, result) {
                     product_name = result[0].product_name;
                 });
             }
@@ -5769,6 +5775,7 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
         function(callback) {
             if (state === 0) {
                 if (temp !== null) {
+                  console.log("temp :", temp);
                     sql = 'SELECT phoneToken FROM users WHERE username=?';
                     client.query(sql, [temp], function(err, result) {
                         if (result[0].phoneToken !== null) {
