@@ -5652,8 +5652,8 @@ app.get('/sm_reserveAlarm_yes/:pid', function(req, res) {
             });
         },
         function(callback) {
-          console.log('5');
-            var str = '/sm_request/' + product_id;
+            console.log('5');
+            var str = '/sm_request/' + product_id +'/0';
             res.redirect(str);
             callback(null);
         }
