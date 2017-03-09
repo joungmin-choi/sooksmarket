@@ -5600,7 +5600,7 @@ app.get('/sm_reserveAlarm_yes/:pid', function(req, res) {
 
     var tasks = [
         function(callback) {
-            //console.log('1');
+            console.log('1');
             sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
             client.query(sql, [product_id], function(err, result) {
                 if (err) {
@@ -5612,19 +5612,20 @@ app.get('/sm_reserveAlarm_yes/:pid', function(req, res) {
             });
         },
         function(callback) {
-            //console.log('2');
+            console.log('2');
             sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
             client.query(sql, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
                 } else {
                     reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
+                    console.log('reserve_count',reserve_count);
                     callback(null);
                 }
             });
         },
         function(callback) {
-            //console.log('3');
+            console.log('3');
             if (reserve_count != 1) {
                 for (var i = 2; i < reserve_count; i++) {
                     sql = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
@@ -5634,12 +5635,14 @@ app.get('/sm_reserveAlarm_yes/:pid', function(req, res) {
                         } else {}
                     });
                 }
-                //callback(null);
+                callback(null);
+            } else{
+                callback(null);
             }
-            callback(null);
+
         },
         function(callback) {
-            //console.log('4');
+            console.log('4');
             sql = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
             client.query(sql, [null, product_id], function(err, result) {
                 if (err) {
@@ -5649,6 +5652,7 @@ app.get('/sm_reserveAlarm_yes/:pid', function(req, res) {
             });
         },
         function(callback) {
+          console.log('5');
             var str = '/sm_request/' + product_id;
             res.redirect(str);
             callback(null);
