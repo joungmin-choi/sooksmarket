@@ -33,7 +33,7 @@ var chatFlag = 0;
 var loginFlag = 0;
 var alerm = 0;
 var alarmFlag = 0;
-var pushAlarmLink = "http://203.158.144.75/sm_alermList/";
+var pushAlarmLink = "http://203.153.144.75/sm_alermList/";
 
 //DB 설정//
 var client = mysql.createConnection({
@@ -2181,7 +2181,7 @@ app.get('/sm_chat/:id/reject', function(request, response) {
             if (state === 0) {
                 var m = moment();
                 msg_date = m.format("YYYY-MM-DD HH:mm:ss");
-                content = '예약하신' + product_name + '상품이 도착하였습니다.';
+                content = '예약하신 ' + product_name + ' 상품이 도착하였습니다.';
                 var reserveAlarm = {
                     category: 3,
                     product_id: product_id,
@@ -5403,7 +5403,7 @@ app.post('/sm_reportRejector/:id', function(request, response) {
             if (state === 0) {
                 var m = moment();
                 msg_date = m.format("YYYY-MM-DD HH:mm:ss");
-                content = '예약하신' + product_name + '상품이 도착하였습니다.';
+                content = '예약하신 ' + product_name + ' 상품이 도착하였습니다.';
                 var reserveAlarm = {
                     category: 3,
                     product_id: product_id,
@@ -5781,7 +5781,7 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
             if (state === 0) {
                 var m = moment();
                 msg_date = m.format("YYYY-MM-DD HH:mm:ss");
-                content = '예약하신' + product_name + '상품이 도착하였습니다.';
+                content = '예약하신 ' + product_name + ' 상품이 도착하였습니다.';
                 var reserveAlarm = {
                     category: 3,
                     product_id: product_id,
