@@ -76,6 +76,7 @@
             datepicker = '#datepicker' + dayNum;
 
 
+
             if (dateText.value != "") {
                 dateText.value = "";
             }
@@ -84,8 +85,10 @@
             $(datepicker).datetimepicker({
                 viewMode: 'days',
                 locale: 'ko',
-                format: 'MM월 DD일 dddd'
+                format: 'MM월 DD일 dddd',
+                minDate : moment()
             });
+
 
             $(datepicker).datetimepicker('show');
         }
