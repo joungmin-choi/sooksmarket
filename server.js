@@ -72,7 +72,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(express.static(__dirname));
 //추가
-app.use(cookieParser());
+app.use(cookieParser('SooksMarket'));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -88,15 +88,33 @@ app.get('/', function(req, res) {
     var flag = req.user && req.user.displayName;
 
         //추가
-        res.cookie('ExistFlag', 0);
-        res.cookie('checkingId', 0);
-        res.cookie('checkingSookmyung', 0);
-        res.cookie('idText', '');
-        res.cookie('nameText', '');
-        res.cookie('pwText', '');
-        res.cookie('emailText', '');
-        res.cookie('pwCheckText', '');
-        res.cookie('phoneText', '');
+        res.cookie('ExistFlag', 0, {
+          signed : true
+        });
+        res.cookie('checkingId', 0, {
+          signed : true
+        });
+        res.cookie('checkingSookmyung', 0, {
+          signed : true
+        });
+        res.cookie('idText', '', {
+          signed : true
+        });
+        res.cookie('nameText', '', {
+          signed : true
+        });
+        res.cookie('pwText', '', {
+          signed : true
+        });
+        res.cookie('emailText', '', {
+          signed : true
+        });
+        res.cookie('pwCheckText', '', {
+          signed : true
+        });
+        res.cookie('phoneText', '', {
+          signed : true
+        });
 
         if (flag !== undefined) {
             res.redirect('/sm_main');
@@ -595,17 +613,17 @@ app.get('/sm_signup', function(request, response) {
           //   console.log(request.cookies.andToken);
           // }
           console.log("andToken : ",request.cookies.andToken);
-            haveSignUpInfo = request.cookies.ExistFlag;
+            haveSignUpInfo = request.signedCookies.ExistFlag;
 
             if (haveSignUpInfo == 1) {
-                checkingId = request.cookies.checkingId;
-                checkingSookmyung = request.cookies.checkingSookmyung;
-                idText = request.cookies.idText;
-                nameText = request.cookies.nameText;
-                pwText = request.cookies.pwText;
-                emailText = request.cookies.emailText;
-                pwCheckText = request.cookies.pwCheckText;
-                phoneText = request.cookies.phoneText;
+                checkingId = request.signedCookies.checkingId;
+                checkingSookmyung = request.signedCookies.checkingSookmyung;
+                idText = request.signedCookies.idText;
+                nameText = request.signedCookies.nameText;
+                pwText = request.signedCookies.pwText;
+                emailText = request.signedCookies.emailText;
+                pwCheckText = request.signedCookies.pwCheckText;
+                phoneText = request.signedCookies.phoneText;
             }
 
             callback(null);
@@ -701,15 +719,33 @@ app.post('/sm_signup', function(req, res) {
 
 app.get('/sm_signup/cancel', function(request, response) {
 
-    response.cookie('ExistFlag', 0);
-    response.cookie('checkingId', 0);
-    response.cookie('checkingSookmyung', 0);
-    response.cookie('idText', '');
-    response.cookie('nameText', '');
-    response.cookie('pwText', '');
-    response.cookie('emailText', '');
-    response.cookie('pwCheckText', '');
-    response.cookie('phoneText', '');
+    response.cookie('ExistFlag', 0, {
+      signed : true
+    });
+    response.cookie('checkingId', 0, {
+      signed : true
+    });
+    response.cookie('checkingSookmyung', 0, {
+      signed : true
+    });
+    response.cookie('idText', '', {
+      signed : true
+    });
+    response.cookie('nameText', '', {
+      signed : true
+    });
+    response.cookie('pwText', '', {
+      signed : true
+    });
+    response.cookie('emailText', '', {
+      signed : true
+    });
+    response.cookie('pwCheckText', '', {
+      signed : true
+    });
+    response.cookie('phoneText', '', {
+      signed : true
+    });
 
     response.redirect('/');
 });
@@ -759,14 +795,30 @@ app.post('/sm_signup/checkId', function(request, response) {
         },
 
         function(callback) {
-            response.cookie('checkingId', checkingId);
-            response.cookie('idText', idText);
-            response.cookie('nameText', nameText);
-            response.cookie('pwText', pwText);
-            response.cookie('emailText', emailText);
-            response.cookie('pwCheckText', pwCheckText);
-            response.cookie('phoneText', phoneText);
-            response.cookie('ExistFlag', 1);
+            response.cookie('checkingId', checkingId, {
+              signed : true
+            });
+            response.cookie('idText', idText, {
+              signed : true
+            });
+            response.cookie('nameText', nameText, {
+              signed : true
+            });
+            response.cookie('pwText', pwText, {
+              signed : true
+            });
+            response.cookie('emailText', emailText, {
+              signed : true
+            });
+            response.cookie('pwCheckText', pwCheckText, {
+              signed : true
+            });
+            response.cookie('phoneText', phoneText, {
+              signed : true
+            });
+            response.cookie('ExistFlag', 1, {
+              signed : true
+            });
             callback(null);
         },
 
@@ -841,13 +893,27 @@ app.post('/authenticateSookmyung', function(request, response) {
         },
 
         function(callback) {
-            response.cookie('idText', idText);
-            response.cookie('nameText', nameText);
-            response.cookie('pwText', pwText);
-            response.cookie('emailText', emailText);
-            response.cookie('pwCheckText', pwCheckText);
-            response.cookie('phoneText', phoneText);
-            response.cookie('ExistFlag', 1);
+            response.cookie('idText', idText, {
+              signed : true
+            });
+            response.cookie('nameText', nameText, {
+              signed : true
+            });
+            response.cookie('pwText', pwText, {
+              signed : true
+            });
+            response.cookie('emailText', emailText, {
+              signed : true
+            });
+            response.cookie('pwCheckText', pwCheckText, {
+              signed : true
+            });
+            response.cookie('phoneText', phoneText, {
+              signed : true
+            });
+            response.cookie('ExistFlag', 1, {
+              signed : true
+            });
             callback(null);
         },
 
@@ -906,7 +972,9 @@ app.post('/authenticateSookmyung', function(request, response) {
 
 app.get('/complete/authenticate', function(request, response) {
     var checkingSookmyung = 1;
-    response.cookie('checkingSookmyung', checkingSookmyung);
+    response.cookie('checkingSookmyung', checkingSookmyung, {
+      signed : true
+    });
     response.redirect('/sm_signup');
 });
 
