@@ -353,7 +353,7 @@ app.get('/sm_main', function(req, res) {
                             var presentTime = new Date();
                             var interval = presentTime - tradeTime;
 
-                            if (interval < 5000) {
+                            if (interval < 18000000) {
                                 applyRejection = 1;
                                 confirmRejection = 1;
                             } else {
@@ -394,6 +394,7 @@ app.get('/sm_main', function(req, res) {
                     callback(null);
                 }
             },
+
             function(callback) {
                 sql = 'SELECT complainID FROM ComplainIdHistory';
                 client.query(sql, function(err, result) {
