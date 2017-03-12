@@ -365,6 +365,9 @@
             var timeText = new Array();
             var directWay = new Array();
             var lockerWay = new Array();
+            var tradeTime, presentTime;
+            var date0, date1, time0, time1;
+
             var form = document.getElementById("eventFrom");
 
             for (i = 0; i <= dayAdditionCount; i++) {
@@ -390,6 +393,20 @@
                         timeText[i][j].focus();
                         return false;
                         break;
+                    }else{
+                      date0 = parseInt(dateText[i].value.substring(0,2))-1;
+                      date1 = parseInt(dateText[i].value.substring(4,6));
+                      time0 = parseInt(timeText[i][j].value.substring(0,2));
+                      time1 = parseInt(timeText[i][j].value.substring(3,5));
+
+                      tradeTime = new Date(2017, date0, date1, time0, time1);
+                      presentTime = new Date();
+
+                      if(presentTime >= tradeTime){
+                        alert("현재 시각 보다 빠른 거래 시간이 있습니다.\n\n현재 시간 보다 늦게 거래를 신청해주세요!");
+                        return false;
+                        break;
+                      }
                     }
 
                 }
