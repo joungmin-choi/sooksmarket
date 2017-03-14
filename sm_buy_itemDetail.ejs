@@ -1,0 +1,194 @@
+<!doctype html>
+<html>
+
+<head>
+  <% include ./sm_head %>
+
+  <style>
+  .star{
+    font-size: 15px;
+    color: #ffa500;
+    font-family: arial;
+  }
+
+  .not{
+    font-size: :15px;
+    color: #cccccc;
+    font-family: arial;
+  }
+
+  </style>
+
+  <script>
+    function addSellProduct(){
+      var file = document.getElementById("file");
+      var price = document.getElementById("price");
+      var detail = document.getElementById("detail");
+
+      var priceDataType = isNaN(price.value);
+
+      if(file.value == ""){
+        alert("사진을 추가해주세요.");
+        return false;
+      }else if((price.value=="") || (priceDataType == true)){
+        alert("가격(숫자)을 입력해주세요.");
+        return false;
+      }
+      else if(detail.value==""){
+        alert("상세내용을 입력하세요.");
+        return false;
+      }
+      else{
+        form.submit();
+        return true;
+      }
+    };
+
+    function delete(){
+      var str = "$.post('/sm_buy_itemDetail/delete', {auto: `<%= results[i].s_auto %>`, num: `<%= num %>`});";
+    };
+  </script>
+
+</head>
+
+<body>
+  <!-- 네이게이션 상단 부분 -->
+  <% include ./sm_top_navigator %>
+
+  <div class="container" style="height:480px;">
+    <div class="col-xs-12 col-md-10 col-md-offset-1">
+      <h2 style="margin-left:2%;"><strong>[No. <%= `${num}` %>] <%= `${rows.productName}` %></strong></h2>
+      <hr/>
+      <br/><br/>
+    </div>
+
+    <div class="row" style="margin-left:3%;">
+        <table class="table table-hover table-striped table-bordered" style="width:80%; margin:auto; margin-bottom:3%">
+          <tbody class="text-center">
+            <tr>
+              <td><strong>상품명</strong></td>
+              <td><%= `${rows.productName}` %></td>
+            </tr>
+            <tr>
+              <td><strong>등록자 ID</strong></td>
+              <td><%= `${user}` %></td>
+            </tr>
+            <tr>
+              <td><strong>희망 가격대</strong></td>
+              <td><%= `${rows.price}` %> 원 이하</td>
+            </tr>
+            <tr>
+              <td><strong>원하는 조건</strong></td>
+              <td><textarea class="form-control col-sm-5" rows="5" style="cursor:context-menu; background-color:white; resize: none;" disabled><%= `${rows.detail}` %></textarea></td>
+            </tr>
+            <tr>
+              <td><strong>남은 시간</strong></td>
+              <td>시간 카운트 하기!!</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr />
+
+      <% if (session_id != rows.user){ %>
+        <div style="text-align:center">
+          <button type="button" class="btn btn-default" style="margin-bottom:1%;" data-toggle="collapse" data-target="#reportDiv">판매신청하기</button>
+        </div>
+      <% } %>
+
+      <div class="col-xs-12 col-md-8 col-md-offset-2">
+      <div id="reportDiv" class="collapse text-center">
+        <form id="form" name="form" method='post' enctype="multipart/form-data" action="/sm_buy_itemDetail/<%= `${rows.auto}` %>/<%= `${num}` %>">
+        <table class="table table-bordered">
+          <tbody class="text-center">
+            <tr>
+              <td>사진</td>
+              <td>
+                <input type="file" id="file" class="form-control" name="file"  accept="image/*";>
+              </td>
+            </tr>
+            <tr>
+              <td>가격</td>
+              <td>
+                <input type="text" id="price" class="form-control" name="price" placeholder="가격(숫자)을 입력해주세요.">
+              </td>
+            </tr>
+            <tr>
+              <td>상세내용</td>
+              <td>
+                <textarea type="text" id="detail" class="form-control" name="detail" rows="3"  placeholder="제품에 대한 설명을 해주세요" style="resize: none;"></textarea>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" class="btn btn-success" onclick="addSellProduct();" style="margin-bottom:2%;">신청</button>
+        <!-- <hr /> -->
+      </form>
+      </div>
+      </div>
+
+  </div>
+
+  <div class="container">
+    <div class="col-xs-12 col-md-10 col-md-offset-1">
+      <hr />
+
+      <table class="table table-hover table-striped">
+        <% for (i=0; i<`${results.length}`; i++) { %>
+          <tbody class="text-center">
+            <tr>
+              <td style="width:10%"><%= i+1 %></td>
+              <td style="width:20%">
+                <h5><%= results[i].s_userId %></h5>
+                <% if(avgRating != 0){
+                      if(avgRating >= 4.7){ %>
+                        <label class="star">★★★★★</label>
+                    <% }else if((avgRating>=3.7)&&(avgRating<4.7)){ %>
+                        <label class="star">★★★★</label><label class="not">★</label>
+                    <% }else if((avgRating>=2.7)&&(avgRating<3.7)){ %>
+                        <label class="star">★★★</label><label class="not">★★</label>
+                    <% }else if((avgRating>=1.7)&&(avgRating<2.7)){ %>
+                        <label class="star">★★</label><label class="not">★★★</label>
+                    <% }else if((avgRating>=1)&&(avgRating<1.7)){ %>
+                        <label class="star">★</label><label class="not">★★★★</label>
+                    <% } %>
+              <% } %>
+              </td>
+              <td style="width:50%; text-align:left">
+                <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="250"/>
+                <h5 style="padding:0% 25%;word-break:break-all; word-wrap:break-word;">
+                  <label style="color:blue">가격 : </label> <%= results[i].s_price %> 원
+                </h5>
+                <h5 style="padding:0% 25%;word-break:break-all; word-wrap:break-word;">
+                  <label style="color:blue">내용 : </label> <%= results[i].s_detail %>
+                </h5>
+                <h5 style="padding:0% 25%;word-break:break-all; word-wrap:break-word;">
+                  <label style="color:blue">등록일 : </label> <%= results[i].s_date %>
+                </h5>
+              </td>
+              <td style="width:20%">
+                <% if(results[i].s_userId === session_id ) { %>  <!-- 파는 글 올린 사람 -->
+                  <button type="button" id="delete" name="delete" class="btn btn-warning" onclick="delete();">삭제</button>
+                  <button type="button" id="change" name="change" class="btn btn-primary">수정</button>
+                <% } else if(rows.user === session_id) { %>  <!-- 삽니다 게시글 주인 -->
+                  <button type="button" id="choice" name="choice" class="btn btn-success">구매하기</button>
+                <% } else if(session_id === 'sooksmarket') { %>
+                  <button type="button" id="admin_delete" name="admin_delete" class="btn btn-warning">삭제</button>
+                <% } %>
+
+              </td>
+            </tr>
+          </tbody>
+        <% } %> <!-- for문 끝 -->
+      </table>
+    </div>
+
+
+  </div>
+
+<% include ./sm_footer %>
+  <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+
+</html>

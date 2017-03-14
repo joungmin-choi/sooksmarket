@@ -2601,6 +2601,7 @@ app.post('/sm_enter_changeInfo', function(req, res) {
 });
 
 app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
+    var login_id = loginId[1];
 
     var product_name;
     var id;
@@ -2631,7 +2632,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
             function(callback) {
                 id = req.params.id;
 
-                if (itemDetailMainID == loginId[1]) {
+                if (itemDetailMainID == login_id) {
                     arrow = null;
                 } else {
                     arrow = itemDetailMainID;
@@ -2639,7 +2640,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
 
                 var comment = {
                     product_id: req.params.id,
-                    session_id: loginId[1],
+                    session_id: login_id,
                     comment_detail: req.body.comment_detail,
                     comment_date: m.format("YYYY-MM-DD HH:mm"),
                     parent_id: parent_id_max,
@@ -2666,7 +2667,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
             },
             function(callback) {
                 var time = getTimeStamp();
-                content = '"' + product_name + '"' + " 게시글에 " + loginId[1] + "님이 댓글을 남기셨습니다.";
+                content = '"' + product_name + '"' + " 게시글에 " + login_id + "님이 댓글을 남기셨습니다.";
 
                 var notify = {
                     category: 1,
@@ -2675,7 +2676,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
                     date: time,
                     link: '/sm_itemDetail/' + id,
                     arrow: arrow,
-                    id: loginId[1],
+                    id: login_id,
                     parent_id: parent_id_max,
                     child_id: 0
                 };
@@ -2729,6 +2730,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
 });
 
 app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { // 대댓글
+    var login_id = loginId[1];
 
     var product_name;
     var iNum = req.params.i;
@@ -2780,7 +2782,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
                         res.status(500);
                     }
                     //console.log(result[0].session_id);
-                    if (result[0].session_id == loginId[1]) {
+                    if (result[0].session_id == login_id) {
                         arrow = null;
                     } else {
                         arrow = result[0].session_id;
@@ -2794,7 +2796,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
             function(callback) {
                 var comment = {
                     product_id: req.params.id,
-                    session_id: loginId[1],
+                    session_id: login_id,
                     comment_detail: contents,
                     comment_date: m.format("YYYY-MM-DD HH:mm"),
                     parent_id: pid,
@@ -2820,7 +2822,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
             },
             function(callback) {
                 var time = getTimeStamp();
-                detail = '"' + product_name + '"' + " 게시글에 " + loginId[1] + "님이 답글을 남기셨습니다.";
+                detail = '"' + product_name + '"' + " 게시글에 " + login_id + "님이 답글을 남기셨습니다.";
 
                 var notify = {
                     category: 1,
@@ -2829,7 +2831,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
                     date: time,
                     link: '/sm_itemDetail/' + id,
                     arrow: arrow,
-                    id: loginId[1],
+                    id: login_id,
                     parent_id: pid,
                     child_id: child_id_max
                 };
@@ -5919,4 +5921,183 @@ app.get('/sm_urgent/:pid', function(request, response) {
 
     async.series(tasks, function(err, results) {});
 
+});
+
+app.get('/sm_buy', function(req, res) {
+  var sql;
+
+  sql = 'SELECT * FROM BuyInfo ORDER BY auto DESC';
+
+  client.query(sql, function(err, result){
+    res.render('sm_buy.ejs', {
+      session_id: loginId[1],
+      alerm: alerm,
+      rows: result
+    });
+  });
+});
+
+app.get('/sm_addBuyingItems', function(req, res){
+  res.render('sm_addBuyingItems.ejs', {
+    session_id: loginId[1],
+    alerm: alerm
+  });
+});
+
+app.post('/sm_addBuyingItems', function(req, res){
+  var body = req.body;
+  var login_id = loginId[1];
+  var date = getTimeStamp();
+
+  var sql;
+
+  var product = {
+      user: login_id,
+      productName: body.product,
+      price: body.price,
+      period: body.category,
+      detail: body.detail,
+      date: date
+  };
+
+  var sql = 'INSERT INTO BuyInfo SET ?';
+  client.query(sql, product, function(err, result) {
+      if (err) {
+          console.log(err);
+          res.status(500);
+      } else {
+        res.render('sm_buy.ejs', {
+          session_id: loginId[1],
+          alerm: alerm
+        });
+      }
+  });
+});
+
+app.get('/sm_buy_itemDetail/:auto/:num', function(req, res){
+  var auto = req.params.auto;  // 상품번호
+  var number = req.params.num;  // 순번
+
+  var sql;
+
+  var results;
+  var photo = [];
+  var user;
+  var avgRating;
+
+  async.series([
+    function(callback){
+      sql = 'SELECT user FROM BuyInfo WHERE auto=?';
+
+      client.query(sql, [auto], function(err, result){
+        user = result[0].user;
+        callback(null);
+      });
+    },
+    function(callback){
+      sql = 'SELECT * FROM SellInfo WHERE s_productId=? ORDER BY s_date DESC';
+
+      client.query(sql, [auto], function(err, result){
+        //console.log(result);
+        for (var i in result) {
+            photo.push((result[i].s_photo).substring(1));
+            //console.log(photo);
+        }
+        results = result;
+        callback(null);
+      });
+    },
+    function(callback) {
+        sql = 'SELECT AVG(starScore) AS avgStar FROM TradeReview WHERE trader=?';
+        client.query(sql, [loginId[1]], function(err, result) {  // trader를 login_id랑 매칭해도 되는가????????
+            if (err) {
+                throw err;
+            }
+            //console.log(result.length);
+
+            if (result.length > 0) {
+                avgRating = result[0].avgStar;
+            } else {
+                avgRating = 0;
+            }
+            callback(null);
+        });
+    }
+  ],
+  function(err, result){
+    sql = 'SELECT * FROM BuyInfo WHERE auto=?';
+
+    client.query(sql, [auto], function(err, result){
+      res.render('sm_buy_itemDetail.ejs', {
+        session_id: loginId[1],
+        alerm: alerm,
+        rows: result[0],  //result[0]: "삽니다" 게시판 주인공 글
+        num: number,
+        user: user,
+        results: results,  //results: 물건을 파려는 사람의 글
+        avgRating: avgRating,
+        photo: photo
+      });
+    });
+  });
+
+});
+
+app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res){
+  var auto = req.params.auto;
+  var number = req.params.num;
+
+  var body = req.body;
+  var login_id = loginId[1];
+  var date = getTimeStamp();
+
+  var sql;
+
+  var file = req.files.file;
+  var name = file.name;
+  var path = file.path;
+  var type = file.type;
+
+  if (type.indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
+      outputPath = './fileUploads/' + Date.now() + '_' + name;
+      fs.rename(path, outputPath, function(err) {});
+  }
+
+  var product = {
+      s_userId: login_id,
+      s_productId: auto,
+      s_photo: outputPath,
+      s_price: body.price,
+      s_detail: body.detail,
+      s_date: date
+  };
+
+  sql = 'INSERT INTO SellInfo SET ?';
+
+  client.query(sql, product, function(err, result) {
+      if (err) {
+          console.log(err);
+          res.status(500);
+      } else {
+        var str = '/sm_buy_itemDetail/' + auto + '/' + number;
+        res.redirect(str);
+      }
+  });
+
+
+
+});
+
+app.post('/sm_buy_itemDetail/delete', function(req, res){
+  var auto = req.body.auto;
+  var number = req.body.num;
+
+  var sql;
+
+  sql = 'DELETE FROM SellInfo WHERE auto=?';
+
+  client.query(sql, [auto], function(err, result) {
+    var str = '/sm_buy_itemDetail/' + auto + '/' + number;
+    res.redirect(str);
+  });
 });
