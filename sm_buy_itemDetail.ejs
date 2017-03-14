@@ -44,8 +44,6 @@
       }
     };
 
-    function delete(){
-    };
   </script>
 
 </head>
@@ -139,7 +137,7 @@
             <tr>
               <td style="width:10%"><%= i+1 %></td>
               <td style="width:20%">
-                <h5><%= results[i].s_userId %></h5>
+                <h5><%= results[i].product_seller %></h5>
                 <% if(avgRating != 0){
                       if(avgRating >= 4.7){ %>
                         <label class="star">★★★★★</label>
@@ -157,20 +155,20 @@
               <td style="width:50%; text-align:left">
                 <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="250"/>
                 <h5 style="padding:0% 25%;word-break:break-all; word-wrap:break-word;">
-                  <label style="color:blue">가격 : </label> <%= results[i].s_price %> 원
+                  <label style="color:blue">가격 : </label> <%= results[i].product_price %> 원
                 </h5>
                 <h5 style="padding:0% 25%;word-break:break-all; word-wrap:break-word;">
-                  <label style="color:blue">내용 : </label> <%= results[i].s_detail %>
+                  <label style="color:blue">내용 : </label> <%= results[i].product_detail %>
                 </h5>
                 <h5 style="padding:0% 25%;word-break:break-all; word-wrap:break-word;">
-                  <label style="color:blue">등록일 : </label> <%= results[i].s_date %>
+                  <label style="color:blue">등록일 : </label> <%= results[i].product_date %>
                 </h5>
               </td>
               <td style="width:20%">
-                <% if(results[i].s_userId === session_id ) { %>  <!-- 파는 글 올린 사람 -->
+                <% if(results[i].product_seller === session_id ) { %>  <!-- 파는 글 올린 사람 -->
                   <button type="button" id="delete" name="delete" class="btn btn-warning" onclick="delete();">삭제</button>
                   <button type="button" id="change" name="change" class="btn btn-primary">수정</button>
-                <% } else if(rows.user === session_id) { %>  <!-- 삽니다 게시글 주인 -->
+                <% } else if(user === session_id) { %>  <!-- 삽니다 게시글 주인 -->
                   <button type="button" id="choice" name="choice" class="btn btn-success">구매하기</button>
                 <% } else if(session_id === 'sooksmarket') { %>
                   <button type="button" id="admin_delete" name="admin_delete" class="btn btn-warning">삭제</button>
