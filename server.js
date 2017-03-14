@@ -21,6 +21,7 @@ var url = require('url');
 var cuid = require('cuid');
 var FCM = require('fcm-node');
 var request = require('request');
+var schedule = require('node-schedule');
 
 var serverKey = 'AAAAS6fpdc4:APA91bEZ0RXGmBKDrfijoO1JQ2cobVuGVNTQorK_tDyNLsfJCO4QF2b3fYmODbouk3nLnACDRUhKZSepqwSRx9FwriTdLitMZ0okqPe8SGn7ysAZEdubL_NIRvweIIe0yoDxqenRJMtQ';
 var fcm = new FCM(serverKey);
@@ -79,11 +80,15 @@ app.use(passport.session());
 
 app.use(cors());
 
-//서버 실행
-// app.listen(80, function() {
-//     console.log('server running at http://127.0.0.1:80');
-// });
-
+//
+var updateUregencyHistoryEveryMonth = schedule.scheduleJob('48 * * * *', function(){
+  client.query('UPDATE UrgencyHistory SET urgencyCount=0', function(err, result){
+    if(err){
+      console.log(err);
+      throw err;
+    }
+  });
+});
 app.get('/', function(req, res) {
     var flag = req.user && req.user.displayName;
 
