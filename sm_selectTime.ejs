@@ -194,6 +194,11 @@
               <small>※다른 날짜를 선택하시면 다른 날짜에서의 선택사항은 초기화됩니다.</small>
 
                 <div class="panel-group" id="accordion">
+                  <%
+                  var isAllDisabled = 1;
+                  var date0, date1, time0, time1;
+                  var tradeTime, presentTime;
+                  %>
                     <% for(var i=0; i<results.length; i++){ %>
 
                         <div class="panel panel-default">
@@ -211,40 +216,125 @@
                                         <br/>
                                         <% if(results[i].trade_time1 !== null){ %>
                                           <label style="font-weight:normal;">
-                                          <input type="checkbox" name="time<%=i%>1" value="<%= `${results[i].trade_time1}` %>" onclick="disableOther(<%=i%>,1);" >
-                                          <%= `${results[i].trade_time1}` %>
+                                          <%
+                                          date0 = parseInt(results[i].trade_date.substring(0,2))-1;
+                                          date1 = parseInt(results[i].trade_date.substring(4,6));
+                                          time0 = parseInt(results[i].trade_time1.substring(0,2));
+                                          time1 = parseInt(results[i].trade_time1.substring(3,5));
+
+                                          tradeTime = new Date(2017, date0, date1, time0, time1);
+                                          presentTime = new Date();
+
+                                          if(presentTime >= tradeTime){ %>
+                                            <input type="checkbox" name="time<%=i%>1" value="<%= `${results[i].trade_time1}` %>" disabled>
+                                            <%= `${results[i].trade_time1}` %> <b style="color:red;">(시간 지남)</b>
+                                          <% }else{
+                                            isAllDisabled = 0;
+                                          %>
+                                            <input type="checkbox" name="time<%=i%>1" value="<%= `${results[i].trade_time1}` %>" onclick="disableOther(<%=i%>,1);" >
+                                            <%= `${results[i].trade_time1}` %>
+                                          <% } %>
+
                                         </label>
                                         <br />
                                         <% } %>
 
                                         <% if(results[i].trade_time2 !== null){ %>
                                           <label style="font-weight:normal;">
-                                          <input type="checkbox" name="time<%=i%>2" value="<%= `${results[i].trade_time2}` %>" onclick="disableOther(<%=i%>,2);">
-                                          <%= `${results[i].trade_time2}` %>
+                                            <%
+                                            date0 = parseInt(results[i].trade_date.substring(0,2))-1;
+                                            date1 = parseInt(results[i].trade_date.substring(4,6));
+                                            time0 = parseInt(results[i].trade_time2.substring(0,2));
+                                            time1 = parseInt(results[i].trade_time2.substring(3,5));
+
+                                            tradeTime = new Date(2017, date0, date1, time0, time1);
+                                            presentTime = new Date();
+
+                                            if(presentTime >= tradeTime){ %>
+                                              <input type="checkbox" name="time<%=i%>2" value="<%= `${results[i].trade_time2}` %>" disabled>
+                                              <%= `${results[i].trade_time2}` %> <b style="color:red;">(시간 지남)</b>
+                                            <% }else{
+                                              isAllDisabled = 0;
+                                            %>
+                                            <input type="checkbox" name="time<%=i%>2" value="<%= `${results[i].trade_time2}` %>" onclick="disableOther(<%=i%>,2);">
+                                            <%= `${results[i].trade_time2}` %>
+                                            <% } %>
+
                                           </label>
                                         <br />
                                         <% } %>
 
                                         <% if(results[i].trade_time3 !== null){ %>
                                           <label style="font-weight:normal;">
-                                          <input type="checkbox" name="time<%=i%>3" value="<%= `${results[i].trade_time3}` %>" onclick="disableOther(<%=i%>,3);">
-                                          <%= `${results[i].trade_time3}` %>
+                                            <%
+                                            date0 = parseInt(results[i].trade_date.substring(0,2))-1;
+                                            date1 = parseInt(results[i].trade_date.substring(4,6));
+                                            time0 = parseInt(results[i].trade_time3.substring(0,2));
+                                            time1 = parseInt(results[i].trade_time3.substring(3,5));
+
+                                            tradeTime = new Date(2017, date0, date1, time0, time1);
+                                            presentTime = new Date();
+
+                                            if(presentTime >= tradeTime){ %>
+                                              <input type="checkbox" name="time<%=i%>3" value="<%= `${results[i].trade_time3}` %>" disabled>
+                                              <%= `${results[i].trade_time3}` %> <b style="color:red;">(시간 지남)</b>
+                                            <% }else{
+                                              isAllDisabled = 0;
+                                            %>
+                                            <input type="checkbox" name="time<%=i%>3" value="<%= `${results[i].trade_time3}` %>" onclick="disableOther(<%=i%>,3);">
+                                            <%= `${results[i].trade_time3}` %>
+                                            <% } %>
+
                                         </label>
                                         <br />
                                         <% } %>
 
                                         <% if(results[i].trade_time4 !== null){ %>
                                           <label style="font-weight:normal;">
-                                          <input type="checkbox" name="time<%=i%>4" value="<%= `${results[i].trade_time4}` %>" onclick="disableOther(<%=i%>,4);">
-                                          <%= `${results[i].trade_time4}` %>
+                                            <%
+                                            date0 = parseInt(results[i].trade_date.substring(0,2))-1;
+                                            date1 = parseInt(results[i].trade_date.substring(4,6));
+                                            time0 = parseInt(results[i].trade_time4.substring(0,2));
+                                            time1 = parseInt(results[i].trade_time4.substring(3,5));
+
+                                            tradeTime = new Date(2017, date0, date1, time0, time1);
+                                            presentTime = new Date();
+
+                                            if(presentTime >= tradeTime){ %>
+                                              <input type="checkbox" name="time<%=i%>4" value="<%= `${results[i].trade_time4}` %>" disabled>
+                                              <%= `${results[i].trade_time4}` %> <b style="color:red;">(시간 지남)</b>
+                                            <% }else{
+                                              isAllDisabled = 0;
+                                            %>
+                                            <input type="checkbox" name="time<%=i%>4" value="<%= `${results[i].trade_time4}` %>" onclick="disableOther(<%=i%>,4);">
+                                            <%= `${results[i].trade_time4}` %>
+                                            <% } %>
+
                                         </label>
                                         <br />
                                         <% } %>
 
                                         <% if(results[i].trade_time5 !== null){ %>
                                           <label style="font-weight:normal;">
-                                          <input type="checkbox" name="time<%=i%>5" value="<%= `${results[i].trade_time5}` %>" onclick="disableOther(<%=i%>,5);">
-                                          <%= `${results[i].trade_time5}` %>
+                                            <%
+                                            date0 = parseInt(results[i].trade_date.substring(0,2))-1;
+                                            date1 = parseInt(results[i].trade_date.substring(4,6));
+                                            time0 = parseInt(results[i].trade_time5.substring(0,2));
+                                            time1 = parseInt(results[i].trade_time5.substring(3,5));
+
+                                            tradeTime = new Date(2017, date0, date1, time0, time1);
+                                            presentTime = new Date();
+
+                                            if(presentTime >= tradeTime){ %>
+                                              <input type="checkbox" name="time<%=i%>5" value="<%= `${results[i].trade_time5}` %>" disabled>
+                                              <%= `${results[i].trade_time5}` %> <b style="color:red;">(시간 지남)</b>
+                                            <% }else{
+                                              isAllDisabled = 0;
+                                            %>
+                                            <input type="checkbox" name="time<%=i%>5" value="<%= `${results[i].trade_time5}` %>" onclick="disableOther(<%=i%>,5);">
+                                            <%= `${results[i].trade_time5}` %>
+                                            <% } %>
+
                                         </label>
                                         <br />
                                         <% } %>
@@ -300,7 +390,11 @@
                 <div class="form-group">
                     <div  style="text-align:center;">
                       <% if (isClicked == 0){ %>
-                        <button type="submit" class="btn btn-primary" style="font-size:13px;">거래 확정</button>
+                        <% if (isAllDisabled != 1){ %>
+                          <button type="submit" class="btn btn-primary" style="font-size:13px;">거래 확정</button>
+                        <% }else{ %>
+                          <h5 style="color:red;">모든 거래 신청 시간이 현재 시간보다 이전입니다.<br/><br>"시간 변경" 혹은 "거래 취소"" 버튼을 눌러주세요.</h5><br/>
+                        <% } %>
                         <button type="button" class="btn btn-success" style="font-size:13px;" onclick="location.href='/sm_request/<%=id%>/0'">시간 변경</button>
                         <button type="button" class="btn btn-danger" style="font-size:13px;" onclick="location.href='/sm_rejectTrade/<%=id%>/<%=num%>/0'">거래 취소</button>
                       <% } %>

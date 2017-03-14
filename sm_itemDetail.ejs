@@ -235,6 +235,7 @@
             </table>
 
             <center>
+            <% if(isDone == 0){ %>
 
               <% if(session_id === nextReserveCustomer) { %>
                 <h2>거래를 신청하시겠습니까?</h2><br/>
@@ -244,28 +245,34 @@
                  <h3> 거래 진행중입니다 :) </h3>
                <% } else { %>
 
+                  <% if(session_id === 'sooksmarket') { %>
+                    <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+                  <% } else { %>
 
-            <% if(session_id === 'sooksmarket') { %>
-              <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
-            <% } else { %>
+                      <% if(session_id === 'sooksmarket') { %>
+                        <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+                      <% } else { %>
 
-            <% if (session_id != seller){ %>
-              <button class="btn btn-primary" id="button_buy_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 구매하기</button>
-              <button id="button_buy" type="button" class="btn btn-primary" onclick="buy();">구매하기</button>
+                        <% if (session_id != seller){ %>
+                          <button class="btn btn-primary" id="button_buy_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 구매하기</button>
+                          <button id="button_buy" type="button" class="btn btn-primary" onclick="buy();">구매하기</button>
 
-              <button class="btn btn-primary" id="button_reserve_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
-              <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
-              <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
-            <% } %>
+                          <button class="btn btn-primary" id="button_reserve_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
+                          <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
+                          <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
+                        <% } %>
 
+                        <% if (session_id == seller){ %>
+                    <!--<button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>-->
+                        <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+                        <button id="button_change" type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
+                        <% } %>
+                    <% } %>
+                <% } %>
+              <% } %>
 
-            <% if (session_id == seller){ %>
-              <!--<button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>-->
-              <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
-              <button id="button_change" type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
-            <% } %>
-
-            <% } %>
+            <% }else{ %>
+              <h5 style="color:red;font-weight:bold;">판매 완료된 상품입니다.</h5>
             <% } %>
 
             </center>
