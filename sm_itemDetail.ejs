@@ -42,8 +42,10 @@
         </style>
         <script>
 
+            var next = `<%= nextReserveCustomer %>`;
             $(document).ready(function() {
               var session_id = `<%= session_id %>`;
+
                 $('._edit').hide();
                 $('.re').hide();
                 $('.reply').click(function() {
@@ -56,6 +58,7 @@
                   $('#_'+id).show();
                   });
 
+
                   if(`${<%= flag %>}` == 1 ){
                   if(`${<%= delete_btn %>}`== 0){
                     $('#button_delete').attr("disabled",true);
@@ -63,7 +66,11 @@
                     $('#button_buy').attr("disabled",true);
                   }
                 } else {
-                     $('#button_reserve').attr("disabled",true);
+                  if(next !== null){
+
+                  } else {
+                      $('#button_reserve').attr("disabled",true);
+                    }
                   }
 
                   if(session_id === 'sooksmarket'){
@@ -90,6 +97,7 @@
 
 
             function reserve(){
+
               var flag=0;
               var session_id = `<%= session_id %>`;
               var reserveMembers = new Array();
@@ -225,8 +233,19 @@
                 <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_yes/<%= id %>'">수락</button>
                 <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_no/<%= id %>'">거부</button>
               <% } else if( nextReserveCustomer !== null) { %>
-                 <h3> 거래 진행중입니다 :) </h3>
-               <% } else { %>
+
+                <% for(var i=0; i<reserveMember.length; i++){ %>
+                  <% if(session_id == reserveMember[i].session_id){ %>
+                      <h1>거래가 진행중입니다.</h1>
+                    <% } %>
+                <% } %>
+                <% if(session_id == seller) { %>
+                  <h1>거래가 진행중입니다.</h1>
+                <% } else { %>
+                  <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
+                  <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
+                <% } %>
+              <% } else { %>
 
 
             <% if(session_id === 'sooksmarket') { %>

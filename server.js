@@ -80,8 +80,7 @@ app.use(passport.session());
 app.use(cors());
 
 //서버 실행
-// app.listen(80, function() {
-//     console.log('server running at http://127.0.0.1:80');
+// app.listen(80, function() { //     console.log('server running at http://127.0.0.1:80');
 // });
 
 app.get('/', function(req, res) {
@@ -335,7 +334,7 @@ app.get('/sm_main', function(req, res) {
                             var presentTime = new Date();
                             var interval = presentTime - tradeTime;
 
-                            if (interval < 5000) {
+                            if (interval < 1000) {
                                 applyRejection = 1;
                                 confirmRejection = 1;
                             } else {
@@ -1959,7 +1958,7 @@ io.on('connection', function(socket) {
                         callback(null);
                     });
                 } else {
-                    temp = customer;
+                    temp = seller;
                     sql = 'SELECT * FROM chat_state WHERE pid=?';
                     client.query(sql, room, function(err, result) {
                         if (err) {
@@ -1972,6 +1971,7 @@ io.on('connection', function(socket) {
             },
 
             function(callback) {
+              console.log(temp);
                 content = '"' + product_name + '"' + " 채팅방에 메시지가 도착했습니다.";
                 var chatAlarm = {
                     category: 2,
@@ -3699,6 +3699,9 @@ app.get('/sm_completeTrade/:id/:num', function(request, response) {
 app.post('/sm_completeTrade/:id/:num', function(request, response) {
     var product_id, id, username, isCompleted, starScore, review, product_name, reason, trader;
     var body, sqlQuery, request_num, isDone;
+    var reserve_count;
+    var reserveList;
+    var content;
 
     isDone = 0;
     body = request.body;
@@ -3845,6 +3848,85 @@ app.post('/sm_completeTrade/:id/:num', function(request, response) {
             } else {
                 callback(null);
             }
+        },
+
+        function(callback) {
+            console.log('1');
+            sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
+            client.query(sql, [product_id], function(err, result) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    reserve_count = `${result[0]['MAX(reserve_count)']}`;
+                    console.log('reserve_count',reserve_count);
+                    callback(null);
+                }
+            });
+        },
+
+
+        function(callback){
+          console.log(2);
+          if(reserve_count !== 1){
+          sql = 'UPDATE product_reserve SET reserve_count=-1 WHERE product_id=?';
+          client.query(sql, [product_id], function(err, result) {
+              if (err) {
+                  console.log(err);
+              } else {
+                  reserveList = result;
+                  console.log('reserveList',reserveList);
+                  console.log('1번',reserveList[0],'2번',reserveList[1]);
+                  callback(null);
+              }
+          });
+        } else {
+          callback(null);
+          }
+        },
+
+        function(callback) {
+            console.log('3');
+
+            // for(var i=;i<)
+            //   content='"' + product_id + '"' + "에 대한 예약이 취소되었습니다";
+            //    var ReserveAlarm = {
+            //        category: 3,
+            //        product_id: product_id,
+            //        detail: content,
+            //        date: 0,
+            //        flag: 0,
+            //        link: '/sm_main/',
+            //        arrow: reserveList[reserve_count].session_id,
+            //        id: username
+            //    };
+            //    sql = 'INSERT INTO notifyMessage SET ?';
+            //    client.query(sql, ReserveAlarm, function(err, result) {
+            //        if (err) {
+            //            console.log(err);
+            //        }
+            //        reserve_count = reserve_count-1;
+            //        console.log('reserve_count',reserve_count);
+            //
+            //    });
+            //
+            // }
+             callback(null);
+
+        },
+
+
+        function(callback){
+            console.log('4');
+          // sql = 'DELETE FROM product_reserve WHERE product_id=?';
+          // client.query(sql, [product_id], function(err, result) {
+          //     if (err) {
+          //         console.log(err);
+          //     } else {
+          //         //console.log('삭제되었습니다')
+          //         callback(null);
+          //     }
+          // });
+          callback(null);
         },
 
         function(callback) {
