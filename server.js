@@ -6034,7 +6034,7 @@ app.post('/sm_addBuyingItems', function(req, res){
       date: date
   };
 
-  var sql = 'INSERT INTO BuyInfo SET ?';
+  sql = 'INSERT INTO BuyInfo SET ?';
   client.query(sql, product, function(err, result) {
       if (err) {
           console.log(err);
