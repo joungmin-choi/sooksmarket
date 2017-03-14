@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+
+<head>
+  <% include ./sm_head %>
+  <style>
+  .star{
+    font-size: 15px;
+    color: #ffa500;
+    font-family: arial;
+  }
+
+  .not{
+    font-size: :15px;
+    color: #cccccc;
+    font-family: arial;
+  }
+  </style>
+
+  <script>
+    window.onload = function(){
+      <%
+        for(var j=0; j<rows.length;j++){%>
+          var countTimer = new Array();
+          countTimer[<%=j%>] = setInterval(function(){
+            var postTime = `<%= rows[j].product_date %>`;
+            var period = `<%= rows[j].product_period %>`;
+            var remainTimeDiv = document.getElementById("remainTimeDiv<%=j%>");
+            var periodIntDays = parseInt(period.substring(0,1));
+
+            var date = new Array();
+            var time = new Array();
+
+            date[0] = parseInt(postTime.substring(0,4));
+            date[1] = parseInt(postTime.substring(5,7))-1;
+            date[2] = parseInt(postTime.substring(8,10));
+
+            time[0] = parseInt(postTime.substring(11,13));
+            time[1] = parseInt(postTime.substring(14,16));
+            time[2] = parseInt(postTime.substring(17,19));
+
+            var convertedPostTime = new Date(date[0], date[1], date[2], time[0], time[1], time[2]);
+            var dueTime = new Date(date[0], date[1], date[2]+periodIntDays, time[0], time[1], time[2]);
+
+            var presentTime = new Date();
+
+            periodIntDays = periodIntDays * 86400000;
+
+            if(dueTime < presentTime){
+              remainTimeDiv.innerHTML = "마감";
+              clearInterval(countTimer[<%=j%>]);
+            }else{
+              var interval = dueTime - presentTime;
+              var dateLeft, hourLeft, minuteLeft, secondLeft;
+
+              interval = parseInt(interval/1000);
+              dateLeft = parseInt(interval/86400);
+              interval = parseInt(interval % 86400);
+              hourLeft = parseInt(interval/3600);
+              interval = parseInt(interval % 3600);
+              minuteLeft = parseInt(interval/60);
+              interval = parseInt(interval % 60);
+              secondLeft = parseInt(interval);
+
+              var leftStr = "";
+              if(dateLeft > 0) leftStr += "<b>"+dateLeft+"</b>일 ";
+              if(hourLeft > 0) leftStr += "<b>"+hourLeft+"</b>시간 ";
+              if(minuteLeft > 0) leftStr += "<b>"+minuteLeft+"</b>분 ";
+              leftStr += "<b>"+secondLeft+"</b>초";
+              remainTimeDiv.innerHTML = leftStr;
+            }
+          }, 1000);
+        <%}%>
+    }
+
+  </script>
+
+</head>
+
+<body>
+  <!-- 네이게이션 상단 부분 -->
+  <% include ./sm_top_navigator %>
+
+  <div class="container" style="height:480px;">
+    <h2 style="margin-left:3%;"><img src="/img/online-shop.png" width="37" style="margin-left:5%;" />
+      <strong> Sell Product </strong></h2>
+    <hr/>
+      <div class="row" style="width:94%; margin-left:3%; margin-top:3%">
+
+
+          <div class="col-xs-12 col-md-6 col-md-offset-3">
+          <form id="form" name="form" class="input-group" method="get">
+            <div class="input-group-btn">
+              <select class="btn btn-default selectpicker" id="category" name="category" style="height: 34px; -webkit-appearance: none; color:black" disabled>
+                <option value="상품명">상품명</option>
+              </select>
+            </div>
+            <input type="text" id="searchText" name="searchText" class="form-control" placeholder="상품명을 검색하세요.." />
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button" onclick="submitCheck();">
+                <span class="glyphicon glyphicon-search"></span>
+              </button>
+            </span>
+          </form>
+        </div>
+
+        <div class="col-xs-12 col-md-11" style="margin-top:13px;">
+          <a href="/sm_addBuyingItems">
+          <button type="button" class="btn btn-success" style="display:inline; float:right;" onclick="allow()">
+            <span class="glyphicon glyphicon-star" aria-hidden="true"></span> 글쓰기
+          </button>
+          </a>
+        </div>
+
+        <div class="col-xs-12 col-md-12">
+          <br/>
+        <table class="table table-hover table-striped">
+          <thead class="text-center">
+            <tr style="border-bottom:1px solid black;">
+              <td style="width:15%;"><strong>No.</strong></td>
+              <td style="width:45%;"><strong>상품명</strong></td>
+              <td style="width:40%;"><strong>남은 시간</strong></td>
+            </tr>
+          </thead>
+          <tbody class="text-center">
+            <% for (i=0; i<`${rows.length}`; i++) { %>
+              <tr>
+                <td><%= i+1 %></td>
+                <td><a href="/sm_buy_itemDetail/<%= rows[i].product_id %>/<%= i+1 %>"><%= rows[i].product_name %></a></td>
+                <td>
+                  <div id="remainTimeDiv<%=i%>"></div>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <hr>
+  <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+<!-- Footer -->
+
+<% include ./sm_footer %>
+</html>

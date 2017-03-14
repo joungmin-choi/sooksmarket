@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include ./sm_head %>
+
+  <script>
+
+  function submitCheck(){
+    var product = document.getElementById("product");
+    var price = document.getElementById("price");
+    var category = document.getElementById("category");
+    var detail = document.getElementById("detail");
+
+    var priceDataType = isNaN(price.value);
+
+    if(product.value==""){
+      alert("상품명을 입력하세요.");
+      return false;
+    }
+    else if((price.value=="") || (priceDataType == true)){
+      alert("가격(숫자)을 입력하세요.");
+      return false;
+    }
+    else if(category.value==""){
+      alert("기간을 선택하세요.");
+      return false;
+    }
+    else if(detail.value==""){
+      alert("조건을 입력하세요.");
+      return false;
+    }
+    else{
+      var submitAfter = document.getElementById("submitAfter");
+      var submitBefore = document.getElementById("submitBefore");
+
+      submitAfter.style.display="";
+      submitBefore.style.display="none";
+
+      form.submit();
+      return true;
+    }
+  }
+
+  </script>
+  <style>
+    .form-control {
+      height: 40px;
+    }
+  </style>
+
+
+</head>
+
+<body class="body">
+    <% include ./sm_top_navigator %>
+
+    <div class="container">
+      <h3 style="text-align:center;"><img src="/img/cart.png" width="37" style="margin-right:5%;"/>
+        <strong> 요구 상품 세부사항 </strong>
+      <img src="/img/online-shop.png" width="37" style="margin-left:5%;" /></h3>
+
+      <hr />
+      <div class="row">
+      <div class="col-xs-12 col-md-12 col-md-offset-1">
+        <form action='/sm_addBuyingItems' class="form-horizontal" role="form" id="form" name="form" method = "post" onsubmit="return submitCheck()" >
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">사고싶은 하는 물건 :</label>
+            <div class="col-sm-5">
+              <input type="text" class="form-control" name="product" id="product"  placeholder="내용을 입력해주세요.">
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">최대 가격 :</label>
+            <div class="col-sm-5">
+              <input type="text" id="price" class="form-control" name="price" placeholder="가격을 입력해주세요.">
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">경매기간 :</label>
+            <div class="col-sm-5">
+              <select class="form-control" id="category" name="category" >
+                <option value="" selected disabled>-- 선택하세요 --</option>
+                <option value="3일">3일</option>
+                <option value="5일">5일</option>
+                <option value="7일">7일</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">원하는 조건 :</label>
+            <div class="col-sm-5">
+              <textarea type="text" class="form-control" id="detail" name="detail" rows="3" value="" placeholder="원하는 조건을 입력하세요" style="resize: none;"></textarea>
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <div class="col-sm-5 col-sm-offset-3" style="text-align:center;">
+              <button class="btn btn-primary" id="submitAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 등록하기</button>
+              <input type="submit" value="등록하기" class="btn btn-primary" id="submitBefore">
+              <input type="reset" value="취소하기" class="btn btn-danger" onclick="location.href='/sm_sell'">
+            </div>
+          </div>
+
+        </form>
+      </div>
+      </div>
+    </div>
+    <hr/>
+
+</body>
+
+
+<% include ./sm_footer %>
+
+</html>

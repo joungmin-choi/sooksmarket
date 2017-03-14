@@ -11,12 +11,14 @@
     var form = document.getElementById("form");
     var way = document.getElementsByName("way");
 
+    var priceDataType = isNaN(price.value);
+
     if(target.value==""){
       alert("상품명을 입력하세요.");
       return false;
     }
-    else if(price.value==""){
-      alert("가격을 입력하세요.");
+    else if((price.value=="") || (priceDataType == true)){
+      alert("가격(숫자)을 입력하세요.");
       return false;
     }
     else if(form.category.value==""){
@@ -28,6 +30,12 @@
       return false;
     }
     else{
+      var submitAfter = document.getElementById("submitAfter");
+      var submitBefore = document.getElementById("submitBefore");
+
+      submitAfter.style.display="";
+      submitBefore.style.display="none";
+
       form.submit();
       return true;
     }
@@ -73,7 +81,7 @@
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">가격 :</label>
             <div class="col-sm-5">
-              <input type="text" id="price" class="form-control" name="price" placeholder="내용을 입력해주세요.">
+              <input type="text" id="price" class="form-control" name="price" placeholder="가격(숫자)을 입력해주세요.">
             </div>
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
@@ -120,7 +128,8 @@
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
             <div class="col-sm-5 col-sm-offset-3" style="text-align:center;">
-              <input type="submit" value="등록하기" class="btn btn-primary">
+              <button class="btn btn-primary" id="submitAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 등록하기</button>
+              <input type="submit" value="등록하기" class="btn btn-primary" id="submitBefore">
               <input type="reset" value="취소하기" class="btn btn-danger" onclick="location.href='/sm_main'">
             </div>
           </div>

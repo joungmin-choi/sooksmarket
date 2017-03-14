@@ -21,6 +21,7 @@ var url = require('url');
 var cuid = require('cuid');
 var FCM = require('fcm-node');
 var request = require('request');
+var schedule = require('node-schedule');
 
 var serverKey = 'AAAAS6fpdc4:APA91bEZ0RXGmBKDrfijoO1JQ2cobVuGVNTQorK_tDyNLsfJCO4QF2b3fYmODbouk3nLnACDRUhKZSepqwSRx9FwriTdLitMZ0okqPe8SGn7ysAZEdubL_NIRvweIIe0yoDxqenRJMtQ';
 var fcm = new FCM(serverKey);
@@ -72,30 +73,60 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(express.static(__dirname));
 //추가
-app.use(cookieParser());
+app.use(cookieParser('SooksMarket'));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(cors());
 
+
 //서버 실행
 // app.listen(80, function() { //     console.log('server running at http://127.0.0.1:80');
 // });
+
+
+//긴급 3번 매달 1일 12시 업데이트
+var updateUregencyHistoryEveryMonth = schedule.scheduleJob('48 * * * *', function(){
+  client.query('UPDATE UrgencyHistory SET urgencyCount=0', function(err, result){
+    if(err){
+      console.log(err);
+      throw err;
+    }
+  });
+});
 
 app.get('/', function(req, res) {
     var flag = req.user && req.user.displayName;
 
         //추가
-        res.cookie('ExistFlag', 0);
-        res.cookie('checkingId', 0);
-        res.cookie('checkingSookmyung', 0);
-        res.cookie('idText', '');
-        res.cookie('nameText', '');
-        res.cookie('pwText', '');
-        res.cookie('emailText', '');
-        res.cookie('pwCheckText', '');
-        res.cookie('phoneText', '');
+        res.cookie('ExistFlag', 0, {
+          signed : true
+        });
+        res.cookie('checkingId', 0, {
+          signed : true
+        });
+        res.cookie('checkingSookmyung', 0, {
+          signed : true
+        });
+        res.cookie('idText', '', {
+          signed : true
+        });
+        res.cookie('nameText', '', {
+          signed : true
+        });
+        res.cookie('pwText', '', {
+          signed : true
+        });
+        res.cookie('emailText', '', {
+          signed : true
+        });
+        res.cookie('pwCheckText', '', {
+          signed : true
+        });
+        res.cookie('phoneText', '', {
+          signed : true
+        });
 
         if (flag !== undefined) {
             res.redirect('/sm_main');
@@ -186,7 +217,6 @@ app.get('/sm_main', function(req, res) {
     var isNeededToBeChanged = 0;
     var token;
 
-
     product_id = request_num = 0;
 
     if (flag !== undefined) {
@@ -233,29 +263,32 @@ app.get('/sm_main', function(req, res) {
             function(callback) {
                 if ((category !== undefined) && (searchText !== '')) { //첫 화면일 때와 입력 없이 버튼을 눌렸을 때 제외!!
                     if (category === '전체 검색') {
-                        sql = 'SELECT * FROM ProductInfo WHERE product_name LIKE ?';
-                        client.query(sql, ['%' + searchText + '%'], function(err, result) {
+                        sql = 'SELECT * FROM ProductInfo WHERE product_name LIKE ? AND noticeType LIKE ?';
+                        client.query(sql, ['%' + searchText + '%', 'S'], function(err, result) {
                             rows = result;
                             callback(null);
                         });
                     } else {
                         if (searchText !== '') {
-                            sql = 'SELECT * FROM ProductInfo WHERE product_category=? AND product_name LIKE ?';
-                            client.query(sql, [category, '%' + searchText + '%'], function(err, result) {
-                                rows = result;
-                                callback(null);
-                            });
-                        } else {
-                            sql = 'SELECT * FROM ProductInfo WHERE product_category=?';
-                            client.query(sql, [category], function(err, result) {
+                            sql = 'SELECT * FROM ProductInfo WHERE product_category=? AND product_name LIKE ? AND noticeType LIKE ?';
+                            client.query(sql, [category, '%' + searchText + '%', 'S'], function(err, result) {
                                 rows = result;
                                 callback(null);
                             });
                         }
                     }
-                } else {
-                    client.query('SELECT * FROM ProductInfo', function(err, result) {
+                }
+                else if ((category !== "전체 검색") && (searchText === '')){
+                    sql = 'SELECT * FROM ProductInfo WHERE product_category=? AND noticeType LIKE ?';
+                    client.query(sql, [category, 'S'], function(err, result) {
                         rows = result;
+                        callback(null);
+                    });
+              } else {
+                    sql = 'SELECT * FROM ProductInfo WHERE noticeType LIKE ?';
+                    client.query(sql, ['S'],function(err, result) {
+                        rows = result;
+                        //console.log(rows);
                         callback(null);
                     });
                 }
@@ -334,6 +367,7 @@ app.get('/sm_main', function(req, res) {
                             var presentTime = new Date();
                             var interval = presentTime - tradeTime;
 
+
                             if (interval < 1000) {
                                 applyRejection = 1;
                                 confirmRejection = 1;
@@ -375,6 +409,7 @@ app.get('/sm_main', function(req, res) {
                     callback(null);
                 }
             },
+
             function(callback) {
                 sql = 'SELECT complainID FROM ComplainIdHistory';
                 client.query(sql, function(err, result) {
@@ -470,11 +505,14 @@ app.post('/sm_main/:id', function(req, res) {
     var p_id = [];
     var category = [];
 
+    var sql;
+
     //console.log(req.params.id);
     if (scrapImg === "★") {
         async.series([
                 function(callback) {
-                    client.query('SELECT * FROM ProductInfo WHERE product_name=?', [scrapName], function(err, result) {
+                  sql = 'SELECT * FROM ProductInfo WHERE product_name=? AND noticeType LIKE ?';
+                    client.query(sql, [scrapName, 'S'], function(err, result) {
                         photo = result[0].photo1;
                         seller = result[0].product_seller;
                         p_id = result[0].product_id;
@@ -594,17 +632,17 @@ app.get('/sm_signup', function(request, response) {
           //   console.log(request.cookies.andToken);
           // }
           console.log("andToken : ",request.cookies.andToken);
-            haveSignUpInfo = request.cookies.ExistFlag;
+            haveSignUpInfo = request.signedCookies.ExistFlag;
 
             if (haveSignUpInfo == 1) {
-                checkingId = request.cookies.checkingId;
-                checkingSookmyung = request.cookies.checkingSookmyung;
-                idText = request.cookies.idText;
-                nameText = request.cookies.nameText;
-                pwText = request.cookies.pwText;
-                emailText = request.cookies.emailText;
-                pwCheckText = request.cookies.pwCheckText;
-                phoneText = request.cookies.phoneText;
+                checkingId = request.signedCookies.checkingId;
+                checkingSookmyung = request.signedCookies.checkingSookmyung;
+                idText = request.signedCookies.idText;
+                nameText = request.signedCookies.nameText;
+                pwText = request.signedCookies.pwText;
+                emailText = request.signedCookies.emailText;
+                pwCheckText = request.signedCookies.pwCheckText;
+                phoneText = request.signedCookies.phoneText;
             }
 
             callback(null);
@@ -700,15 +738,33 @@ app.post('/sm_signup', function(req, res) {
 
 app.get('/sm_signup/cancel', function(request, response) {
 
-    response.cookie('ExistFlag', 0);
-    response.cookie('checkingId', 0);
-    response.cookie('checkingSookmyung', 0);
-    response.cookie('idText', '');
-    response.cookie('nameText', '');
-    response.cookie('pwText', '');
-    response.cookie('emailText', '');
-    response.cookie('pwCheckText', '');
-    response.cookie('phoneText', '');
+    response.cookie('ExistFlag', 0, {
+      signed : true
+    });
+    response.cookie('checkingId', 0, {
+      signed : true
+    });
+    response.cookie('checkingSookmyung', 0, {
+      signed : true
+    });
+    response.cookie('idText', '', {
+      signed : true
+    });
+    response.cookie('nameText', '', {
+      signed : true
+    });
+    response.cookie('pwText', '', {
+      signed : true
+    });
+    response.cookie('emailText', '', {
+      signed : true
+    });
+    response.cookie('pwCheckText', '', {
+      signed : true
+    });
+    response.cookie('phoneText', '', {
+      signed : true
+    });
 
     response.redirect('/');
 });
@@ -758,14 +814,30 @@ app.post('/sm_signup/checkId', function(request, response) {
         },
 
         function(callback) {
-            response.cookie('checkingId', checkingId);
-            response.cookie('idText', idText);
-            response.cookie('nameText', nameText);
-            response.cookie('pwText', pwText);
-            response.cookie('emailText', emailText);
-            response.cookie('pwCheckText', pwCheckText);
-            response.cookie('phoneText', phoneText);
-            response.cookie('ExistFlag', 1);
+            response.cookie('checkingId', checkingId, {
+              signed : true
+            });
+            response.cookie('idText', idText, {
+              signed : true
+            });
+            response.cookie('nameText', nameText, {
+              signed : true
+            });
+            response.cookie('pwText', pwText, {
+              signed : true
+            });
+            response.cookie('emailText', emailText, {
+              signed : true
+            });
+            response.cookie('pwCheckText', pwCheckText, {
+              signed : true
+            });
+            response.cookie('phoneText', phoneText, {
+              signed : true
+            });
+            response.cookie('ExistFlag', 1, {
+              signed : true
+            });
             callback(null);
         },
 
@@ -840,13 +912,27 @@ app.post('/authenticateSookmyung', function(request, response) {
         },
 
         function(callback) {
-            response.cookie('idText', idText);
-            response.cookie('nameText', nameText);
-            response.cookie('pwText', pwText);
-            response.cookie('emailText', emailText);
-            response.cookie('pwCheckText', pwCheckText);
-            response.cookie('phoneText', phoneText);
-            response.cookie('ExistFlag', 1);
+            response.cookie('idText', idText, {
+              signed : true
+            });
+            response.cookie('nameText', nameText, {
+              signed : true
+            });
+            response.cookie('pwText', pwText, {
+              signed : true
+            });
+            response.cookie('emailText', emailText, {
+              signed : true
+            });
+            response.cookie('pwCheckText', pwCheckText, {
+              signed : true
+            });
+            response.cookie('phoneText', phoneText, {
+              signed : true
+            });
+            response.cookie('ExistFlag', 1, {
+              signed : true
+            });
             callback(null);
         },
 
@@ -905,7 +991,9 @@ app.post('/authenticateSookmyung', function(request, response) {
 
 app.get('/complete/authenticate', function(request, response) {
     var checkingSookmyung = 1;
-    response.cookie('checkingSookmyung', checkingSookmyung);
+    response.cookie('checkingSookmyung', checkingSookmyung, {
+      signed : true
+    });
     response.redirect('/sm_signup');
 });
 
@@ -954,7 +1042,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
         async.series([
                 // 1st
                 function(callback) {
-                    client.query('SELECT * FROM ProductInfo WHERE product_id=?', [detail_id], function(err, result) {
+                    sql = 'SELECT * FROM ProductInfo WHERE product_id=? AND noticeType LIKE ?';
+                    client.query(sql, [detail_id, 'S'], function(err, result) {
                         //console.log(result);
                         var object = result[0];
                         detail_id = object.product_id;
@@ -1170,7 +1259,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
 
 
 
-            client.query('SELECT * FROM ProductInfo', function(err, result) {
+            client.query('SELECT * FROM ProductInfo WHERE noticeType LIKE ?', ['S'],function(err, result) {
                 var length = result.length;
                 if (length === 0) {
                     //console.log("b");
@@ -1198,7 +1287,8 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
               product_id : productId,
               product_seller : login_id,
               product_date : time,
-              isDone : 0
+              isDone : 0,
+              noticeType : 'S'
             };
 
             client.query(sql, data, function(err, result) {
@@ -1210,8 +1300,8 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
             });
         },
         function(callback) {
-            var pSql = 'SELECT product_name FROM ProductInfo WHERE product_id=?';
-            client.query(pSql, [productId], function(err, result) {
+            var pSql = 'SELECT product_name FROM ProductInfo WHERE product_id=? AND noticeType LIKE ?';
+            client.query(pSql, [productId, 'S'], function(err, result) {
                 if (err) {
                     console.log(err);
                 } else {
@@ -2601,6 +2691,7 @@ app.post('/sm_enter_changeInfo', function(req, res) {
 });
 
 app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
+    var login_id = loginId[1];
 
     var product_name;
     var id;
@@ -2631,7 +2722,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
             function(callback) {
                 id = req.params.id;
 
-                if (itemDetailMainID == loginId[1]) {
+                if (itemDetailMainID == login_id) {
                     arrow = null;
                 } else {
                     arrow = itemDetailMainID;
@@ -2639,7 +2730,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
 
                 var comment = {
                     product_id: req.params.id,
-                    session_id: loginId[1],
+                    session_id: login_id,
                     comment_detail: req.body.comment_detail,
                     comment_date: m.format("YYYY-MM-DD HH:mm"),
                     parent_id: parent_id_max,
@@ -2666,7 +2757,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
             },
             function(callback) {
                 var time = getTimeStamp();
-                content = '"' + product_name + '"' + " 게시글에 " + loginId[1] + "님이 댓글을 남기셨습니다.";
+                content = '"' + product_name + '"' + " 게시글에 " + login_id + "님이 댓글을 남기셨습니다.";
 
                 var notify = {
                     category: 1,
@@ -2675,7 +2766,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
                     date: time,
                     link: '/sm_itemDetail/' + id,
                     arrow: arrow,
-                    id: loginId[1],
+                    id: login_id,
                     parent_id: parent_id_max,
                     child_id: 0
                 };
@@ -2729,6 +2820,7 @@ app.post('/sm_itemDetail/:id/comments', function(req, res) { // 댓글
 });
 
 app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { // 대댓글
+    var login_id = loginId[1];
 
     var product_name;
     var iNum = req.params.i;
@@ -2780,7 +2872,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
                         res.status(500);
                     }
                     //console.log(result[0].session_id);
-                    if (result[0].session_id == loginId[1]) {
+                    if (result[0].session_id == login_id) {
                         arrow = null;
                     } else {
                         arrow = result[0].session_id;
@@ -2794,7 +2886,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
             function(callback) {
                 var comment = {
                     product_id: req.params.id,
-                    session_id: loginId[1],
+                    session_id: login_id,
                     comment_detail: contents,
                     comment_date: m.format("YYYY-MM-DD HH:mm"),
                     parent_id: pid,
@@ -2820,7 +2912,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
             },
             function(callback) {
                 var time = getTimeStamp();
-                detail = '"' + product_name + '"' + " 게시글에 " + loginId[1] + "님이 답글을 남기셨습니다.";
+                detail = '"' + product_name + '"' + " 게시글에 " + login_id + "님이 답글을 남기셨습니다.";
 
                 var notify = {
                     category: 1,
@@ -2829,7 +2921,7 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
                     date: time,
                     link: '/sm_itemDetail/' + id,
                     arrow: arrow,
-                    id: loginId[1],
+                    id: login_id,
                     parent_id: pid,
                     child_id: child_id_max
                 };
@@ -4433,8 +4525,8 @@ app.get('/category/:id', function(req, res) {
 
                 function(callback) {
                     if ((searchText !== '') && (searchText !== undefined)) {
-                        sql = 'SELECT * FROM ProductInfo WHERE product_category=? AND product_name LIKE ?';
-                        client.query(sql, [option, '%' + searchText + '%'], function(err, result) {
+                        sql = 'SELECT * FROM ProductInfo WHERE product_category=? AND product_name LIKE ? AND noticeType LIKE ?';
+                        client.query(sql, [option, '%' + searchText + '%', 'S'], function(err, result) {
                             rows = result;
                             for (var i in result) {
                                 photo.push((result[i].photo1).substring(1));
@@ -4442,7 +4534,7 @@ app.get('/category/:id', function(req, res) {
                             callback(null);
                         });
                     } else {
-                        client.query('SELECT * FROM ProductInfo WHERE product_category=?', [option], function(err, result) {
+                        client.query('SELECT * FROM ProductInfo WHERE product_category=? AND noticeType LIKE ?', [option, 'S'], function(err, result) {
                             for (var i in result) {
                                 photo.push((result[i].photo1).substring(1));
                             }
@@ -4473,7 +4565,7 @@ app.get('/category/:id', function(req, res) {
     }
 
 });
-///category/
+
 app.post('/category/:id', function(req, res) {
     scrapImg = req.body.scrapImg;
     scrapName = req.body.scrapName;
@@ -4485,7 +4577,7 @@ app.post('/category/:id', function(req, res) {
     if (scrapImg === "★") {
         async.series([
                 function(callback) {
-                    client.query('SELECT * FROM ProductInfo WHERE product_name=?', [scrapName], function(err, result) {
+                    client.query('SELECT * FROM ProductInfo WHERE product_name=? AND noticeType LIKE ?', [scrapName, 'S'], function(err, result) {
                         photo = result[0].photo1;
                         seller = result[0].product_seller;
                         p_id = result[0].product_id;
@@ -6002,3 +6094,253 @@ app.get('/sm_urgent/:pid', function(request, response) {
     async.series(tasks, function(err, results) {});
 
 });
+
+app.get('/sm_buy', function(req, res) {
+  var sql;
+  var alerm;
+
+  async.series([
+    function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        callback(null);
+      });
+    }
+  ],
+  function(err){
+    sql = 'SELECT * FROM BuyInfo ORDER BY auto DESC';
+
+    client.query(sql, function(err, result){
+      res.render('sm_buy.ejs', {
+        session_id: loginId[1],
+        alerm: alerm,
+        rows: result
+      });
+    });
+  });
+});
+
+app.get('/sm_addBuyingItems', function(req, res){
+  var sql;
+
+  sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+
+  client.query(sql, [loginId[1]], function(err, result){
+    res.render('sm_addBuyingItems.ejs', {
+      session_id: loginId[1],
+      alerm: result.length
+    });
+  });
+});
+
+app.post('/sm_addBuyingItems', function(req, res){
+  var body = req.body;
+  var login_id = loginId[1];
+  var date = getTimeStamp();
+  var alerm;
+
+  var sql;
+
+  var product = {
+      product_name: body.product,
+      product_price: body.price,
+      product_detail: body.detail,
+      product_seller: login_id,
+      product_date: date,
+      noticeType: 'B',
+      product_period: body.category
+  };
+
+  async.series([
+    function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    }
+  ], function(err){
+    sql = 'INSERT INTO ProductInfo SET ?';
+    client.query(sql, product, function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(500);
+        } else {
+          res.render('sm_buy.ejs', {
+            session_id: loginId[1],
+            alerm: alerm
+          });
+        }
+    });
+  });
+
+});
+
+app.get('/sm_buy_itemDetail/:auto/:num', function(req, res){
+  var auto = req.params.auto;  // 상품번호
+  var number = req.params.num;  // 순번
+
+  var sql;
+
+  var results;
+  var photo = [];
+  var user;
+  var avgRating;
+
+  async.series([
+    function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    },
+    function(callback){
+      sql = 'SELECT product_seller FROM ProductInfo WHERE auto=? AND noticeType LIKE ?';
+
+      client.query(sql, [auto, 'B'], function(err, result){
+        user = result[0].user;
+        callback(null);
+      });
+    },
+    function(callback){
+      sql = 'SELECT * FROM ProductInfo WHERE product_id=? AND noticeType LIKE ? ORDER BY product_price ASC';
+
+      client.query(sql, [auto, 'B'], function(err, result){
+        //console.log(result);
+        for (var i in result) {
+            photo.push((result[i].photo1).substring(1));
+            //console.log(photo);
+        }
+        results = result;
+        callback(null);
+      });
+    },
+    function(callback) {
+        sql = 'SELECT AVG(starScore) AS avgStar FROM TradeReview WHERE trader=?';
+        client.query(sql, [loginId[1]], function(err, result) {  // trader를 login_id랑 매칭해도 되는가????????
+            if (err) {
+                throw err;
+            }
+            //console.log(result.length);
+
+            if (result.length > 0) {
+                avgRating = result[0].avgStar;
+            } else {
+                avgRating = 0;
+            }
+            callback(null);
+        });
+    }
+  ],
+  function(err, result){
+    sql = 'SELECT * FROM BuyInfo WHERE auto=?';
+
+    client.query(sql, [auto], function(err, result){
+      res.render('sm_buy_itemDetail.ejs', {
+        session_id: loginId[1],
+        alerm: alerm,
+        rows: result[0],  //result[0]: "삽니다" 게시판 주인공 글
+        num: number,
+        user: user,
+        results: results,  //results: 물건을 파려는 사람의 글
+        avgRating: avgRating,
+        photo: photo
+      });
+    });
+  });
+
+});
+
+app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res){
+  var auto = req.params.auto;
+  var number = req.params.num;
+
+  var body = req.body;
+  var login_id = loginId[1];
+  var date = getTimeStamp();
+
+  var productName;
+  var child_id_max;
+
+  var sql;
+
+  var file = req.files.file;
+  var name = file.name;
+  var path = file.path;
+  var type = file.type;
+
+  if (type.indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
+      outputPath = './fileUploads/' + Date.now() + '_' + name;
+      fs.rename(path, outputPath, function(err) {});
+  }
+
+  async.series([
+    function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [login_id], function(err, result){
+        alerm = result.length;
+        //console.log(result.length);
+        callback(null);
+      });
+    },
+    function(callback){
+      sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
+      client.query(sql, [auto], function(err, result){
+        productName = result[0].product_name;
+        callback(null);
+      });
+    },
+    function(callback){
+      sql = 'SELECT MAX(child_id) FROM ProductInfo WHERE parent_id=?';
+      client.query(sql, [auto], function(err, result){
+        child_id_max = `${result[0]['MAX(child_id)']+1}`;
+        callback(null);
+      });
+    }
+  ],
+  function(err){
+    sql = 'INSERT INTO ProductInfo SET ?';
+
+    var product = {
+        product_name: productName,
+        product_price: body.price,
+        photo1: outputPath,
+        product_detail: body.detail,
+        product_seller: login_id,
+        prodct_date: date,
+        noticeType: 'B',
+        parent_id: auto,
+        child_id: child_id_max
+    };
+
+    client.query(sql, product, function(err, result) {
+        if (err) {
+            console.log(err);
+            res.status(500);
+        } else {
+          var str = '/sm_buy_itemDetail/' + auto + '/' + number;
+          res.redirect(str);
+        }
+    });
+  });
+
+});
+
+// app.post('/sm_buy_itemDetail/delete', function(req, res){
+//   var auto = req.body.auto;
+//   var number = req.body.num;
+//
+//   var sql;
+//
+//   sql = 'DELETE FROM SellInfo WHERE auto=?';
+//
+//   client.query(sql, [auto], function(err, result) {
+//     var str = '/sm_buy_itemDetail/' + auto + '/' + number;
+//     res.redirect(str);
+//   });
+// });
