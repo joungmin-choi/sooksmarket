@@ -46,9 +46,16 @@
 
               <td><a style="font-weight:bold;"><%= results[i].pName%> </a></td>
 
+              <% if(results[i].reserve_count == -1) { %>
+                <td>
+                  자동 예약 취소
+                </td>
+
+                <% } else { %>
               <td> 대기번호 :
                 <%= results[i].reserve_count %>
               </td>
+              <% } %>
 
             </tr>
             <% } %>

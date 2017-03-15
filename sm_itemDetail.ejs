@@ -12,39 +12,37 @@
                 cursor: context-menu;
             }
 
-            .star{
-              font-size: 15px;
-              color: #ffa500;
-              font-family: arial;
+            .star {
+                font-size: 15px;
+                color: #ffa500;
+                font-family: arial;
             }
 
-            .not{
-              font-size: :15px;
-              color: #cccccc;
-              font-family: arial;
+            .not {
+                font-size: :15px;
+                color: #cccccc;
+                font-family: arial;
             }
 
-            #area{
-              height: 80px;
-              margin-bottom: 2%;
-              background-color: aliceblue;
+            #area {
+                height: 80px;
+                margin-bottom: 2%;
+                background-color: aliceblue;
             }
 
-            ._edit{
-              margin-bottom: 1%;
+            ._edit {
+                margin-bottom: 1%;
             }
 
-            .btn-warning{
-              background-color: mediumblue;
-              border-color: mediumblue;
-
+            .btn-warning {
+                background-color: mediumblue;
+                border-color: mediumblue;
             }
         </style>
         <script>
-
             var next = `<%= nextReserveCustomer %>`;
             $(document).ready(function() {
-              var session_id = `<%= session_id %>`;
+                var session_id = `<%= session_id %>`;
 
                 $('._edit').hide();
                 $('.re').hide();
@@ -52,104 +50,99 @@
                     $(this).next().toggle();
                 });
 
-                $('.edit').click(function(){
-                  var id = $(this).attr('id');
-                  $('.' + id).removeAttr("disabled");
-                  $('#_'+id).show();
-                  });
+                $('.edit').click(function() {
+                    var id = $(this).attr('id');
+                    $('.' + id).removeAttr("disabled");
+                    $('#_' + id).show();
+                });
 
 
-                  if(`${<%= flag %>}` == 1 ){
-                  if(`${<%= delete_btn %>}`== 0){
-                    $('#button_delete').attr("disabled",true);
-                    $('#button_change').attr("disabled",true);
-                    $('#button_buy').attr("disabled",true);
-                  }
-                } else {
-                  if(next !== null){
-
-                  } else {
-                      $('#button_reserve').attr("disabled",true);
+                if (`${<%= flag %>}` == 1) {
+                    if (`${<%= delete_btn %>}` == 0) {
+                        $('#button_delete').attr("disabled", true);
+                        $('#button_change').attr("disabled", true);
+                        $('#button_buy').attr("disabled", true);
                     }
-                  }
+                } else {
+                    if (next !== null) {
 
-                  if(session_id === 'sooksmarket'){
-                    $('#button_delete').attr("disabled",false);
-                  }
+                    } else {
+                        $('#button_reserve').attr("disabled", true);
+                    }
+                }
+
+                if (session_id === 'sooksmarket') {
+                    $('#button_delete').attr("disabled", false);
+                }
 
 
 
-                  var reserve_flag=0;
+                var reserve_flag = 0;
 
-                  var reserveMembers = new Array();
-                  <% for(var i=0; i<reserveMember.length; i++){ %>
-                    <% if(session_id == reserveMember[i].session_id){ %>
-                        reserve_flag =1;
-                      <% } %>
-                  <% } %>
+                var reserveMembers = new Array();
+                <% for(var i=0; i<reserveMember.length; i++){ %>
+                <% if(session_id == reserveMember[i].session_id){ %>
+                reserve_flag = 1;
+                <% } %>
+                <% } %>
 
-                  if(reserve_flag == 1){
+                if (reserve_flag == 1) {
 
-                  } else {
-                    $('#button_reserve_no').attr("disabled",true);
-                  }
+                } else {
+                    $('#button_reserve_no').attr("disabled", true);
+                }
             });
 
-            function buy(){
-              var button_buy_after = document.getElementById("button_buy_after");
-              var button_buy = document.getElementById("button_buy");
+            function buy() {
+                var button_buy_after = document.getElementById("button_buy_after");
+                var button_buy = document.getElementById("button_buy");
 
-              button_buy_after.style.display="";
-              button_buy.style.display="none";
+                button_buy_after.style.display = "";
+                button_buy.style.display = "none";
 
-              location.href='/sm_request/<%= id %>/0';
+                location.href = '/sm_request/<%= id %>/0';
             };
 
 
-            function reserve(){
+            function reserve() {
 
-              var flag=0;
-              var session_id = `<%= session_id %>`;
-              var reserveMembers = new Array();
-              <% for(var i=0; i<reserveMember.length; i++){ %>
+                var flag = 0;
+                var session_id = `<%= session_id %>`;
+                var reserveMembers = new Array();
+                <% for(var i=0; i<reserveMember.length; i++){ %>
                 <% if(session_id == reserveMember[i].session_id){ %>
-                    flag =1;
-                  <% } %>
-              <% } %>
-              // reserveMembers = `<%= reserveMember %>`;
-              // var reserveMember_length= `<%= reserveMember.length %>`;
+                flag = 1;
+                <% } %>
+                <% } %>
+                // reserveMembers = `<%= reserveMember %>`;
+                // var reserveMember_length= `<%= reserveMember.length %>`;
 
-              if(flag == 1){
-                alert("당신은 이미 대기상태 입니다")
-              } else {
-                var button_reserve_after = document.getElementById("button_reserve_after");
-                var button_reserve = document.getElementById("button_reserve");
+                if (flag == 1) {
+                    alert("당신은 이미 대기상태 입니다")
+                } else {
+                    var button_reserve_after = document.getElementById("button_reserve_after");
+                    var button_reserve = document.getElementById("button_reserve");
 
-                button_reserve_after.style.display="";
-                button_reserve.style.display="none";
+                    button_reserve_after.style.display = "";
+                    button_reserve.style.display = "none";
 
-                var reserve_count = `${<%= reserve_ordernumber %>}`;
-                alert(" 당신은 "+reserve_count+"번째 대기자 입니다 :)");
-                location.href='/sm_request/<%= id %>/reserve/<%= session_id%>';
-              }
-          };
-
-
-          function reserve_no (){
-            alert("예약이 취소되었습니다");
-            location.href='/sm_request/<%= id %>/reserve_no/<%= session_id%>';
-          }
-
-          function submitCheck(link){
-            var myForm = document.getElementById("myForm");
-            myForm.action = link;
-            myForm.submit();
-          }
+                    var reserve_count = `${<%= reserve_ordernumber %>}`;
+                    alert(" 당신은 " + reserve_count + "번째 대기자 입니다 :)");
+                    location.href = '/sm_request/<%= id %>/reserve/<%= session_id%>';
+                }
+            };
 
 
+            function reserve_no() {
+                alert("예약이 취소되었습니다");
+                location.href = '/sm_request/<%= id %>/reserve_no/<%= session_id%>';
+            }
 
-
-
+            function submitCheck(link) {
+                var myForm = document.getElementById("myForm");
+                myForm.action = link;
+                myForm.submit();
+            }
         </script>
 
 </head>
@@ -158,233 +151,251 @@
     <!-- Navigation -->
     <% include ./sm_top_navigator %>
 
-    <!-- Page Content -->
-    <div class="container">
-      <!-- Introduction Row -->
-      <!-- Team Members Row -->
-      <div class="row">
-        <!-- 0-->
-        <div class="col-lg-12 text-center">
-          <h3 class="page-header"><%= name %></h3>
-        </div>
-        <!-- 1-->
-        <div class="thumbnail">
+        <!-- Page Content -->
+        <div class="container">
+            <!-- Introduction Row -->
+            <!-- Team Members Row -->
+            <div class="row">
+                <!-- 0-->
+                <div class="col-lg-12 text-center">
+                    <h3 class="page-header"><%= name %></h3>
+                </div>
+                <!-- 1-->
+                <div class="thumbnail">
 
-          <% for (i=0; i< photo.length; i++){
+                    <% for (i=0; i< photo.length; i++){
 
             if (photo[i] != ""){ %>
-              <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="300" height="200"/>
-              <br/>
-            <% } %>
+                        <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="300" height="200" />
+                        <br/>
+                        <% } %>
 
-            <% if (photo[0] == ""){ %>
-              <br/><br/></br/>
-            <% }
+                            <% if (photo[0] == ""){ %>
+                                <br/><br/>
+                                </br/>
+                                <% }
           } %>
 
-          <br/>
-          <table class="table table-hover">
-            <tbody class="text-center">
-              <tr>
-                <td>등록일 : </td>
-                <td><%= date %></td>
-              </tr>
-              <!--
+                                    <br/>
+                                    <table class="table table-hover">
+                                        <tbody class="text-center">
+                                            <tr>
+                                                <td>등록일 : </td>
+                                                <td>
+                                                    <%= date %>
+                                                </td>
+                                            </tr>
+                                            <!--
               <tr>
                 <td>팔고자 하는 물건 : </td>
                 <td><%= name %></td>
               </tr>
             -->
-              <tr>
-                <td>판매자 ID : </td>
-                <td>
-                  <a href="/sm_review/search/<%= seller %>" title="후기 보기" style="">
-                    <%= seller %>
-                  </a>
-                  <% if(avgRating != 0){
+                                            <tr>
+                                                <td>판매자 ID : </td>
+                                                <td>
+                                                    <a href="/sm_review/search/<%= seller %>" title="후기 보기" style="">
+                                                        <%= seller %>
+                                                    </a>
+                                                    <% if(avgRating != 0){
                       if(avgRating >= 4.7){ %>
-                        <br/><label class="star">★★★★★</label>
-                    <% }else if((avgRating>=3.7)&&(avgRating<4.7)){ %>
-                        <br/><label class="star">★★★★</label><label class="not">★</label>
-                    <% }else if((avgRating>=2.7)&&(avgRating<3.7)){ %>
-                        <br/><label class="star">★★★</label><label class="not">★★</label>
-                    <% }else if((avgRating>=1.7)&&(avgRating<2.7)){ %>
-                        <br/><label class="star">★★</label><label class="not">★★★</label>
-                    <% }else if((avgRating>=1)&&(avgRating<1.7)){ %>
-                        <br/><label class="star">★</label><label class="not">★★★★</label>
-                    <% } %>
-                  <% } %>
-                </td>
-              </tr>
-              <tr>
-                <td>가격 : </td>
-                <td><%= price %></td>
-              </tr>
-              <tr>
-                <td>희망 거래 방법 : </td>
-                <td>
-                  <% if(way == 1){ %>
-                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
-                    <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>사물함거래</label>
-                  <% }else if (way == 2){ %>
-                    <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>직거래</label>
-                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
-                  <% }else { %>
-                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
-                    <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
-                  <% } %>
-                </td>
-                </tr>
-                <tr>
-                  <td>상세내용 : </td>
-                  <td><textarea class="form-control col-sm-5" rows="5" style="cursor:context-menu; background-color:white; resize: none;" disabled><%= detail %></textarea></td>
-                </tr>
-              </tbody>
-            </table>
+                                                        <br/><label class="star">★★★★★</label>
+                                                        <% }else if((avgRating>=3.7)&&(avgRating<4.7)){ %>
+                                                            <br/><label class="star">★★★★</label><label class="not">★</label>
+                                                            <% }else if((avgRating>=2.7)&&(avgRating<3.7)){ %>
+                                                                <br/><label class="star">★★★</label><label class="not">★★</label>
+                                                                <% }else if((avgRating>=1.7)&&(avgRating<2.7)){ %>
+                                                                    <br/><label class="star">★★</label><label class="not">★★★</label>
+                                                                    <% }else if((avgRating>=1)&&(avgRating<1.7)){ %>
+                                                                        <br/><label class="star">★</label><label class="not">★★★★</label>
+                                                                        <% } %>
+                                                                            <% } %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>가격 : </td>
+                                                <td>
+                                                    <%= price %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>희망 거래 방법 : </td>
+                                                <td>
+                                                    <% if(way == 1){ %>
+                                                        <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
+                                                        <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>사물함거래</label>
+                                                        <% }else if (way == 2){ %>
+                                                            <label class="checkbox-inline"><input type="checkbox" class="disabled" disabled>직거래</label>
+                                                            <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
+                                                            <% }else { %>
+                                                                <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>직거래</label>
+                                                                <label class="checkbox-inline"><input type="checkbox" class="disabled" checked disabled>사물함거래</label>
+                                                                <% } %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>상세내용 :
+                                                    <%= nextReserveCustomer %>
+                                                        <%= isDone %>
+                                                            <%= max_reserve_count %>
+                                                                <%= session_id %>
 
-            <center>
-            <% if(isDone == 0){ %>
+                                                </td>
+                                                <td><textarea class="form-control col-sm-5" rows="5" style="cursor:context-menu; background-color:white; resize: none;" disabled><%= detail %></textarea></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
 
-              <% if(session_id === nextReserveCustomer) { %>
-                <h2>거래를 신청하시겠습니까?</h2><br/>
-                <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_yes/<%= id %>'">수락</button>
-                <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_no/<%= id %>'">거부</button>
-              <% } else if( nextReserveCustomer !== null) { %>
+                                    <center>
+                                        <% if(isDone == 0){ %>
 
-                <% for(var i=0; i<reserveMember.length; i++){ %>
-                  <% if(session_id == reserveMember[i].session_id){ %>
-                      <h1>거래가 진행중입니다.</h1>
-                    <% } %>
-                <% } %>
-                <% if(session_id == seller) { %>
-                  <h1>거래가 진행중입니다.</h1>
-                <% } else { %>
-                  <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
-                  <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
-                <% } %>
-              <% } else { %>
+                                            <%  if(max_reserve_count == -1) { %>
+                                                <h5 style="color:red;font-weight:bold;">상품 거래 완료중, 다른 상품을 이용해주세요</h5>
+                                                <%  } else { %>
 
-                  <% if(session_id === 'sooksmarket') { %>
-                    <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
-                  <% } else { %>
+                                                    <% if(session_id === nextReserveCustomer) { %>
+                                                        <h2>거래를 신청하시겠습니까?</h2><br/>
+                                                        <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_yes/<%= id %>'">수락</button>
+                                                        <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_no/<%= id %>'">거부</button>
+                                                        <% } else if( nextReserveCustomer !== null) { %>
+                                                            <h1>들어옴</h1>
 
-                      <% if(session_id === 'sooksmarket') { %>
-                        <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
-                      <% } else { %>
+                                                            <% for(var i=0; i<reserveMember.length; i++){ %>
+                                                                <% if(session_id == reserveMember[i].session_id) { %>
+                                                                    <h1>거래가 진행중입니다.</h1>
+                                                                    <% } %>
+                                                                        <% } %>
 
-                        <% if (session_id != seller){ %>
-                          <button class="btn btn-primary" id="button_buy_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 구매하기</button>
-                          <button id="button_buy" type="button" class="btn btn-primary" onclick="buy();">구매하기</button>
+                                                                            <% if(session_id == seller) { %>
+                                                                                <h1>거래가 진행중입니다.</h1>
+                                                                                <% } else { %>
+                                                                                    <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber %>명</button>
+                                                                                    <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
+                                                                                    <% } %>
+                                                                                        <% } else { %>
 
-                          <button class="btn btn-primary" id="button_reserve_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
-                          <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
-                          <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
-                        <% } %>
 
-                        <% if (session_id == seller){ %>
-                    <!--<button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>-->
-                        <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
-                        <button id="button_change" type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
-                        <% } %>
-                    <% } %>
-                <% } %>
-              <% } %>
+                                                                                            <% if(session_id === 'sooksmarket') { %>
+                                                                                                <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+                                                                                                <% } else { %>
 
-            <% }else{ %>
-              <h5 style="color:red;font-weight:bold;">판매 완료된 상품입니다.</h5>
-            <% } %>
+                                                                                                    <% if (session_id !== seller){ %>
+                                                                                                        <button class="btn btn-primary" id="button_buy_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 구매하기</button>
+                                                                                                        <button id="button_buy" type="button" class="btn btn-primary" onclick="buy();">구매하기</button>
 
-            </center>
+                                                                                                        <button class="btn btn-primary" id="button_reserve_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약하기/현재 대기자수 <%= reserve_ordernumber %>명</button>
+                                                                                                        <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
+                                                                                                        <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
+                                                                                                        <% } %>
 
-          </div>
-        </div>
+                                                                                                            <% if (session_id == seller) { %>
+                                                                                                                <!--<button type="button" class="btn btn-primary" onclick="location.href='/sm_chat/<%= id %>'">채팅하기</button>-->
+                                                                                                                <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+                                                                                                                <button id="button_change" type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
+                                                                                                                <% } %>
+
+                                                                                                                    <% } %>
+
+                                                                                                                        <% } %>
+                                                                                                                            <% } %>
+
+                                                                                                                                <% } else { %>
+                                                                                                                                    <h5 style="color:red;font-weight:bold;">판매 완료된 상품입니다.</h5>
+                                                                                                                                    <% } %>
+
+
+
+                                    </center>
+
+                </div>
+            </div>
 
 
             <hr>
 
-      <form id="myForm" method='post'>
+            <form id="myForm" method='post'>
 
-            <div class="write_comment">
-                <h5>문의는 댓글로 남겨주세요:)</h5>
+                <div class="write_comment">
+                    <h5>문의는 댓글로 남겨주세요:)</h5>
 
 
-                  <input type="hidden" name="hidden" id="hidden" value="<%= seller %>" />
+                    <input type="hidden" name="hidden" id="hidden" value="<%= seller %>" />
 
                     <div class="form-group">
                         <textarea class="form-control" rows="3" name="comment_detail"></textarea>
                     </div>
                     <button type="button" class="btn btn-warning btn-sm" onclick="submitCheck('/sm_itemDetail/<%= id %>/comments');">보내기</button>
-                <!-- </form> -->
-            </div>
+                    <!-- </form> -->
+                </div>
 
-            <!-- Comment -->
-            <% for (i=0,j=0; i<`${rows.length}`; i++) { %>
-              <% if(rows[i].child_id == 0 ) { %>
-                <div class="media">
-                    <div class="media-body">
-                      <h4 class="media-heading"><%= rows[i].session_id %>
+                <!-- Comment -->
+                <% for (i=0,j=0; i<`${rows.length}`; i++) { %>
+                    <% if(rows[i].child_id == 0 ) { %>
+                        <div class="media">
+                            <div class="media-body">
+                                <h4 class="media-heading"><%= rows[i].session_id %>
                       <small><%= rows[i].comment_date %></small>
                       </h4>
-                      <!-- <form id="myForm1" method='post' action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'> -->
-                      <textarea id="area" name="comment" class="edit<%=i %> form-control" disabled style="cursor: context-menu;"><%= rows[i].comment_detail  %></textarea>
-                        <% if(rows[i].session_id === session_id ) { %>
-                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit');">수정 완료</button>
-                            <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
-                            <button type="button" class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
-                        <% } else if(session_id === 'sooksmarket') { %>
-                          <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
-                        <% } %>
-                      <!-- </form> -->
-                            <button type="button" class="reply btn btn-warning btn-xs" id="reply<%=i %>" >답글</button>
-                            <div id=reply_element class="re">
-                                <h5>댓글을 남겨주세요:)</h5>
-                                <!-- <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply' method='post' role="form"> -->
-                                    <div class="form-group">
-                                        <textarea class="form-control" rows="3" name="each_comment_detail"></textarea>
-                                    </div>
+                                <!-- <form id="myForm1" method='post' action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'> -->
+                                <textarea id="area" name="comment" class="edit<%=i %> form-control" disabled style="cursor: context-menu;"><%= rows[i].comment_detail  %></textarea>
+                                <% if(rows[i].session_id === session_id ) { %>
+                                    <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit');">수정 완료</button>
+                                    <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
+                                    <button type="button" class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
+                                    <% } else if(session_id === 'sooksmarket') { %>
+                                        <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
+                                        <% } %>
+                                            <!-- </form> -->
+                                            <button type="button" class="reply btn btn-warning btn-xs" id="reply<%=i %>">답글</button>
+                                            <div id=reply_element class="re">
+                                                <h5>댓글을 남겨주세요:)</h5>
+                                                <!-- <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply' method='post' role="form"> -->
+                                                <div class="form-group">
+                                                    <textarea class="form-control" rows="3" name="each_comment_detail"></textarea>
+                                                </div>
 
-                                    <button type="button" class="btn btn-default btn-sm" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply/<%=j%>');">보내기</button>
-                                    <% j++ %>
+                                                <button type="button" class="btn btn-default btn-sm" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply/<%=j%>');">보내기</button>
+                                                <% j++ %>
 
-                                <!-- </form> -->
+                                                    <!-- </form> -->
+                                            </div>
                             </div>
-                    </div>
-                </div>
-                <% } else { %>
-                  <div class="media">
-                    <a class="pull-left" href="#">
-                      <img src="/img/snow.gif" width="32" alt="" />
-                      <!-- <img class="media-object" src="http://placehold.it/32x32" alt=""> -->
-                    </a>
-                      <div class="media-body">
-                        <!-- <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit' method='post' role="form"> -->
-                          <h4 class="media-heading"><%= rows[i].session_id %>
+                        </div>
+                        <% } else { %>
+                            <div class="media">
+                                <a class="pull-left" href="#">
+                                    <img src="/img/snow.gif" width="32" alt="" />
+                                    <!-- <img class="media-object" src="http://placehold.it/32x32" alt=""> -->
+                                </a>
+                                <div class="media-body">
+                                    <!-- <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit' method='post' role="form"> -->
+                                    <h4 class="media-heading"><%= rows[i].session_id %>
                           <small><%= rows[i].comment_date %></small>
                           </h4>
 
-                          <!-- <form id="myForm" method='post' action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'> -->
-                          <textarea name="comment" class="edit<%=i %> form-control" disabled style="cursor: context-menu;"><%= rows[i].comment_detail  %></textarea>
+                                    <!-- <form id="myForm" method='post' action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit'> -->
+                                    <textarea name="comment" class="edit<%=i %> form-control" disabled style="cursor: context-menu;"><%= rows[i].comment_detail  %></textarea>
 
-                          <% if(rows[i].session_id === session_id ) { %>
-
-
-                            <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit');">수정 완료</button>
-
-                              <!-- </form> -->
-                              <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
-                              <button type="button" class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
-                              <% } else if(session_id === 'sooksmarket') { %>
-                                <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
-                            <% } %>
+                                    <% if(rows[i].session_id === session_id ) { %>
 
 
-                      </div>
-                  </div>
-            <%  } } %>
+                                        <button class="_edit btn btn-warning btn-xs" id="_edit<%=i %>" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/edit');">수정 완료</button>
 
-              </form>
-                    <!-- Footer -->
-                    <% include ./sm_footer %>
+                                        <!-- </form> -->
+                                        <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
+                                        <button type="button" class="edit btn btn-warning btn-xs" id="edit<%=i %>">수정</button>
+                                        <% } else if(session_id === 'sooksmarket') { %>
+                                            <button type="button" class="btn btn-warning btn-xs" onclick="location.href='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/<%= rows[i].child_id %>/delete'">삭제</button>
+                                            <% } %>
+
+
+                                </div>
+                            </div>
+                            <%  } } %>
+
+            </form>
+            <!-- Footer -->
+            <% include ./sm_footer %>
 
         </div>
         <!-- /container -->
