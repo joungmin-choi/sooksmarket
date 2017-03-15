@@ -6123,9 +6123,10 @@ app.get('/sm_buy', function(req, res) {
     }
   ],
   function(err){
-    sql = 'SELECT * FROM BuyInfo ORDER BY auto DESC';
+    sql = 'SELECT * FROM ProductInfo WHERE noticeType LIKE ?';
 
-    client.query(sql, function(err, result){
+    client.query(sql, ['B'], function(err, result){
+      //console.log(result);
       res.render('sm_buy.ejs', {
         session_id: loginId[1],
         alerm: alerm,
@@ -6159,6 +6160,9 @@ app.post('/sm_addBuyingItems', function(req, res){
   var product = {
       product_name: body.product,
       product_price: body.price,
+      photo1: "",
+      photo2: "",
+      photo3: "",
       product_detail: body.detail,
       product_seller: login_id,
       product_date: date,
@@ -6182,10 +6186,7 @@ app.post('/sm_addBuyingItems', function(req, res){
             console.log(err);
             res.status(500);
         } else {
-          res.render('sm_buy.ejs', {
-            session_id: loginId[1],
-            alerm: alerm
-          });
+          res.redirect('/sm_buy');
         }
     });
   });
@@ -6203,6 +6204,7 @@ app.get('/sm_buy_itemDetail/:auto/:num', function(req, res){
   var user;
   var avgRating;
 
+
   async.series([
     function(callback){
       sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
@@ -6213,18 +6215,18 @@ app.get('/sm_buy_itemDetail/:auto/:num', function(req, res){
       });
     },
     function(callback){
-      sql = 'SELECT product_seller FROM ProductInfo WHERE auto=? AND noticeType LIKE ?';
+      sql = 'SELECT product_seller FROM ProductInfo WHERE product_id=? AND noticeType LIKE ?';
 
       client.query(sql, [auto, 'B'], function(err, result){
-        user = result[0].user;
+        user = result[0].product_seller;
         callback(null);
       });
     },
     function(callback){
-      sql = 'SELECT * FROM ProductInfo WHERE product_id=? AND noticeType LIKE ? ORDER BY product_price ASC';
+      sql = 'SELECT * FROM ProductInfo WHERE (parent_id=? AND noticeType LIKE ?) ORDER BY product_price ASC';
 
       client.query(sql, [auto, 'B'], function(err, result){
-        //console.log(result);
+        console.log(result);
         for (var i in result) {
             photo.push((result[i].photo1).substring(1));
             //console.log(photo);
@@ -6250,8 +6252,8 @@ app.get('/sm_buy_itemDetail/:auto/:num', function(req, res){
         });
     }
   ],
-  function(err, result){
-    sql = 'SELECT * FROM BuyInfo WHERE auto=?';
+  function(err){
+    sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
 
     client.query(sql, [auto], function(err, result){
       res.render('sm_buy_itemDetail.ejs', {
@@ -6309,9 +6311,15 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
       });
     },
     function(callback){
-      sql = 'SELECT MAX(child_id) FROM ProductInfo WHERE parent_id=?';
+      sql = 'SELECT MAX(parent_id), MAX(child_id) FROM ProductInfo WHERE product_id=?';
       client.query(sql, [auto], function(err, result){
-        child_id_max = `${result[0]['MAX(child_id)']+1}`;
+        //console.log(result);
+        if(`${result[0]['MAX(parent_id)']+1}` === null){
+          child_id_max = 1;
+        }else{
+          child_id_max = `${result[0]['MAX(child_id)']+1}`;
+        }
+
         callback(null);
       });
     }
@@ -6323,9 +6331,11 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
         product_name: productName,
         product_price: body.price,
         photo1: outputPath,
+        photo2: "",
+        photo3: "",
         product_detail: body.detail,
         product_seller: login_id,
-        prodct_date: date,
+        product_date: date,
         noticeType: 'B',
         parent_id: auto,
         child_id: child_id_max
