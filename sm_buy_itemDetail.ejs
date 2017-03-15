@@ -44,6 +44,66 @@
       }
     };
 
+    window.onload = function(){
+      var countTimer = setInterval(stopWatch, 1000);
+    }
+
+    function stopWatch(){
+      var postTime = `<%= rows.product_date %>`;
+      var period = `<%= rows.product_period %>`;
+      var remainTimeDiv = document.getElementById("remainTimeDiv");
+      var requestSellingDiv = document.getElementById("requestSellingDiv");
+      var periodIntDays = parseInt(period.substring(0,1));
+
+      var date = new Array();
+      var time = new Array();
+
+      date[0] = parseInt(postTime.substring(0,4));
+      date[1] = parseInt(postTime.substring(5,7))-1;
+      date[2] = parseInt(postTime.substring(8,10));
+
+      time[0] = parseInt(postTime.substring(11,13));
+      time[1] = parseInt(postTime.substring(14,16));
+      time[2] = parseInt(postTime.substring(17,19));
+
+      var convertedPostTime = new Date(date[0], date[1], date[2], time[0], time[1], time[2]);
+      var dueTime = new Date(date[0], date[1], date[2]+periodIntDays, time[0], time[1], time[2]);
+
+      var presentTime = new Date();
+
+      periodIntDays = periodIntDays * 86400000;
+
+      if(dueTime < presentTime){
+        remainTimeDiv.innerHTML = "마감되었습니다.";
+        requestSellingDiv.style.display = "none";
+        clearInterval(countTimer);
+      }else{
+        var interval = dueTime - presentTime;
+        var dateLeft, hourLeft, minuteLeft, secondLeft;
+
+        interval = parseInt(interval/1000);
+        dateLeft = parseInt(interval/86400);
+        interval = parseInt(interval % 86400);
+        hourLeft = parseInt(interval/3600);
+        interval = parseInt(interval % 3600);
+        minuteLeft = parseInt(interval/60);
+        interval = parseInt(interval % 60);
+        secondLeft = parseInt(interval);
+
+        var leftStr = "";
+        if(dateLeft > 0) leftStr += "<b>"+dateLeft+"</b>일 ";
+        if(hourLeft > 0) leftStr += "<b>"+hourLeft+"</b>시간 ";
+        if(minuteLeft > 0) leftStr += "<b>"+minuteLeft+"</b>분 ";
+        leftStr += "<b>"+secondLeft+"</b>초";
+        remainTimeDiv.innerHTML = leftStr;
+      }
+    }
+
+    function buyRequest(productId){
+      var link = '/sm_request/'+ productId + '/0';
+      location.href = link;
+    }
+
   </script>
 
 </head>
@@ -59,8 +119,9 @@
       <br/><br/>
     </div>
 
-    <div class="row" style="margin-left:3%;">
-        <table class="table table-hover table-striped table-bordered" style="width:80%; margin:auto; margin-bottom:3%">
+    <div class="col-xs-12 col-md-10 col-md-offset-1">
+    <div class="row" style="">
+        <table class="table table-hover table-striped table-bordered" style="margin:auto; margin-bottom:3%">
           <tbody class="text-center">
             <tr>
               <td><strong>상품명</strong></td>
@@ -80,22 +141,20 @@
             </tr>
             <tr>
               <td><strong>남은 시간</strong></td>
-              <td>시간 카운트 하기!!</td>
+              <td><div id="remainTimeDiv"></div></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <hr />
-
       <% if (session_id != rows.product_seller){ %>
-        <div style="text-align:center">
-          <button type="button" class="btn btn-default" style="margin-bottom:1%;" data-toggle="collapse" data-target="#reportDiv">판매신청하기</button>
+        <div id="requestSellingDiv" style="text-align:center">
+          <button type="button" class="btn btn-success" style="margin-top:5px;" data-toggle="collapse" data-target="#reportDiv">판매 신청하기</button>
         </div>
       <% } %>
 
-      <div class="col-xs-12 col-md-8 col-md-offset-2">
-      <div id="reportDiv" class="collapse text-center">
+      <div class="col-xs-13 col-md-8 col-md-offset-2">
+      <div id="reportDiv" class="collapse text-center" style="margin-top:10px;">
         <form id="form" name="form" method='post' enctype="multipart/form-data" action="/sm_buy_itemDetail/<%= `${rows.product_id}` %>/<%= `${num}` %>">
         <table class="table table-bordered">
           <tbody class="text-center">
@@ -108,7 +167,7 @@
             <tr>
               <td>가격</td>
               <td>
-                <input type="text" id="price" class="form-control" name="price" placeholder="가격(숫자)을 입력해주세요.">
+                <input type="text" id="price" class="form-control" name="price" placeholder="숫자만 입력해주세요.">
               </td>
             </tr>
             <tr>
@@ -119,25 +178,25 @@
             </tr>
           </tbody>
         </table>
-        <button type="button" class="btn btn-success" onclick="addSellProduct();" style="margin-bottom:2%;">신청</button>
+        <button type="button" class="btn btn-primary" onclick="addSellProduct();" style="margin-bottom:2%;">등록</button>
         <!-- <hr /> -->
       </form>
       </div>
       </div>
-
   </div>
+</div>
+
 
   <div class="container">
-    <div class="col-xs-12 col-md-10 col-md-offset-1">
-      <hr />
-
-      <table class="table table-hover table-striped">
+    <div class="col-xs-12 col-md-8 col-md-offset-2">
+      <hr/>
+      <table class="table table-hover table-striped table-responsive table-borderd">
         <% for (i=0; i<`${results.length}`; i++) { %>
-          <tbody class="text-center">
+          <tbody>
             <tr>
-              <td style="width:10%"><%= i+1 %></td>
-              <td style="width:20%">
-                <h5><%= results[i].product_seller %></h5>
+              <td style="text-align:center;"><%= i+1 %></td>
+              <td>
+                <%= results[i].product_seller %>
                 <% if(avgRating != 0){
                       if(avgRating >= 4.7){ %>
                         <label class="star">★★★★★</label>
@@ -152,37 +211,39 @@
                     <% } %>
               <% } %>
               </td>
-              <td style="width:50%; text-align:left">
+            </tr>
+            <tr>
+              <td colspan="2">
                 <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="250"/>
-                <h5 style="padding:0% 25%;word-break:break-all; word-wrap:break-word;">
+                <h5 style="text-align:center;;word-break:break-all; word-wrap:break-word;">
                   <label style="color:blue">가격 : </label> <%= results[i].product_price %> 원
                 </h5>
-                <h5 style="padding:0% 25%;word-break:break-all; word-wrap:break-word;">
+                <h5 style="text-align:center;word-break:break-all; word-wrap:break-word;">
                   <label style="color:blue">내용 : </label> <%= results[i].product_detail %>
                 </h5>
-                <h5 style="padding:0% 25%;word-break:break-all; word-wrap:break-word;">
+                <h5 style="text-align:center;word-break:break-all; word-wrap:break-word;">
                   <label style="color:blue">등록일 : </label> <%= results[i].product_date %>
                 </h5>
-              </td>
-              <td style="width:20%">
+                <div style="text-align:center;">
                 <% if(results[i].product_seller === session_id ) { %>  <!-- 파는 글 올린 사람 -->
                   <button type="button" id="delete" name="delete" class="btn btn-warning" onclick="delete();">삭제</button>
                   <button type="button" id="change" name="change" class="btn btn-primary">수정</button>
                 <% } else if(user === session_id) { %>  <!-- 삽니다 게시글 주인 -->
-                  <button type="button" id="choice" name="choice" class="btn btn-success">구매하기</button>
+                  <button type="button" id="choice" name="choice" class="btn btn-success" onclick="buyRequest(<%= results[i].product_id %>);">구매하기</button>
                 <% } else if(session_id === 'sooksmarket') { %>
                   <button type="button" id="admin_delete" name="admin_delete" class="btn btn-warning">삭제</button>
                 <% } %>
-
+              </div>
               </td>
             </tr>
           </tbody>
         <% } %> <!-- for문 끝 -->
       </table>
+      <hr/>
     </div>
 
-
   </div>
+
 
 <% include ./sm_footer %>
   <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>

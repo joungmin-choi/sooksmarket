@@ -1271,21 +1271,20 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
                 }
             }
 
-
-
-            client.query('SELECT * FROM ProductInfo WHERE noticeType LIKE ?', ['S'],function(err, result) {
+            client.query('SELECT MAX(product_id) AS maxId FROM ProductInfo', function(err, result) {
                 var length = result.length;
                 if (length === 0) {
                     //console.log("b");
                     productId = 1;
                 } else {
-                    productId = (result[length - 1].product_id) + 1;
+                    productId = (result[0].maxId) + 1;
                     //console.log(productId);
                 }
                 callback(null, 1);
             });
             //console.log(outputPath);
         },
+
         function(callback) {
             var time = getTimeStamp();
             var sql = 'INSERT INTO ProductInfo SET ?';
@@ -1313,6 +1312,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
                 callback(null, 4);
             });
         },
+
         function(callback) {
             var pSql = 'SELECT product_name FROM ProductInfo WHERE product_id=? AND noticeType LIKE ?';
             client.query(pSql, [productId, 'S'], function(err, result) {
@@ -1353,6 +1353,7 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
                 callback(null, 3);
             });
         },
+
         function(callback) {
             var state = {
                 pid: productId,
@@ -6123,7 +6124,7 @@ app.get('/sm_buy', function(req, res) {
     }
   ],
   function(err){
-    sql = 'SELECT * FROM ProductInfo WHERE noticeType LIKE ?';
+    sql = 'SELECT * FROM ProductInfo WHERE noticeType LIKE ? AND child_id=0';
 
     client.query(sql, ['B'], function(err, result){
       //console.log(result);
@@ -6163,9 +6164,11 @@ app.post('/sm_addBuyingItems', function(req, res){
       photo1: "",
       photo2: "",
       photo3: "",
+      product_way: 3,
       product_detail: body.detail,
       product_seller: login_id,
       product_date: date,
+      isDone: 0,
       noticeType: 'B',
       product_period: body.category
   };
@@ -6226,7 +6229,6 @@ app.get('/sm_buy_itemDetail/:auto/:num', function(req, res){
       sql = 'SELECT * FROM ProductInfo WHERE (parent_id=? AND noticeType LIKE ?) ORDER BY product_price ASC';
 
       client.query(sql, [auto, 'B'], function(err, result){
-        console.log(result);
         for (var i in result) {
             photo.push((result[i].photo1).substring(1));
             //console.log(photo);
@@ -6280,6 +6282,7 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
   var date = getTimeStamp();
 
   var productName;
+  var productId;
   var child_id_max;
 
   var sql;
@@ -6322,34 +6325,75 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
 
         callback(null);
       });
+    },
+
+    function(callback){
+      client.query('SELECT MAX(product_id) AS maxId FROM ProductInfo', function(err, result) {
+        if(err){
+          console.log(err);
+          throw err;
+        }
+
+        if (result.length === 0) {
+          productId = 1;
+        } else {
+          productId = (result[0].maxId) + 1;
+        }
+        callback(null);
+      });
+    },
+
+    function(callback){
+      sql = 'INSERT INTO ProductInfo SET ?';
+
+      var product = {
+          product_name: productName,
+          product_price: body.price,
+          photo1: outputPath,
+          photo2: "",
+          photo3: "",
+          product_way: 3,
+          product_detail: body.detail,
+          product_id : productId,
+          product_seller: login_id,
+          product_date: date,
+          isDone: 0,
+          noticeType: 'B',
+          parent_id: auto,
+          child_id: child_id_max
+      };
+
+      client.query(sql, product, function(err, result) {
+          if (err) {
+              console.log(err);
+              throw err;
+          }
+          callback(null);
+      });
+    },
+
+    function(callback){
+      var state = {
+          pid: productId,
+          seller_state: 0
+      };
+
+      var stateSql = 'INSERT INTO chat_state SET ?';
+      client.query(stateSql, state, function(err, result) {
+          if (err) {
+            console.log(err);
+          }
+          callback(null);
+      });
     }
   ],
   function(err){
-    sql = 'INSERT INTO ProductInfo SET ?';
-
-    var product = {
-        product_name: productName,
-        product_price: body.price,
-        photo1: outputPath,
-        photo2: "",
-        photo3: "",
-        product_detail: body.detail,
-        product_seller: login_id,
-        product_date: date,
-        noticeType: 'B',
-        parent_id: auto,
-        child_id: child_id_max
-    };
-
-    client.query(sql, product, function(err, result) {
-        if (err) {
-            console.log(err);
-            res.status(500);
-        } else {
-          var str = '/sm_buy_itemDetail/' + auto + '/' + number;
-          res.redirect(str);
-        }
-    });
+    if (err) {
+        console.log(err);
+        res.status(500);
+    }
+    var str = '/sm_buy_itemDetail/' + auto + '/' + number;
+    res.redirect(str);
   });
 
 });

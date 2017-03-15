@@ -15,6 +15,10 @@
     color: #cccccc;
     font-family: arial;
   }
+
+  .remainTimeDiv{
+    font-size: 11px;
+  }
   </style>
 
   <script>
@@ -64,7 +68,7 @@
 
               var leftStr = "";
               if(dateLeft > 0) leftStr += "<b>"+dateLeft+"</b>일 ";
-              if(hourLeft > 0) leftStr += "<b>"+hourLeft+"</b>시간 ";
+              if(hourLeft > 0) leftStr += "<b>"+hourLeft+"</b>시간";
               if(minuteLeft > 0) leftStr += "<b>"+minuteLeft+"</b>분 ";
               leftStr += "<b>"+secondLeft+"</b>초";
               remainTimeDiv.innerHTML = leftStr;
@@ -106,13 +110,13 @@
 
         <div class="col-xs-12 col-md-11" style="margin-top:13px;">
           <a href="/sm_addBuyingItems">
-          <button type="button" class="btn btn-success" style="display:inline; float:right;" onclick="allow()">
+          <button type="button" class="btn btn-success btn-sm" style="display:inline; float:right;" onclick="allow()">
             <span class="glyphicon glyphicon-star" aria-hidden="true"></span> 글쓰기
           </button>
           </a>
         </div>
 
-        <div class="col-xs-12 col-md-12">
+        <div class="col-xs-12 col-md-11">
           <br/>
         <table class="table table-hover table-striped">
           <thead class="text-center">
@@ -123,15 +127,15 @@
             </tr>
           </thead>
           <tbody class="text-center">
-            <% for (i=0; i<`${rows.length}`; i++) { %>
+            <% for (i=`${rows.length}`-1; i>=0; i--) { %>
               <tr>
                 <td><%= i+1 %></td>
                 <td><a href="/sm_buy_itemDetail/<%= rows[i].product_id %>/<%= i+1 %>"><%= rows[i].product_name %></a></td>
                 <td>
-                  <div id="remainTimeDiv<%=i%>"></div>
+                  <div id="remainTimeDiv<%=i%>" class="remainTimeDiv"></div>
                 </td>
               </tr>
-            <% } %>
+          <% } %>
           </tbody>
         </table>
       </div>
