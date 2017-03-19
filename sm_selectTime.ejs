@@ -170,6 +170,10 @@
       form.submit();
       return true;
     }
+
+    function goBack(){
+      history.go(-1);
+    }
     </script>
 
 </head>
@@ -398,7 +402,7 @@
                         <button type="button" class="btn btn-success" style="font-size:13px;" onclick="location.href='/sm_request/<%=id%>/0'">시간 변경</button>
                         <button type="button" class="btn btn-danger" style="font-size:13px;" onclick="location.href='/sm_rejectTrade/<%=id%>/<%=num%>/0'">거래 취소</button>
                       <% } %>
-                        <button type="button" class="btn btn-default" style="font-size:13px;" onclick="location.href='/sm_chat/<%=id%>'">돌아가기</button>
+                        <button type="button" class="btn btn-default" style="font-size:13px;" onclick="goBack(;)">돌아가기</button>
                     </div>
                 </div>
 

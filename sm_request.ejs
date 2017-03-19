@@ -507,6 +507,14 @@
             form.submit();
             return true;
         }
+
+        function cancel(){
+
+          var link = '/sm_request/'+<%= id %>+'/cancel';
+          alert("2");
+          location.href=link;
+          alert("3");
+        }
     </script>
 
 </head>
@@ -603,10 +611,10 @@
                       <% }else{ %>
                         <button type="submit" class="btn btn-success">시간 변경 신청</button>
                       <% } %>
-                        <button type="button" class="btn btn-default" onclick="location.href='/sm_request/<%= id %>/cancel'"> 취소</button>
                     </div>
                 </div>
             </form>
+            <button type="button" class="btn btn-default" onclick="cancel();"> 취소</button>
         </div>
 
 

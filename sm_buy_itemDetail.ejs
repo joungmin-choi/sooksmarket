@@ -129,7 +129,23 @@
             </tr>
             <tr>
               <td><strong>등록자 ID</strong></td>
-              <td><%= `${rows.product_seller}` %></td>
+              <td>
+                <a href="/sm_review/search/<%= `${rows.product_seller}` %>" title="후기 보기" style="">
+                <%= `${rows.product_seller}` %></a>
+                <% if(avgRating != 0){
+                  if(avgRating >= 4.7){ %>
+                    <br/><label class="star">★★★★★</label>
+                  <% }else if((avgRating>=3.7)&&(avgRating<4.7)){ %>
+                    <br/><label class="star">★★★★</label><label class="not">★</label>
+                  <% }else if((avgRating>=2.7)&&(avgRating<3.7)){ %>
+                    <br/><label class="star">★★★</label><label class="not">★★</label>
+                  <% }else if((avgRating>=1.7)&&(avgRating<2.7)){ %>
+                    <br/><label class="star">★★</label><label class="not">★★★</label>
+                  <% }else if((avgRating>=1)&&(avgRating<1.7)){ %>
+                    <br/><label class="star">★</label><label class="not">★★★★</label>
+                  <% } %>
+                <% } %>
+              </td>
             </tr>
             <tr>
               <td><strong>희망 가격대</strong></td>
@@ -147,7 +163,7 @@
         </table>
       </div>
 
-      <% if (session_id != rows.product_seller){ %>
+      <% if ((session_id != rows.product_seller) && (isTimeOut == 0)){ %>
         <div id="requestSellingDiv" style="text-align:center">
           <button type="button" class="btn btn-success" style="margin-top:5px;" data-toggle="collapse" data-target="#reportDiv">판매 신청하기</button>
         </div>
@@ -189,27 +205,36 @@
 
   <div class="container">
     <div class="col-xs-12 col-md-8 col-md-offset-2">
-      <hr/>
+      <% if(results.length == 0){ %>
+        <h5>판매 신청자 현재 없음.</h5>
+      <% }else if(results[0].product_name == null){ %>
+        <h4 style="text-align:center;">판매 신청자 현재 없음.</h4>
+      <% }else{ %>
+        <hr/>
+      <% } %>
+
       <table class="table table-hover table-striped table-responsive table-borderd">
         <% for (i=0; i<`${results.length}`; i++) { %>
+          <% if(results[i].product_name != null){ %>
           <tbody>
             <tr>
               <td style="text-align:center;"><%= i+1 %></td>
               <td>
-                <%= results[i].product_seller %>
-                <% if(avgRating != 0){
-                      if(avgRating >= 4.7){ %>
-                        <label class="star">★★★★★</label>
-                    <% }else if((avgRating>=3.7)&&(avgRating<4.7)){ %>
-                        <label class="star">★★★★</label><label class="not">★</label>
-                    <% }else if((avgRating>=2.7)&&(avgRating<3.7)){ %>
-                        <label class="star">★★★</label><label class="not">★★</label>
-                    <% }else if((avgRating>=1.7)&&(avgRating<2.7)){ %>
-                        <label class="star">★★</label><label class="not">★★★</label>
-                    <% }else if((avgRating>=1)&&(avgRating<1.7)){ %>
-                        <label class="star">★</label><label class="not">★★★★</label>
+                <a href="/sm_review/search/<%= results[i].product_seller %>" title="후기 보기" style="">
+                <%= results[i].product_seller %></a>
+                <% if(results[i].avgRating != null){
+                    if(results[i].avgRating >= 4.7){ %>
+                      <label class="star">★★★★★</label>
+                    <% }else if((results[i].avgRating>=3.7)&&(results[i].avgRating<4.7)){ %>
+                      <label class="star">★★★★</label><label class="not">★</label>
+                    <% }else if((results[i].avgRating>=2.7)&&(results[i].avgRating<3.7)){ %>
+                      <label class="star">★★★</label><label class="not">★★</label>
+                    <% }else if((results[i].avgRating>=1.7)&&(results[i].avgRating<2.7)){ %>
+                      <label class="star">★★</label><label class="not">★★★</label>
+                    <% }else if((results[i].avgRating>=1)&&(results[i].avgRating<1.7)){ %>
+                      <label class="star">★</label><label class="not">★★★★</label>
                     <% } %>
-              <% } %>
+                <% } %>
               </td>
             </tr>
             <tr>
@@ -229,7 +254,13 @@
                   <button type="button" id="delete" name="delete" class="btn btn-warning" onclick="delete();">삭제</button>
                   <button type="button" id="change" name="change" class="btn btn-primary">수정</button>
                 <% } else if(user === session_id) { %>  <!-- 삽니다 게시글 주인 -->
-                  <button type="button" id="choice" name="choice" class="btn btn-success" onclick="buyRequest(<%= results[i].product_id %>);">구매하기</button>
+                  <% if((isTrading == 1) && (tradingProduct == results[i].product_id)){ %>
+                    <label style="color:red">거래중 </label>
+                  <% }else if((isTrading == 1) && (tradingProduct != results[i].product_id)){ %>
+
+                  <% }else{ %>
+                      <button type="button" id="choice" name="choice" class="btn btn-success" onclick="buyRequest(<%= results[i].product_id %>);">구매하기</button>
+                  <% } %>
                 <% } else if(session_id === 'sooksmarket') { %>
                   <button type="button" id="admin_delete" name="admin_delete" class="btn btn-warning">삭제</button>
                 <% } %>
@@ -237,6 +268,7 @@
               </td>
             </tr>
           </tbody>
+          <% } %>
         <% } %> <!-- for문 끝 -->
       </table>
       <hr/>

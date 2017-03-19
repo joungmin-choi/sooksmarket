@@ -39,6 +39,10 @@
       return true;
     }
 
+    function goBack(){
+      history.go(-1);
+    }
+
     </script>
 
 </head>
@@ -79,7 +83,7 @@
                 <div class="form-group">
                     <div style="text-align:center;">
                         <button type="submit" class="btn btn-danger">취소 신청</button>
-                        <button type="button" class="btn btn-default" onclick="location.href='/sm_selectTime/<%=id%>/<%=num%>'"> 돌아가기</button>
+                        <button type="button" class="btn btn-default" onclick="goBack();"> 돌아가기</button>
                     </div>
                 </div>
 
