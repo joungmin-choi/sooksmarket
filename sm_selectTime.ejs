@@ -219,8 +219,9 @@
       backAfter.style.display="";
       backBefore.style.display="none";
 
-      location.href='/sm_chat/<%=id%>';
+      history.go(-1);
     }
+
     </script>
 
 
@@ -486,8 +487,10 @@
                         <button class="btn btn-danger" id="tradeCancelAfter" style="display:none; font-size:13px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 거래 취소</button>
                         <button type="button" class="btn btn-danger" id="tradeCancelBefore" style="font-size:13px;" onclick="tradeCancel()">거래 취소</button>
                       <% } %>
+
                         <button class="btn btn-default" id="backAfter" style="display:none; font-size:13px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 돌아가기</button>
-                        <button type="button" class="btn btn-default" id="backBefore" style="font-size:13px;" onclick="back()">돌아가기</button>
+                        <button type="button" class="btn btn-default" id="backBefore" style="font-size:13px;" onclick="back();">돌아가기</button>
+
                     </div>
                 </div>
 

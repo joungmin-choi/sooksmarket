@@ -22,7 +22,6 @@
               <button class="btn btn-primary" type="button" onclick="location.href='/sm_alermList/<%= session_id %>'" style="margin-top:8px;float:right;">
                 알림 <span class="badge"><%= alerm %></span>
               </button>
-
           </div>
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -59,7 +58,7 @@
                         <li><a href="/sm_reserve_list">예약내역</a></li>
                         <li><a href="/sm_scrap">스크랩</a></li>
                         <li><a href="/sm_complainList">신고리스트</a></li>
-                        <li><a href="/sm_suggestList">건의리스트</a></li>                        
+                        <li><a href="/sm_suggestList">건의리스트</a></li>
                         <% if('sooksmarket' != `${session_id}`){ %>
                         <li class="divider"></li>
                         <li><a href="/sm_complain">신고하기</a></li>

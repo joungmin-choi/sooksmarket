@@ -200,14 +200,18 @@
 
       writeAfter.style.display="inline";
       writeBefore.style.display="none";
-      
+
       if ("<%= `${on}` %>" == 1){
         alert('한 달(<%= `${allowDate}` %>)동안 사용하실 수 없습니다.');
         location.href = "/sm_main";
+      }else if(<%=applyRejection%> == 1){
+        alert('거래 취소를 하셨기 때문에, \n취소하신 시간부터 5시간동안 사용하실 수 없습니다.');
+        window.location.href = "/sm_main";
       }else{
         location.href = "/sm_addItems";
       }
-    };
+
+    }
 
     var scrap = function(i) {
       id="scrap" + i;

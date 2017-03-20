@@ -66,7 +66,7 @@
       backAfter.style.display="";
       backBefore.style.display="none";
 
-      location.href='/sm_selectTime/<%=id%>/<%=num%>';
+      history.go(-1);
     }
 
     </script>
@@ -144,7 +144,8 @@
                         <button class="btn btn-danger" id="submitAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 취소 신청</button>
                         <button type="submit" class="btn btn-danger" id="submitBefore">취소 신청</button>
                         <button class="btn btn-default" id="backAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 돌아가기</button>
-                        <button type="button" class="btn btn-default" id="backBefore" onclick="back()"> 돌아가기</button>
+                        <button type="button" class="btn btn-default" id="backBefore" onclick="back();"> 돌아가기</button>
+
                     </div>
                 </div>
 

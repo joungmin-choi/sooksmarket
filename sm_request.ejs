@@ -543,9 +543,10 @@
               changeTimeBefore.style.display="none";
             }
 
-
-
+            var link = "/sm_request/" + <%= id %> + "/" + <%= isUrgent %>;
+            form.action = link;
             form.submit();
+
             return true;
         }
 
@@ -569,9 +570,9 @@
 
           backAfter.style.display="";
           backBefore.style.display="none";
-
-          location.href='/sm_request/<%= id %>/cancel';
+          history.go(-1);
         }
+
     </script>
 
 </head>
@@ -592,7 +593,7 @@
           <% } %>
             <hr>
 
-            <form id="eventFrom" action="/sm_request/<%= id %>/<%= isUrgent %>" method="post" class="form-horizontal" onsubmit="return submitCheck()">
+            <form id="eventFrom" method="post" class="form-horizontal" onsubmit="return submitCheck()">
                 <div id="dayAddBtnDiv" style="margin-left:5%;margin-right:5%;">
                     <button type="button" class="btn btn-primary" id="dayAddBtn" onclick="addDay();" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
                     <br/><small>날짜는 3개, 시간은 5개까지 추가 가능합니다 :)</small>
@@ -674,11 +675,13 @@
                         <button class="btn btn-success" id="changeTimeAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 시간 변경 신청</button>
                         <button type="submit" class="btn btn-success" id="changeTimeBefore">시간 변경 신청</button>
                       <% } %>
+                      </form>
+
                         <button class="btn btn-default" id="backAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 취소</button>
-                        <button type="button" class="btn btn-default" id="backBefore" onclick="back()"> 취소</button>
+                        <button type="button" class="btn btn-default" id="backBefore" onclick="back();"> 취소</button>
+
                     </div>
                 </div>
-            </form>
         </div>
 
 
