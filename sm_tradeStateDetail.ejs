@@ -19,6 +19,34 @@
       font-weight: bold;
       font-size: 13px;
     }
+
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     <% switch (results[0].state) {
       case 1: %> #state2, #state3, #state4{
                   background-color:#eeeeee;
@@ -40,6 +68,21 @@
     } %>
   </style>
   <script>
+  window.onload = function(){
+    var loader = document.getElementById('loader');
+    var body = document.getElementById('body');
+    var loadPage = document.getElementById('loadPage');
+    var loadPageFooter = document.getElementById('loadPageFooter');
+
+    loader.style.display="none";
+    body.style.backgroundColor="#ffffff";
+    loadPage.style.display="";
+    loadPageFooter.style.display="";
+
+
+    $('#loader').hide();
+  }
+
   function completeTrade(){
     <% if(final !=0){ %>
       var trade_date = `<%= final[0].trade_date %>`;
@@ -64,16 +107,39 @@
       }
     <% } %>
   }
+
+  function back(){
+    var backAfter = document.getElementById("backAfter");
+    var backBefore = document.getElementById("backBefore");
+
+    backAfter.style.display="";
+    backBefore.style.display="none";
+
+    location.href='/sm_tradeState';
+  }
+
+  function chat(){
+    var chatAfter = document.getElementById("chatAfter");
+    var chatBefore = document.getElementById("chatBefore");
+
+    chatAfter.style.display="";
+    chatBefore.style.display="none";
+
+    location.href='/sm_chat/<%= `${results[0].product_id}` %>';
+  }
+
+
+
   </script>
 
 </head>
 
-<body>
-  <!-- 네이게이션 상단 부분 -->
-  <% include ./sm_top_navigator %>
-  <script>
+<body id="body">
+  <div id="loader"></div>
 
-  </script>
+  <div style="display:none" id="loadPage">
+  <% include ./sm_top_navigator %>
+
 
   <div class="container">
 
@@ -103,7 +169,8 @@
               <% } %>
               <td class="input" style="">
               <% if(results[0].state != 4){ %>
-                <button type="button" class="btn btn-success" style="font-size:10px;" onclick="location.href='/sm_chat/<%= `${results[0].product_id}` %>'">채팅하기</button>
+                <button class="btn btn-success" id="chatAfter" style="display:none; font-size:10px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 채팅하기</button>
+                <button type="button" class="btn btn-success" id="chatBefore" style="font-size:10px;" onclick="chat()">채팅하기</button>
               <% }else{ %>
                 <button type="button" class="btn btn-success" style="font-size:10px;" onclick="location.href='/sm_chat/<%= `${results[0].product_id}` %>'" disabled>채팅하기</button>
               <% } %>
@@ -157,7 +224,8 @@
           <% if((results[0].state == 3)&&(haveCompletion==1)){ %>
             <button type="button" class="btn btn-warning" onclick="completeTrade();">거래 완료 하기</button>
           <% } %>
-            <button type="button" class="btn btn-primary" onclick="location.href='/sm_tradeState'">돌아가기</button>
+          <button class="btn btn-primary" id="backAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 돌아가기</button>
+            <button type="button" class="btn btn-primary" id="backBefore" onclick="back()">돌아가기</button>
 
         </div>
       </div>
@@ -165,7 +233,12 @@
 
   </div>
   <hr/>
+  </div>
 
 </body>
-<% include ./sm_footer %>
+
+<div style="display:none" id="loadPageFooter">
+  <% include ./sm_footer %>
+</div>
+
 </html>

@@ -8,7 +8,6 @@
   function submitCheck(){
     var product = document.getElementById("product");
     var price = document.getElementById("price");
-    var category = document.getElementById("category");
     var detail = document.getElementById("detail");
 
     var priceDataType = isNaN(price.value);
@@ -19,10 +18,6 @@
     }
     else if((price.value=="") || (priceDataType == true)){
       alert("가격(숫자)을 입력하세요.");
-      return false;
-    }
-    else if(category.value==""){
-      alert("기간을 선택하세요.");
       return false;
     }
     else if(detail.value==""){
@@ -42,7 +37,6 @@
   }
 
   window.onload = function(){
-
     var loader = document.getElementById('loader');
     var body = document.getElementById('body');
     var loadPage = document.getElementById('loadPage');
@@ -55,6 +49,8 @@
 
 
     $('#loader').hide();
+
+    $("#category").val("<%= `${rows.product_period}` %>").attr("selected", "selected");
   }
 
   function cancel(){
@@ -63,8 +59,8 @@
 
     cancelAfter.style.display="";
     cancelBefore.style.display="none";
-
-    location.href='/sm_buy';
+    
+    location.href='/sm_buy_itemDetail/<%= id %>/<%= num %>';
   }
 
   </script>
@@ -119,24 +115,23 @@
       <hr />
       <div class="row">
       <div class="col-xs-12 col-md-12 col-md-offset-1">
-        <form action='/sm_addBuyingItems' class="form-horizontal" role="form" id="form" name="form" method = "post" onsubmit="return submitCheck()" >
+        <form action='/buy_itemDetail/<%= id %>/<%= num %>/change' class="form-horizontal" role="form" id="form" name="form" method = "post" onsubmit="return submitCheck()" >
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">사고싶은 하는 물건 :</label>
             <div class="col-sm-5">
-              <input type="text" class="form-control" name="product" id="product"  placeholder="내용을 입력해주세요.">
+              <input type="text" class="form-control" name="product" id="product"  placeholder="내용을 입력해주세요." value="<%= rows.product_name %>">
             </div>
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">최대 가격 :</label>
             <div class="col-sm-5">
-              <input type="text" id="price" class="form-control" name="price" placeholder="가격을 입력해주세요.">
+              <input type="text" id="price" class="form-control" name="price" placeholder="가격을 입력해주세요." value="<%= rows.product_price %>">
             </div>
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">경매기간 :</label>
             <div class="col-sm-5">
-              <select class="form-control" id="category" name="category" >
-                <option value="" selected disabled>-- 선택하세요 --</option>
+              <select class="form-control" id="category" name="category" style="cursor:context-menu;" disabled>
                 <option value="3일">3일</option>
                 <option value="5일">5일</option>
                 <option value="7일">7일</option>
@@ -146,7 +141,7 @@
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">원하는 조건 :</label>
             <div class="col-sm-5">
-              <textarea type="text" class="form-control" id="detail" name="detail" rows="3" value="" placeholder="원하는 조건을 입력하세요" style="resize: none;"></textarea>
+              <textarea type="text" class="form-control" id="detail" name="detail" rows="3" placeholder="원하는 조건을 입력하세요" style="resize: none;"><%= rows.product_detail %></textarea>
             </div>
           </div>
           <div class="form-group"> <!--has-success has-feedback-->

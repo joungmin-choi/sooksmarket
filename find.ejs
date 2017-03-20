@@ -15,6 +15,33 @@
           border: 1px solid #d6d6d6;
           padding: 16px;
         }
+
+        #loader {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          z-index: 1;
+          width: 150px;
+          height: 150px;
+          margin: -75px 0 0 -75px;
+          border: 16px solid #f3f3f3;
+          border-radius: 50%;
+          border-top: 16px solid #3498db;
+          width: 120px;
+          height: 120px;
+          -webkit-animation: spin 2s linear infinite;
+          animation: spin 2s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+          0% { -webkit-transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
         </style>
 
         <script>
@@ -24,6 +51,7 @@
           var userName = document.getElementById("userName");
           var form = document.getElementById("form");
 
+
           if (userName.value == ""){
             alert('사용자 이름을 입력하세요.');
           }
@@ -31,7 +59,13 @@
             alert('이메일을 입력하세요.');
           }
           else{
+            var button_after1 = document.getElementById("button_after1");
+            var button_before1 = document.getElementById("button_before1");
             var str = '/find/id';
+
+            button_after1.style.display = "";
+            button_before1.style.display = "none";
+
             form.action = str;
             form.submit();
           }
@@ -48,12 +82,41 @@
             alert('이메일을 입력하세요.');
           }
           else{
+            var button_after2 = document.getElementById("button_after2");
+            var button_before2 = document.getElementById("button_before2");
             var str = '/find/pwd';
+
+            button_after2.style.display = "";
+            button_before2.style.display = "none";
+
             form.action = str;
             form.submit();
           }
         }
 
+        function back(){
+          var back_after = document.getElementById("back_after");
+          var back_before = document.getElementById("back_before");
+
+          back_after.style.display = "";
+          back_before.style.display = "none";
+
+          location.href='/index'
+        }
+
+        window.onload = function(){
+
+          var loader = document.getElementById('loader');
+          var body = document.getElementById('body');
+          var loadPage = document.getElementById('loadPage');
+
+          loader.style.display="none";
+          body.style.backgroundColor="#ffffff";
+          loadPage.style.display="";
+
+
+          $('#loader').hide();
+        }
 
 
         </script>
@@ -61,57 +124,68 @@
 
     </head>
 
-    <body class="body">
-      <div class="container">
-        <h3 style="text-align:center;">
-          <img src="/img/notepad2.png" width="37" style="margin-right:3%;" />
-          <strong> 아이디/비번 찾기 </strong>
-        <img src="/img/notepad2.png" width="37" style="margin-left:3%;" /></h3>
+    <body class="body" id="body">
 
-        <hr />
+      <div id="loader"></div>
 
-          <div class="row">
-            <div class="col-md-12 col-md-offset-1 col-xs-12">
-              <form class="form-horizontal" role="form" id="form" name="form" method="post">
-                <div class="form-group" style="margin-top:2%">
-                  <h3 class="col-sm-3 control-label">ID 찾기</h3>
-                  <div class="col-sm-5 box">
-                    <input type="text" class="col-sm-3 col-xs-3 form-control" name="userName" id="userName" placeholder="이름을 입력하세요.">
+      <div style="display:none" id="loadPage">
+        <div class="container">
+          <h3 style="text-align:center;">
+            <img src="/img/notepad2.png" width="37" style="margin-right:3%;" />
+            <strong> 아이디/비번 찾기 </strong>
+          <img src="/img/notepad2.png" width="37" style="margin-left:3%;" /></h3>
 
-                    <input style="width:70%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="id" id="id"  placeholder="숙명이메일 ID">
-                    <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
-                      @sm.ac.kr
+          <hr />
+
+            <div class="row">
+              <div class="col-md-12 col-md-offset-1 col-xs-12">
+                <form class="form-horizontal" role="form" id="form" name="form" method="post">
+                  <div class="form-group" style="margin-top:2%">
+                    <h3 class="col-sm-3 control-label">ID 찾기</h3>
+                    <div class="col-sm-5 box">
+                      <input type="text" class="col-sm-3 col-xs-3 form-control" name="userName" id="userName" placeholder="이름을 입력하세요.">
+
+                      <input style="width:70%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="id" id="id"  placeholder="숙명이메일 ID">
+                      <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
+                        @sm.ac.kr
+                      </div>
+                      <button class="btn btn-warning form-control" id="button_after1" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 확인</button>
+                      <button type="button" class="btn btn-warning form-control" id="button_before1" onclick="ID()">확인</button>
                     </div>
-                    <button type="button" class="btn btn-warning form-control" onclick="ID()">확인</button>
                   </div>
-                </div>
 
-                <div class="form-group" style="margin-top:2%">
-                  <h3 class="col-sm-3 control-label">PWD 찾기</h3>
-                  <div class="col-sm-5 box">
-                    <input type="text" class="col-sm-3 col-xs-3 form-control" name="userID" id="userID" placeholder="ID를 입력하세요.">
-                    <input style="width:70%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="pwd" id="pwd"  placeholder="숙명이메일 ID">
-                    <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
-                      @sm.ac.kr
+                  <div class="form-group" style="margin-top:2%">
+                    <h3 class="col-sm-3 control-label">PWD 찾기</h3>
+                    <div class="col-sm-5 box">
+                      <input type="text" class="col-sm-3 col-xs-3 form-control" name="userID" id="userID" placeholder="ID를 입력하세요.">
+                      <input style="width:70%; margin-top:2%" type="text" class="col-sm-3 col-xs-3 form-control" name="pwd" id="pwd"  placeholder="숙명이메일 ID">
+                      <div style="margin-top:2%;" class="col-sm-2 col-xs-2">
+                        @sm.ac.kr
+                      </div>
+                      <button class="btn btn-warning form-control" id="button_after2" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 확인</button>
+                      <button type="button" class="btn btn-warning form-control" id="button_before2" onclick="PWD()">확인</button>
                     </div>
-                    <button type="button" class="btn btn-warning form-control" onclick="PWD()">확인</button>
-                  </div>
-                </div>
-
-                <div class="form-group" style="margin-top:2%; text-align:center">
-                  <div class="col-sm-6 control-label">
-                    <button type="button" class="btn btn-primary" onclick="location.href='/index'">돌아가기</button>
                   </div>
 
+                  <div class="form-group" style="margin-top:2%; text-align:center">
+                    <div class="col-sm-6 control-label">
+                      <button class="btn btn-primary" id="back_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 돌아가기</button>
+                      <button type="button" class="btn btn-primary" id="back_before" onclick="back()">돌아가기</button>
+                    </div>
 
-                </div>
 
-              </form>
+                  </div>
+
+                </form>
+              </div>
+
+
             </div>
+        </div>
 
+        <hr/>
 
-          </div>
-      </div><hr/>
+      </div>
 
     </body>
 

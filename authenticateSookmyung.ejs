@@ -4,11 +4,54 @@
     <meta charset="utf-8">
     <title>숙명인 인증</title>
     <% include ./sm_head %>
+
+    <style>
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+
+    </style>
+
     <script>
     var authenticationCode = <%= userCode %>;
     var isExisted = <%= isExisted %>;
 
-     jQuery(document).ready(function() {
+    window.onload = function(){
+      var loader = document.getElementById('loader');
+      var body = document.getElementById('body');
+      var loadPage = document.getElementById('loadPage');
+
+      loader.style.display="none";
+      body.style.backgroundColor="#ffffff";
+      loadPage.style.display="";
+
+
+      $('#loader').hide();
+
       if(isExisted == 0){
         alert("해당 숙명 웹메일로 인증번호가 전송되었습니다.\n웹메일에서 받으신 인증번호를 밑에 적어주세요.");
       }else{
@@ -16,9 +59,16 @@
         alert("이미 등록된 이메일입니다.\n\n다른 숙명 웹메일 아이디를 입력하세요.");
         location.href = '/sm_signup';
       }
-    });
+    };
+
 
     function authenticate(){
+      var button_after = document.getElementById("button_after");
+      var button_before = document.getElementById("button_before");
+
+      button_after.style.display = "";
+      button_before.style.display = "none";
+
       var codeText = document.getElementById("code");
       if(codeText.value==""){
         alert("인증번호를 입력해주세요!");
@@ -37,17 +87,26 @@
     }
     </script>
   </head>
-  <body>
-  <div class="container">
-    <div class="row text-center">
-      <div class="form-group">
-      <div class="col-md-12 col-sm-12 col-xs-12" id="codeDiv">
-    <h3>숙명인 인증</h3><br/>
-    인증번호 :<input type="text" class="form-control" name="code" id ="code" style="width:30%;display:inline;"/>
-    <input type="button" class="btn btn-primary" value="인증하기" onclick="authenticate();" />
-  </div>
-</div>
-  </div>
-  </div>
+  <body id="body">
+
+    <div id="loader"></div>
+
+    <div style="display:none" id="loadPage">
+
+      <div class="container">
+        <div class="row text-center">
+          <div class="form-group">
+            <div class="col-md-12 col-sm-12 col-xs-12" id="codeDiv">
+              <h3>숙명인 인증</h3><br/>
+              인증번호 :<input type="text" class="form-control" name="code" id ="code" style="width:30%;display:inline;"/>
+              <input type="button" class="btn btn-primary" id="button_before" value="인증하기" onclick="authenticate();" />
+              <button class="btn btn-primary" id="button_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 인증하기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </body>
 </html>

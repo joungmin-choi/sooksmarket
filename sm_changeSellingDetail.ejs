@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include ./sm_head %>
+
+  <script>
+  function submitCheck(){
+    var file = document.getElementById("file");
+    var price = document.getElementById("price");
+    var detail = document.getElementById("detail");
+    var hidden = document.getElementById("hidden").value;
+
+    var priceDataType = isNaN(price.value);
+
+    if((file.value == "") && (hidden == "2")){
+      alert("사진을 추가해주세요.");
+      return false;
+    }else if((price.value=="") || (priceDataType == true)){
+      alert("가격(숫자)을 입력해주세요.");
+      return false;
+    }
+    else if(detail.value==""){
+      alert("상세내용을 입력하세요.");
+      return false;
+    }
+    else{
+      var submitAfter = document.getElementById("submitAfter");
+      var submitBefore = document.getElementById("submitBefore");
+
+      submitAfter.style.display="";
+      submitBefore.style.display="none";
+
+      hidden = "1";
+
+      form.submit();
+      return true;
+    }
+  }
+
+  function Upload(target) {
+    var files = target.files;
+
+    document.getElementById("hidden").value = "1";
+  }
+
+  function change(){
+    if (confirm("확인 버튼을 누르시면 저장된 이미지가 삭제됩니다.\n그래도 진행하시겠습니까?") == true) {
+      var changeBtn = document.getElementById("changeBtn");
+      changeBtn.style.display = "none";
+
+      var imgDIV = document.getElementById("imgDIV");
+      imgDIV.style.display = "none";
+
+      var fileDIV = document.getElementById("fileDIV");
+      fileDIV.style.display = "block";
+
+      document.getElementById("hidden").value = "2";
+    }
+
+  }
+
+  window.onload = function(){
+    var loader = document.getElementById('loader');
+    var body = document.getElementById('body');
+    var loadPage = document.getElementById('loadPage');
+    var loadPageFooter = document.getElementById('loadPageFooter');
+
+    loader.style.display="none";
+    body.style.backgroundColor="#ffffff";
+    loadPage.style.display="";
+    loadPageFooter.style.display="";
+
+
+    $('#loader').hide();
+  }
+
+  function cancel(){
+    var cancelAfter = document.getElementById("cancelAfter");
+    var cancelBefore = document.getElementById("cancelBefore");
+
+    cancelAfter.style.display="";
+    cancelBefore.style.display="none";
+
+    location.href='/sm_buy_itemDetail/<%= id %>/<%= num %>';
+  }
+  </script>
+
+  <style>
+  #loader {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+  }
+
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  </style>
+
+
+
+
+</head>
+
+<body class="body" id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
+
+    <% include ./sm_top_navigator %>
+
+    <div class="container">
+      <h3 style="text-align:center;"><img src="/img/cart.png" width="37" style="margin-right:5%;"/>
+        <strong> 상품 수정 </strong>
+      <img src="/img/online-shop.png" width="37" style="margin-left:5%;" /></h3>
+
+      <hr />
+
+      <div class="row">
+
+      <div class="col-xs-12 col-md-12 col-md-offset-1">
+        <form action='/buy_itemDetail/<%= child_id %>/<%= id %>/<%= num %>/change' class="form-horizontal" role="form" id="form" name="form" method = "post"  enctype="multipart/form-data" onsubmit="return submitCheck()" >
+
+          <div class="form-group">
+            <div class="col-sm-3 control-label">
+              <label for="" class="control-label">사진 :</label>
+            </div>
+
+            <div class="col-sm-5 text-center">
+              <input type="hidden" name="hidden" id="hidden" value="0" />
+              <div class="thumbnail" id="imgDIV" style="padding-bottom:5%">
+                <img class="img-responsive img-center img-thumbnail img" name="img" id="img" src="<%= photo %>" alt="" style="height:180px; width: 300px; margin-top:2%"/>
+              </div>
+
+              <button type="button" class="btn btn-primary" id="changeBtn" onclick="change()">사진 수정</button>
+
+              <div id="fileDIV" style="display:none;">
+                <input type="file" class="form-control" id="file" name="file" accept="image/*" onChange="Upload(this)";>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">가격 :</label>
+            <div class="col-sm-5">
+              <input type="text" class="form-control" id="price" name="price" placeholder="내용을 입력해주세요." value="<%= rows.product_price %>">
+            </div>
+          </div>
+
+
+          <div class="form-group"> <!--has-success has-feedback-->
+            <label for="" class="col-sm-3 control-label">상세내용 :</label>
+            <div class="col-sm-5">
+              <textarea type="text" class="form-control" id="detail" name="detail" rows="3"  placeholder="제품에 대한 설명을 해주세요" style="resize: none;"><%= rows.product_detail %></textarea>
+            </div>
+          </div>
+          <div class="form-group"> <!--has-success has-feedback-->
+            <div style="text-align:center;">
+              <button class="btn btn-primary" id="submitAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 등록하기</button>
+              <input type="submit" value="등록하기" class="btn btn-primary" id="submitBefore">
+              <button class="btn btn-danger" id="cancelAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 취소하기</button>
+              <input type="reset" value="취소하기" class="btn btn-danger" id="cancelBefore" onclick="cancel()">
+            </div>
+          </div>
+
+        </form>
+      </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+
+<div style="display:none" id="loadPageFooter">
+  <% include ./sm_footer %>
+</div>
+
+</html>

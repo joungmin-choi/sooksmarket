@@ -3,6 +3,35 @@
 <head>
   <% include ./sm_head %>
 
+  <style>
+  #loader {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+  }
+
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  </style>
+
   <script>
   function confirmation(){
     var comment = document.getElementById("comment").value;
@@ -14,25 +43,54 @@
     }
     else{
       var retVal = confirm("건의하시겠습니까?");
+      var submitAfter = document.getElementById("submitAfter");
+      var submitBefore = document.getElementById("submitBefore");
+
       if( retVal == true ){
+        submitAfter.style.display="";
+        submitBefore.style.display="none";
+
         alert('건의되었습니다.');
         form.submit();
         return true;
       }else{
+        location.href = '/sm_suggest';
         return false;
       }
     }
   }
 
   function cancel(){
-    var comment = document.getElementById("comment");
-    comment.value = "";
+    var cancelAfter = document.getElementById("cancelAfter");
+    var cancelBefore = document.getElementById("cancelBefore");
+
+    cancelAfter.style.display="";
+    cancelBefore.style.display="none";
+
+    location.href = '/sm_suggest';
+  }
+
+  window.onload = function(){
+    var loader = document.getElementById('loader');
+    var body = document.getElementById('body');
+    var loadPage = document.getElementById('loadPage');
+
+    loader.style.display="none";
+    body.style.backgroundColor="#ffffff";
+    loadPage.style.display="";
+
+
+    $('#loader').hide();
   }
   </script>
 
 </head>
 
-<body>
+<body id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
     <% include ./sm_top_navigator %>
 
 
@@ -59,8 +117,10 @@
                     <textarea class="form-control" rows="5" id="comment" name="comment" style="resize: none;"></textarea>
                 </div>
                 <center>
-                  <button type="submit" class="btn btn-warning" style="margin-right:2%">제출하기 </button>
-                  <button type="button" class="btn btn-default" onclick="cancel();">취소</button>
+                  <button class="btn btn-warning" id="submitAfter" style="display:none; margin-right:2%" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 제출하기</button>
+                  <button type="submit" class="btn btn-warning" id="submitBefore" style="margin-right:2%">제출하기</button>
+                  <button class="btn btn-default" id="cancelAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 취소</button>
+                  <button type="button" class="btn btn-default" id="cancelBefore" onclick="cancel()">취소</button>
                 </center>
               </form>
             </div>
@@ -73,6 +133,7 @@
     <% include ./sm_footer %>
 
     <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </div>
 </body>
 
 

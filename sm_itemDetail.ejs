@@ -143,6 +143,8 @@
                 myForm.action = link;
                 myForm.submit();
             }
+
+
         </script>
 
 </head>
@@ -313,7 +315,7 @@
 
             <hr>
 
-            <form id="myForm" method='post'>
+            <form id="myForm" name="myForm" method='post'>
 
                 <div class="write_comment">
                     <h5>문의는 댓글로 남겨주세요:)</h5>
@@ -322,11 +324,29 @@
                     <input type="hidden" name="hidden" id="hidden" value="<%= seller %>" />
 
                     <div class="form-group">
-                        <textarea class="form-control" rows="3" name="comment_detail"></textarea>
+                        <textarea class="form-control" rows="3" id="comment_detail" name="comment_detail" onchange="textChange()"></textarea>
                     </div>
-                    <button type="button" class="btn btn-warning btn-sm" onclick="submitCheck('/sm_itemDetail/<%= id %>/comments');">보내기</button>
+                    <button type="button" class="btn btn-warning btn-sm" id="sendBefore" onclick="submitCheck('/sm_itemDetail/<%= id %>/comments');" >보내기</button>
                     <!-- </form> -->
                 </div>
+
+                <script>
+                document.getElementById("sendBefore").disabled = "true";
+                document.onkeyup = textChange;
+                document.onmouseup = textChange;
+                document.onmousedown = textChange;
+
+
+                function textChange(){
+
+                  if (document.getElementById("comment_detail").value == '') {
+                    //alert(document.getElementById("comment_detail").value);
+                      document.getElementById("sendBefore").setAttribute('disabled', 'disabled');
+                  } else {
+                      document.getElementById("sendBefore").removeAttribute('disabled');
+                  }
+                }
+                </script>
 
                 <!-- Comment -->
                 <% for (i=0,j=0; i<`${rows.length}`; i++) { %>

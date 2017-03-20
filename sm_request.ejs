@@ -35,6 +35,32 @@
       label{
         font-weight: normal;
       }
+      #loader {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 1;
+        width: 150px;
+        height: 150px;
+        margin: -75px 0 0 -75px;
+        border: 16px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 16px solid #3498db;
+        width: 120px;
+        height: 120px;
+        -webkit-animation: spin 2s linear infinite;
+        animation: spin 2s linear infinite;
+      }
+
+      @-webkit-keyframes spin {
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(360deg); }
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
 
     <script type="text/javascript">
@@ -503,15 +529,58 @@
             //
             // socket.emit('chat message', "a");
 
+            if (isExisted == 0){
+              var submitAfter = document.getElementById("submitAfter");
+              var submitBefore = document.getElementById("submitBefore");
+
+              submitAfter.style.display="";
+              submitBefore.style.display="none";
+            } else{
+              var changeTimeAfter = document.getElementById("changeTimeAfter");
+              var changeTimeBefore = document.getElementById("changeTimeBefore");
+
+              changeTimeAfter.style.display="";
+              changeTimeBefore.style.display="none";
+            }
+
+
 
             form.submit();
             return true;
+        }
+
+        window.onload = function(){
+          var loader = document.getElementById('loader');
+          var body = document.getElementById('body');
+          var loadPage = document.getElementById('loadPage');
+          var loadPageFooter = document.getElementById('loadPageFooter');
+
+          loader.style.display="none";
+          body.style.backgroundColor="#ffffff";
+          loadPage.style.display="";
+          loadPageFooter.style.display="";
+
+          $('#loader').hide();
+        }
+
+        function back(){
+          var backAfter = document.getElementById("backAfter");
+          var backBefore = document.getElementById("backBefore");
+
+          backAfter.style.display="";
+          backBefore.style.display="none";
+
+          location.href='/sm_request/<%= id %>/cancel';
         }
     </script>
 
 </head>
 
-<body>
+<body id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
     <% include ./sm_top_navigator %>
 
         <div class="container">
@@ -599,11 +668,14 @@
                 <div class="form-group">
                     <div class="col-xs-5" style="text-align:center;width:60%;margin-left:20%;">
                       <% if(isExisted == 0){ %>
-                        <button type="submit" class="btn btn-success">거래신청</button>
+                        <button class="btn btn-success" id="submitAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 거래신청</button>
+                        <button type="submit" class="btn btn-success" id="submitBefore">거래신청</button>
                       <% }else{ %>
-                        <button type="submit" class="btn btn-success">시간 변경 신청</button>
+                        <button class="btn btn-success" id="changeTimeAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 시간 변경 신청</button>
+                        <button type="submit" class="btn btn-success" id="changeTimeBefore">시간 변경 신청</button>
                       <% } %>
-                        <button type="button" class="btn btn-default" onclick="location.href='/sm_request/<%= id %>/cancel'"> 취소</button>
+                        <button class="btn btn-default" id="backAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 취소</button>
+                        <button type="button" class="btn btn-default" id="backBefore" onclick="back()"> 취소</button>
                     </div>
                 </div>
             </form>
@@ -614,8 +686,12 @@
         <!-- 바디 달력 버튼 -->
         <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 
+  </div>
+
 </body>
-<!-- Footer -->
-<% include ./sm_footer %>
+
+<div style="display:none" id="loadPageFooter">
+  <% include ./sm_footer %>
+</div>
 
 </html>

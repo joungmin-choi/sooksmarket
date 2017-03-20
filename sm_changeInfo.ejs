@@ -7,6 +7,8 @@
       function submitCheck(){
         var pw_1Text = document.getElementById("pw_1");
         var pw_2Text = document.getElementById("pw_1");
+        var form = document.getElementById("form");
+
         if(pw_1Text.value==""){
           alert("비밀번호를 입력하세요.");
           return false;
@@ -18,21 +20,94 @@
         else if(pw_1Text.value != pw_2Text.value){
           alert("비밀번호 중복확인 실패!\n다시 입력하세요!");
           return false;
+        }else{
+          var submitAfter = document.getElementById("submitAfter");
+          var submitBefore = document.getElementById("submitBefore");
+
+          submitAfter.style.display="";
+          submitBefore.style.display="none";
+
+          form.submit();
+          return true;
         }
       }
+
+      window.onload = function(){
+        var loader = document.getElementById('loader');
+        var body = document.getElementById('body');
+        var loadPage = document.getElementById('loadPage');
+        var loadPageFooter = document.getElementById('loadPageFooter');
+
+        loader.style.display="none";
+        body.style.backgroundColor="#ffffff";
+        loadPage.style.display="";
+        loadPageFooter.style.display="";
+
+
+        $('#loader').hide();
+      }
+
+      function cancel(){
+        var cancelAfter = document.getElementById("cancelAfter");
+        var cancelBefore = document.getElementById("cancelBefore");
+
+        cancelAfter.style.display="";
+        cancelBefore.style.display="none";
+
+        location.href='/sm_main';
+      }
+
+      function unsign(){
+        var unsignAfter = document.getElementById("unsignAfter");
+        var unsignBefore = document.getElementById("unsignBefore");
+
+        unsignAfter.style.display="";
+        unsignBefore.style.display="none";
+
+        location.href='/sm_unsign';
+      }
     </script>
+
+    <style>
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    </style>
 </head>
 
-<body>
-    <!-- 네이게이션 상단 부분 -->
-    <% include ./sm_top_navigator %>
-    <!-- 사이즈바 부분 -->
+<body id="body">
 
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
+
+    <% include ./sm_top_navigator %>
 
     <div class="container">
-      <!--1
-      <p class="lead"><strong>숙스마켓</strong></p>-->
-      <!--2-->
+
       <div class="row">
         <h3 style="text-align:center;">
           <strong> 회원 정보 수정 </strong>
@@ -40,63 +115,61 @@
         </h3>
 
         <hr />
-            <!-- (2-1)
-            <div class="col-md-3">
-              <% include ./sm_sidebar %>
-            </div>
-            -->
-            <!-- (2-2) -->
+
             <% row=rows[0]; %>
-            <div class="col-md-9">
-              <form action='/sm_changeInfo' class="form-horizontal" role="form" method='post' onsubmit="return submitCheck()" >
+            <div class="col-md-12 col-md-offset-1 col-sm-12 col-sm-offset-1 col-xs-12">
+              <form action='/sm_changeInfo' class="form-horizontal" id="form" role="form" method='post' onsubmit="return submitCheck()" >
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-6 control-label">이름 :</label>
+                  <label for="" class="col-sm-3 control-label">이름 :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="name" value=" <%= `${row.login_name}` %> " disabled>
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-6 control-label">ID :</label>
+                  <label for="" class="col-sm-3 control-label">ID :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="username" id="" value="<%= `${row.username}` %>" disabled>
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-6 control-label">PASSWORD :</label>
+                  <label for="" class="col-sm-3 control-label">PASSWORD :</label>
                   <div class="col-sm-5">
                     <input type="password" class="form-control" name="password" id="pw_1" placeholder="새로운 비밀 번호를 입력해주세요:)">
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-6 control-label">PASSWORD 확인 :</label>
+                  <label for="" class="col-sm-3 control-label">PASSWORD 확인 :</label>
                   <div class="col-sm-5">
                     <input type="password" class="form-control" name="password2" id="pw_2" placeholder="새로운 비밀 번호를 입력해주세요:)">
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-6 control-label">이메일 :</label>
+                  <label for="" class="col-sm-3 control-label">이메일 :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="email" id="<%= row.login_email %>" value="<%= `${row.login_email}` %>" disabled>
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-6 control-label">전화번호 :</label>
+                  <label for="" class="col-sm-3 control-label">전화번호 :</label>
                   <div class="col-sm-5">
                     <input type="text" class="form-control" name="phone" id="<%= row.login_name %>" value="<%= `${row.login_phone}` %>">
                   </div>
                 </div>
                 <div class="form-group">
-                  <div class="col-sm-6">
+                  <div class="col-sm-3">
 
                   </div>
                   <div class="col-sm-5">
-                    <input type="button" class="form-control" name="" id="<%= row.login_name %>" onclick="location.href='/sm_unsign'" value="회원탈퇴">
+                    <button class="btn btn-warning form-control" id="unsignAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 회원탈퇴</button>
+                    <input type="button" class="btn btn-warning form-control" name="" id="unsignBefore" onclick="unsign()" value="회원탈퇴">
                   </div>
                 </div>
                 <div class="form-group"> <!--has-success has-feedback-->
-                  <div class="text-center">
-                    <input type="submit" value="수정완료" class="btn btn-primary">
-                    <input type="reset" value="취소" class="btn btn-danger" onclick="location.href='/sm_main'">
+                  <div class="col-sm-6 col-sm-offset-2 text-center">
+                    <button class="btn btn-primary" id="submitAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 수정완료</button>
+                    <input type="submit" value="수정완료" class="btn btn-primary" id="submitBefore">
+                    <button class="btn btn-danger" id="cancelAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 취소</button>
+                    <input type="reset" value="취소" class="btn btn-danger" id="cancelBefore" onclick="cancel()">
                   </div>
                 </div>
 
@@ -104,6 +177,7 @@
             </div>
       </div>
     </div>
+  </div>
 
 
 
@@ -115,5 +189,7 @@
         <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 </body>
 
-    <% include ./sm_footer %>
+<div style="display:none" id="loadPageFooter">
+  <% include ./sm_footer %>
+</div>
 </html>

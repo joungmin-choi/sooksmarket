@@ -41,9 +41,51 @@
       font-size: 12px;
     }
 
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     </style>
 
     <script type="text/javascript">
+
+    window.onload = function(){
+      var loader = document.getElementById('loader');
+      var body = document.getElementById('body');
+      var loadPage = document.getElementById('loadPage');
+      var loadPageFooter = document.getElementById('loadPageFooter');
+
+      loader.style.display="none";
+      body.style.backgroundColor="#ffffff";
+      loadPage.style.display="";
+      loadPageFooter.style.display="";
+
+
+      $('#loader').hide();
+    }
 
       function writeReason(j){
         var reasonDiv = document.getElementById("reasonDiv");
@@ -96,15 +138,35 @@
           return false;
         }
 
+        var submitAfter = document.getElementById("submitAfter");
+        var submitBefore = document.getElementById("submitBefore");
+
+        submitAfter.style.display="";
+        submitBefore.style.display="none";
+
         form.submit();
         return true;
 
+      }
+
+      function cancel(){
+        var cancelAfter = document.getElementById("cancelAfter");
+        var cancelBefore = document.getElementById("cancelBefore");
+
+        cancelAfter.style.display="";
+        cancelBefore.style.display="none";
+
+        location.href='/';
       }
     </script>
 
 </head>
 
-<body>
+<body id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
     <% include ./sm_top_navigator %>
 
         <div class="container" >
@@ -226,8 +288,10 @@
 
                 <div class="form-group">
                     <div style="text-align:center;">
-                        <button type="submit" class="btn btn-primary">거래 완료</button>
-                        <button type="button" class="btn btn-default" onclick="location.href='/'"> 돌아가기</button>
+                        <button class="btn btn-primary" id="submitAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 거래 완료</button>
+                        <button type="submit" class="btn btn-primary" id="submitBefore">거래 완료</button>
+                        <button class="btn btn-btn-default" id="cancelAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 돌아가기</button>
+                        <button type="button" class="btn btn-default" id="cancelBefore" onclick="cancel()"> 돌아가기</button>
                     </div>
                 </div>
 
@@ -241,9 +305,12 @@
         <hr>
 
         <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </div>
 
 </body>
-<!-- Footer -->
-<% include ./sm_footer %>
+
+<div style="display:none" id="loadPageFooter">
+  <% include ./sm_footer %>
+</div>
 
 </html>

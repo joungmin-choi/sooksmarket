@@ -1,39 +1,80 @@
-
 <!DOCTYPE html>
 <html>
     <head>
         <% include ./sm_head %>
-        <script language="JavaScript">
 
+        <style>
+        #loader {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          z-index: 1;
+          width: 150px;
+          height: 150px;
+          margin: -75px 0 0 -75px;
+          border: 16px solid #f3f3f3;
+          border-radius: 50%;
+          border-top: 16px solid #3498db;
+          width: 120px;
+          height: 120px;
+          -webkit-animation: spin 2s linear infinite;
+          animation: spin 2s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+          0% { -webkit-transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        </style>
+
+        <script language="JavaScript">
         var checkingId = <%= checkingId %>;
         var checkingSookmyung = <%= checkingSookmyung %>;
 
         function checkId(){
           var form = document.getElementById("form");
           var idText = document.getElementById("id");
+
+
+          var checkIdAfter = document.getElementById("checkIdAfter");
+          var checkIdBefore = document.getElementById("checkIdBefore");
+
           if(idText.value==""){
             alert("입력된 아이디가 없습니다.");
           }
           else{
+            checkIdAfter.style.display="";
+            checkIdBefore.style.display="none";
+
             var str = "/sm_signup/checkId";
             form.action = str;
             form.submit();
           }
         }
-
         function authenticate(){
           var form = document.getElementById("form");
           var emailText = document.getElementById("email");
+
+          var authenticateAfter = document.getElementById("authenticateAfter");
+          var authenticateBefore = document.getElementById("authenticateBefore");
+
           if(emailText.value==""){
             alert("숙명 이메일 아이디를 입력해주세요.");
           }
           else{
+            authenticateAfter.style.display="";
+            authenticateBefore.style.display="none";
+
             var str = "/authenticateSookmyung/?email="+emailText.value+"@sm.ac.kr";
             form.action = str;
             form.submit();
           }
         }
-
         function submitCheck(){
           var idText = document.getElementById("id");
           var nameText = document.getElementById("name");
@@ -44,7 +85,6 @@
           var form = document.getElementById("form");
           var allias = document.getElementById("allias");
           allias.value = idText.value;
-
           if(nameText.value==""){
             alert("이름을 입력하세요.");
             nameText.focus();
@@ -84,6 +124,12 @@
             return false;
           }
           else {
+            var submitAfter = document.getElementById("submitAfter");
+            var submitBefore = document.getElementById("submitBefore");
+
+            submitAfter.style.display="";
+            submitBefore.style.display="none";
+
             alert("회원가입 완료!");
             form.action = "/sm_signup";
             form.submit();
@@ -91,90 +137,126 @@
           }
         }
 
+        window.onload = function(){
+          var loader = document.getElementById('loader');
+          var body = document.getElementById('body');
+          var loadPage = document.getElementById('loadPage');
+          var loadPageFooter = document.getElementById('loadPageFooter');
+
+          loader.style.display="none";
+          body.style.backgroundColor="#ffffff";
+          loadPage.style.display="";
+          loadPageFooter.style.display="";
+
+
+          $('#loader').hide();
+        }
+
+        function cancel(){
+          var cancelAfter = document.getElementById("cancelAfter");
+          var cancelBefore = document.getElementById("cancelBefore");
+
+          cancelAfter.style.display="";
+          cancelBefore.style.display="none";
+
+          location.href='/sm_signup/cancel';
+        }
         </script>
     </head>
 
-    <body class="body">
-      <div class="container">
-        <h3 style="text-align:center;">
-          <img src="/img/notepad2.png" width="37" style="margin-right:3%;" />
-          <strong> 회원 가입 </strong>
-        <img src="/img/notepad2.png" width="37" style="margin-left:3%;" /></h3>
+    <body class="body" id="body">
 
-        <hr />
+      <div id="loader"></div>
 
-          <div class="row">
-            <div class="col-md-12 col-md-offset-1 col-sm-12 col-sm-offset-1 col-xs-12">
-              <form class="form-horizontal" role="form" id="form" name="form" method = "post"  onsubmit="return submitCheck()" >
-                <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">이름 :</label>
-                  <div class="col-sm-5">
-                    <input type="text" class="form-control" name="name" id="name" placeholder="이름을 입력해주세요." value="<%=nameText%>">
-                  </div>
-                </div>
-                <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">아이디 :</label>
-                  <div class="col-sm-5">
-                    <input type="text" class="form-control" name="username" id="id" placeholder="아이디를 입력해주세요." value="<%=idText%>" style="width:68%;display:inline;float:left;">
-                    <input type="button" class="col-sm-4 btn btn-primary"  onClick="checkId();" value="중복확인" style="width:30%;float:right;">
-                  </div>
-                </div>
+      <div style="display:none" id="loadPage">
+        <div class="container">
+          <h3 style="text-align:center;">
+            <img src="/img/notepad2.png" width="37" style="margin-right:3%;" />
+            <strong> 회원 가입 </strong>
+          <img src="/img/notepad2.png" width="37" style="margin-left:3%;" /></h3>
 
-                <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">비밀번호 :</label>
-                  <div class="col-sm-5">
-                    <input type="password" class="form-control" name="password" id="pw"  placeholder="비밀번호를 입력해주세요." value="<%=pwText%>">
-                  </div>
-                </div>
-                <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">비밀번호 확인 :</label>
-                  <div class="col-sm-5">
-                    <input type="password" class="form-control" name="pwcheck" id="pwCheck"  placeholder="비밀번호를 한 번 더 입력해주세요." value="<%=pwCheckText%>">
-                  </div>
-                </div>
-                <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">이메일 :</label>
-                  <div class="col-sm-5 text-center">
-                    <input style="width:40%;" type="text" class="col-sm-3 col-xs-3 form-control" name="email" id="email"  placeholder="숙명이메일 ID" value="<%=emailText%>">
-                    <div style="margin-top:2%;" class="col-sm-2 col-xs-2" style="width:50%;">
-                      @sm.ac.kr
+          <hr />
+
+            <div class="row">
+              <div class="col-md-12 col-md-offset-1 col-sm-12 col-sm-offset-1 col-xs-12">
+                <form class="form-horizontal" role="form" id="form" name="form" method = "post"  onsubmit="return submitCheck()" >
+                  <div class="form-group"> <!--has-success has-feedback-->
+                    <label for="" class="col-sm-3 control-label">이름 :</label>
+                    <div class="col-sm-5">
+                      <input type="text" class="form-control" name="name" id="name" placeholder="이름을 입력해주세요." value="<%=nameText%>">
                     </div>
                   </div>
-                </div>
-                <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label"></label>
-                  <div class="col-sm-5">
-                    <input type="button" class="btn btn-primary" value="인증번호 요청" onClick="authenticate();">
+                  <div class="form-group"> <!--has-success has-feedback-->
+                    <label for="" class="col-sm-3 control-label">아이디 :</label>
+                    <div class="col-sm-5">
+                      <input type="text" class="form-control" name="username" id="id" placeholder="아이디를 입력해주세요." value="<%=idText%>" style="width:68%;display:inline;float:left;">
+                      <button class="col-sm-4 btn btn-primary" id="checkIdAfter" style="display:none;width:30%;float:right;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 중복확인</button>
+                      <input type="button" class="col-sm-4 btn btn-primary" id="checkIdBefore"  onClick="checkId();" value="중복확인" style="width:30%;float:right;">
+                    </div>
                   </div>
-                </div>
-                <div class="form-group"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">전화번호 :</label>
-                  <div class="col-sm-5">
-                    <input type="text" class="form-control" name="phone" id="phone"  placeholder="전화번호를 입력해주세요." value="<%=phoneText%>">
-                    (※'-'없이 숫자만 입력해주세요!)
+
+                  <div class="form-group"> <!--has-success has-feedback-->
+                    <label for="" class="col-sm-3 control-label">비밀번호 :</label>
+                    <div class="col-sm-5">
+                      <input type="password" class="form-control" name="password" id="pw"  placeholder="비밀번호를 입력해주세요." value="<%=pwText%>">
+                    </div>
                   </div>
-                </div>
-                <div class="form-group" style="display:none;"> <!--has-success has-feedback-->
-                  <label for="" class="col-sm-3 control-label">별명 :</label>
-                  <div class="col-sm-5">
-                    <input type="text" class="form-control" name="displayName" id="allias">
+                  <div class="form-group"> <!--has-success has-feedback-->
+                    <label for="" class="col-sm-3 control-label">비밀번호 확인 :</label>
+                    <div class="col-sm-5">
+                      <input type="password" class="form-control" name="pwcheck" id="pwCheck"  placeholder="비밀번호를 한 번 더 입력해주세요." value="<%=pwCheckText%>">
+                    </div>
                   </div>
-                </div><br/>
-                <div class="form-group"> <!--has-success has-feedback-->
-                  <div class="col-sm-6 col-sm-offset-2 text-center">
-                    <input type="submit" value="가입하기" class="btn btn-success">
-                    <input type="reset" value="취소하기" class="btn btn-danger"  onclick="location.href='/sm_signup/cancel'">
+                  <div class="form-group"> <!--has-success has-feedback-->
+                    <label for="" class="col-sm-3 control-label">이메일 :</label>
+                    <div class="col-sm-5 text-center">
+                      <input style="width:40%;" type="text" class="col-sm-3 col-xs-3 form-control" name="email" id="email"  placeholder="숙명이메일 ID" value="<%=emailText%>">
+                      <div style="margin-top:2%;" class="col-sm-2 col-xs-2" style="width:50%;">
+                        @sm.ac.kr
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </form>
+                  <div class="form-group"> <!--has-success has-feedback-->
+                    <label for="" class="col-sm-3 control-label"></label>
+                    <div class="col-sm-5">
+                      <button class="btn btn-primary" id="authenticateAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 인증번호 요청</button>
+                      <input type="button" class="btn btn-primary" id="authenticateBefore" value="인증번호 요청" onClick="authenticate();">
+                    </div>
+                  </div>
+                  <div class="form-group"> <!--has-success has-feedback-->
+                    <label for="" class="col-sm-3 control-label">전화번호 :</label>
+                    <div class="col-sm-5">
+                      <input type="text" class="form-control" name="phone" id="phone"  placeholder="전화번호를 입력해주세요." value="<%=phoneText%>">
+                      (※'-'없이 숫자만 입력해주세요!)
+                    </div>
+                  </div>
+                  <div class="form-group" style="display:none;"> <!--has-success has-feedback-->
+                    <label for="" class="col-sm-3 control-label">별명 :</label>
+                    <div class="col-sm-5">
+                      <input type="text" class="form-control" name="displayName" id="allias">
+                    </div>
+                  </div><br/>
+                  <div class="form-group"> <!--has-success has-feedback-->
+                    <div class="col-sm-6 col-sm-offset-2 text-center">
+                      <button class="btn btn-success" id="submitAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 가입하기</button>
+                      <input type="submit" value="가입하기" id="submitBefore" class="btn btn-success">
+                      <button class="btn btn-danger" id="cancelAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 취소하기</button>
+                      <input type="reset" value="취소하기" class="btn btn-danger" id="cancelBefore"  onclick="cancel()">
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+
             </div>
+        </div><hr/>
+      </div>
 
-
-          </div>
-      </div><hr/>
 
     </body>
 
-    <% include ./sm_footer %>
+    <div style="display:none" id="loadPageFooter">
+      <% include ./sm_footer %>
+    </div>
 
 </html>

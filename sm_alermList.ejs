@@ -3,21 +3,78 @@
 <html>
   <head>
     <% include ./sm_head %>
-  </head>
+
 
   <script>
+  window.onload = function(){
+    var loader = document.getElementById('loader');
+    var body = document.getElementById('body');
+    var loadPage = document.getElementById('loadPage');
+    var loadPageFooter = document.getElementById('loadPageFooter');
+
+    loader.style.display="none";
+    body.style.backgroundColor="#ffffff";
+    loadPage.style.display="";
+    loadPageFooter.style.display="";
+
+
+    $('#loader').hide();
+  }
+
   function deleteAll(){
+    var deleteAfter = document.getElementById("deleteAfter");
+    var deleteBefore = document.getElementById("deleteBefore");
+
+    deleteAfter.style.display="";
+    deleteBefore.style.display="none";
+
     var retVal = confirm("전체 삭제를 하시겠습니까?");
     if( retVal == true ){
       location.href='/sm_alermList/deleteAll/<%= session_id %>';
+    } else{
+      location.href='window.location.href';
     }
   }
   </script>
 
-<body>
-  <% include ./sm_top_navigator %>
+  <style>
+  #loader {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+  }
 
-  <div class="container">
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  </style>
+  </head>
+
+<body id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
+    <% include ./sm_top_navigator %>
+
+    <div class="container">
     <div class="row">
       <div class="col-lg-12 text-center" style="margin-top:3%">
         <span>
@@ -26,10 +83,10 @@
         <hr/>
       </div>
     </div>
-  </div>
+    </div>
 
 
-  <div class="container">
+    <div class="container">
     <div class="row">
 
       <div class="col-xs-8 col-xs-offset-2" style="margin-top:2%; margin-bottom:2%">
@@ -42,7 +99,8 @@
         <col style="width:80%;">
         </colgroup>
         <% if (`${rows.length}` > 0){ %>
-          <button class="btn btn-primary" type="button" onclick="deleteAll()" style="margin-bottom:5px;float:right;">전체 삭제</button>
+          <button class="btn btn-primary" id="deleteAfter" style="display:none; margin-bottom:5px;float:right;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 전체 삭제</button>
+          <button class="btn btn-primary" id="deleteBefore" type="button" onclick="deleteAll()" style="margin-bottom:5px;float:right;">전체 삭제</button>
         <% } %>
         <thead>
             <tr>
@@ -78,7 +136,12 @@
 
     </div>
   </div>
-  <% include ./sm_footer %>
+
+  </div>
+
+  <div style="display:none" id="loadPageFooter">
+    <% include ./sm_footer %>
+  </div>
 
   <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 </body>

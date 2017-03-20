@@ -4,6 +4,35 @@
 <head>
     <% include ./sm_head %>
 
+    <style>
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    </style>
+
     <script>
     function confirmation(){
       var detail = document.getElementById("detail");
@@ -15,7 +44,15 @@
       else{
         var retVal = confirm("신고하시겠습니까?");
         if( retVal == true ){
+
+          var submitAfter = document.getElementById("submitAfter");
+          var submitBefore = document.getElementById("submitBefore");
+
+          submitAfter.style.display="";
+          submitBefore.style.display="none";
+
           alert('신고가 완료되었습니다.\n동시에 거래 취소가 완료되었으며, 해당 거래 관련 데이터는 모두 삭제됩니다.');
+
           form.submit();
           return true;
         }else{
@@ -24,13 +61,38 @@
       }
     }
 
+    window.onload = function(){
+      var loader = document.getElementById('loader');
+      var body = document.getElementById('body');
+      var loadPage = document.getElementById('loadPage');
+
+      loader.style.display="none";
+      body.style.backgroundColor="#ffffff";
+      loadPage.style.display="";
+
+
+      $('#loader').hide();
+    }
+
+
     function cancel(){
+      var cancelAfter = document.getElementById("cancelAfter");
+      var cancelBefore = document.getElementById("cancelBefore");
+
+      cancelAfter.style.display="";
+      cancelBefore.style.display="none";
+
       location.href = '/sm_chat/' + <%= product_id %>;
     }
     </script>
 </head>
 
-<body>
+<body id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
+
     <% include ./sm_top_navigator %>
 
     <div class="container">
@@ -70,8 +132,10 @@
 
                   <div class="form-group text-center">
                       <div class="col-xs-12">
-                          <button type="submit" class="btn btn-warning">신고하기 </button>
-                          <button type="button" class="btn btn-default" onclick="cancel()">돌아가기</button>
+                          <button class="btn btn-warning" id="submitAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 신고하기</button>
+                          <button type="submit" class="btn btn-warning" id="submitBefore">신고하기</button>
+                          <button class="btn btn-default" id="cancelAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 돌아가기</button>
+                          <button type="button" class="btn btn-default" id="cancelBefore" onclick="cancel()">돌아가기</button>
                       </div>
                   </div>
                   <hr/>
@@ -87,6 +151,8 @@
     <% include ./sm_footer %>
 
     <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+
+  </body>
 </body>
 
 

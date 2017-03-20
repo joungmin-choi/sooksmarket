@@ -4,6 +4,21 @@
   <% include ./sm_head %>
 
   <script>
+  window.onload = function(){
+
+    var loader = document.getElementById('loader');
+    var body = document.getElementById('body');
+    var loadPage = document.getElementById('loadPage');
+    var loadPageFooter = document.getElementById('loadPageFooter');
+
+    loader.style.display="none";
+    body.style.backgroundColor="#ffffff";
+    loadPage.style.display="";
+    loadPageFooter.style.display="";
+
+
+    $('#loader').hide();
+  }
 
   function submitCheck(){
     var target = document.getElementById("target");
@@ -50,17 +65,57 @@
       document.getElementById('file').value = "";
     }
   }
+
+  function cancel(){
+    var cancelAfter = document.getElementById("cancelAfter");
+    var cancelBefore = document.getElementById("cancelBefore");
+
+    cancelAfter.style.display="";
+    cancelBefore.style.display="none";
+
+    location.href='/sm_main';
+  }
   </script>
   <style>
     .form-control {
       height: 40px;
+    }
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 
 
 </head>
 
-<body class="body">
+<body class="body" id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
     <% include ./sm_top_navigator %>
 
     <div class="container">
@@ -130,7 +185,8 @@
             <div class="col-sm-5 col-sm-offset-3" style="text-align:center;">
               <button class="btn btn-primary" id="submitAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 등록하기</button>
               <input type="submit" value="등록하기" class="btn btn-primary" id="submitBefore">
-              <input type="reset" value="취소하기" class="btn btn-danger" onclick="location.href='/sm_main'">
+              <button class="btn btn-danger" id="cancelAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 취소하기</button>
+              <input type="reset" value="취소하기" class="btn btn-danger" id="cancelBefore" onclick="cancel()">
             </div>
           </div>
 
@@ -140,9 +196,13 @@
     </div>
     <hr/>
 
+  </div>
+
 </body>
 
 
-<% include ./sm_footer %>
+<div style="display:none" id="loadPageFooter">
+  <% include ./sm_footer %>
+</div>
 
 </html>

@@ -9,11 +9,14 @@
     var price = document.getElementById("price");
     var form = document.getElementById("form");
     var way = document.getElementsByName("way");
+
+    var priceDataType = isNaN(price.value);
+
     if(target.value==""){
       alert("상품명을 입력하세요.");
       return false;
     }
-    else if(price.value==""){
+    else if((price.value=="") || (priceDataType == true)){
       alert("가격을 입력하세요.");
       return false;
     }
@@ -26,15 +29,33 @@
       return false;
     }
     else{
+      var submitAfter = document.getElementById("submitAfter");
+      var submitBefore = document.getElementById("submitBefore");
+
+      submitAfter.style.display="";
+      submitBefore.style.display="none";
+
       form.submit();
       return true;
     }
   }
 
-  $(document).ready(function(){
-    $("#category").val("<%= `${category}` %>").attr("selected", "selected");
+  window.onload = function(){
+    var loader = document.getElementById('loader');
+    var body = document.getElementById('body');
+    var loadPage = document.getElementById('loadPage');
+    var loadPageFooter = document.getElementById('loadPageFooter');
 
-  });
+    loader.style.display="none";
+    body.style.backgroundColor="#ffffff";
+    loadPage.style.display="";
+    loadPageFooter.style.display="";
+
+
+    $('#loader').hide();
+
+    $("#category").val("<%= `${category}` %>").attr("selected", "selected");
+  }
 
   function Upload(target) {
     var files = target.files;
@@ -55,25 +76,69 @@
     }
     document.getElementById("hidden").value = "2";
   }
+
+  function cancel(){
+    var cancelAfter = document.getElementById("cancelAfter");
+    var cancelBefore = document.getElementById("cancelBefore");
+
+    cancelAfter.style.display="";
+    cancelBefore.style.display="none";
+    
+    location.href='/sm_itemDetail/<%= id %>';
+  }
   </script>
+
+  <style>
+  #loader {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+  }
+
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  </style>
 
 
 </head>
 
-<body class="body">
+<body class="body" id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
     <% include ./sm_top_navigator %>
 
     <div class="container">
-      <!--1-->
-      <p class="lead"><strong>Shop Name</strong></p>
-      <!--2-->
+
+      <h3 style="text-align:center;"><img src="/img/cart.png" width="37" style="margin-right:5%;"/>
+        <strong> 상품 수정 </strong>
+      <img src="/img/online-shop.png" width="37" style="margin-left:5%;" /></h3>
+
+      <hr />
+
       <div class="row">
-      <!-- (2-1) -->
-      <div class="col-md-3">
-        <% include ./sm_sidebar %>
-      </div>
-      <!-- (2-2) -->
-      <div class="col-md-9">
+
+
+      <div class="col-xs-12 col-md-12 col-md-offset-1">
         <form action='/sm_changeDetail/<%= id %>' class="form-horizontal" role="form" id="form" name="form" method = "post"  enctype="multipart/form-data" onsubmit="return submitCheck()" >
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">팔고자 하는 물건 :</label>
@@ -157,8 +222,10 @@
           </div>
           <div class="form-group"> <!--has-success has-feedback-->
             <div class="text-center">
-              <input type="submit" value="등록하기" class="btn btn-primary" onclick="location.href='/sm_changeDetail/<%= id %>'" >
-              <input type="reset" value="취소하기" class="btn btn-danger" onclick="location.href='/sm_itemDetail/<%= id %>'">
+              <button class="btn btn-primary" id="submitAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 등록하기</button>
+              <input type="submit" value="등록하기" class="btn btn-primary" id="submitBefore" >
+              <button class="btn btn-danger" id="cancelAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 취소하기</button>
+              <input type="reset" value="취소하기" class="btn btn-danger" id="cancelBefore" onclick="cancel()">
             </div>
           </div>
 
@@ -167,9 +234,13 @@
       </div>
     </div>
 
+  </div>
+
 </body>
 
 
-<% include ./sm_footer %>
+<div style="display:none" id="loadPageFooter">
+  <% include ./sm_footer %>
+</div>
 
 </html>

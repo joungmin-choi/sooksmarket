@@ -17,9 +17,39 @@
     font-family: arial;
   }
 
+  #loader {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+    border: 16px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+  }
+
+  @-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   </style>
 
   <script>
+  var product_seller = `<%= rows.product_seller %>`;
+  var session_id = `<%= session_id %>`;
+
     function addSellProduct(){
       var file = document.getElementById("file");
       var price = document.getElementById("price");
@@ -39,13 +69,37 @@
         return false;
       }
       else{
+        var seller_submitAfter = document.getElementById("seller_submitAfter");
+        var seller_submitBefore = document.getElementById("seller_submitBefore");
+
+        seller_submitAfter.style.display="";
+        seller_submitBefore.style.display="none";
+
         form.submit();
         return true;
       }
     };
 
     window.onload = function(){
+      var loader = document.getElementById('loader');
+      var body = document.getElementById('body');
+      var loadPage = document.getElementById('loadPage');
+      var loadPageFooter = document.getElementById('loadPageFooter');
+
+      loader.style.display="none";
+      body.style.backgroundColor="#ffffff";
+      loadPage.style.display="";
+      loadPageFooter.style.display="";
+
+
+      $('#loader').hide();
+
       var countTimer = setInterval(stopWatch, 1000);
+
+      // if((session_id == product_seller) && (remainTimeDiv.outerText == "마감되었습니다.")){
+      //   document.getElementById("seller_changeBefore").disabled = true;
+      // }
+
     }
 
     function stopWatch(){
@@ -100,17 +154,92 @@
     }
 
     function buyRequest(productId){
+      var choice_After = document.getElementById("choice_After");
+      var choice = document.getElementById("choice");
+
+      choice_After.style.display="";
+      choice.style.display="none";
+
       var link = '/sm_request/'+ productId + '/0';
       location.href = link;
     }
+
+    function admin_delete(){
+      var admin_deleteAfter = document.getElementById("admin_deleteAfter");
+      var admin_deleteBefore = document.getElementById("admin_deleteBefore");
+
+      admin_deleteAfter.style.display="";
+      admin_deleteBefore.style.display="none";
+
+      location.href = '/buy_itemDetail/<%= `${rows.product_id}` %>/<%= `${num}` %>/delete';
+    }
+
+    function buyer_delete(){
+      var buyer_deleteAfter = document.getElementById("buyer_deleteAfter");
+      var buyer_deleteBefore = document.getElementById("buyer_deleteBefore");
+
+      buyer_deleteAfter.style.display="";
+      buyer_deleteBefore.style.display="none";
+
+      location.href = '/buy_itemDetail/<%= `${rows.product_id}` %>/<%= `${num}` %>/delete';
+    }
+
+    function buyer_change(){
+      var buyer_changeAfter = document.getElementById("buyer_changeAfter");
+      var buyer_changeBefore = document.getElementById("buyer_changeBefore");
+
+      buyer_changeAfter.style.display="";
+      buyer_changeBefore.style.display="none";
+
+      location.href='/buy_itemDetail/<%= `${rows.product_id}` %>/<%= `${num}` %>/change';
+    }
+
+    function seller_change(child_id){
+      var seller_changeAfter = document.getElementById("seller_changeAfter");
+      var seller_changeBefore = document.getElementById("seller_changeBefore");
+
+      seller_changeAfter.style.display="";
+      seller_changeBefore.style.display="none";
+
+      location.href='/buy_sellProduct/change/'+child_id+'/<%= `${rows.product_id}` %>/<%= `${num}` %>';
+    }
+
+    function seller_delete(child_id, i){
+      if(i == 1){
+        var seller_deleteAfter = document.getElementById("seller_deleteAfter");
+        var seller_deleteBefore = document.getElementById("seller_deleteBefore");
+
+        seller_deleteAfter.style.display="";
+        seller_deleteBefore.style.display="none";
+
+
+      }
+      else if (i == 2){
+        var admin_seller_deleteAfter = document.getElementById("admin_seller_deleteAfter");
+        var admin_seller_deleteBefore = document.getElementById("admin_seller_deleteBefore");
+
+        admin_seller_deleteAfter.style.display="";
+        admin_seller_deleteBefore.style.display="none";
+      }
+      location.href='/buy_sellProduct/delete/'+child_id+'/<%= `${rows.product_id}` %>/<%= `${num}` %>';
+    }
+
+
+
+
+
 
   </script>
 
 </head>
 
-<body>
-  <!-- 네이게이션 상단 부분 -->
-  <% include ./sm_top_navigator %>
+<body id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
+
+    <% include ./sm_top_navigator %>
 
   <div class="container" style="height:480px;">
     <div class="col-xs-12 col-md-10 col-md-offset-1">
@@ -147,11 +276,28 @@
         </table>
       </div>
 
-      <% if (session_id != rows.product_seller){ %>
+      <% if (session_id === 'sooksmarket'){ %>
+        <div style="text-align:center">
+          <button class="btn btn-primary" id="admin_deleteAfter" style="display:none; margin-top:5px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 삭제</button>
+          <button type="button" class="btn btn-primary" id="admin_deleteBefore" style="margin-top:5px;" onclick="admin_delete()">삭제</button>
+        </div>
+      <% } else if (session_id != rows.product_seller){ %>
         <div id="requestSellingDiv" style="text-align:center">
           <button type="button" class="btn btn-success" style="margin-top:5px;" data-toggle="collapse" data-target="#reportDiv">판매 신청하기</button>
         </div>
+      <% } else if (session_id === rows.product_seller){ %>
+        <div style="text-align:center">
+          <% if (`${results.length}` != 0){ %>
+            <button type="button" class="btn btn-primary" style="margin-top:5px;" disabled>수정</button>
+          <% } else { %>
+            <button class="btn btn-primary" id="buyer_changeAfter" style="display:none; margin-top:5px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 수정</button>
+            <button type="button" class="btn btn-primary" id="buyer_changeBefore" style="margin-top:5px;" onclick="buyer_change()">수정</button>
+          <% } %>
+          <button class="btn btn-primary" id="buyer_deleteAfter" style="display:none; margin-top:5px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 삭제</button>
+          <button type="button" class="btn btn-primary" id="buyer_deleteBefore" style="margin-top:5px;" onclick="buyer_delete()">삭제</button>
+        </div>
       <% } %>
+
 
       <div class="col-xs-13 col-md-8 col-md-offset-2">
       <div id="reportDiv" class="collapse text-center" style="margin-top:10px;">
@@ -178,7 +324,8 @@
             </tr>
           </tbody>
         </table>
-        <button type="button" class="btn btn-primary" onclick="addSellProduct();" style="margin-bottom:2%;">등록</button>
+        <button class="btn btn-primary" id="seller_submitAfter" style="display:none; margin-bottom:2%;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 등록</button>
+        <button type="button" class="btn btn-primary" id="seller_submitBefore" onclick="addSellProduct();" style="margin-bottom:2%;">등록</button>
         <!-- <hr /> -->
       </form>
       </div>
@@ -214,28 +361,35 @@
             </tr>
             <tr>
               <td colspan="2">
-                <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="250"/>
-                <h5 style="text-align:center;;word-break:break-all; word-wrap:break-word;">
-                  <label style="color:blue">가격 : </label> <%= results[i].product_price %> 원
-                </h5>
-                <h5 style="text-align:center;word-break:break-all; word-wrap:break-word;">
-                  <label style="color:blue">내용 : </label> <%= results[i].product_detail %>
-                </h5>
-                <h5 style="text-align:center;word-break:break-all; word-wrap:break-word;">
-                  <label style="color:blue">등록일 : </label> <%= results[i].product_date %>
-                </h5>
-                <div style="text-align:center;">
-                <% if(results[i].product_seller === session_id ) { %>  <!-- 파는 글 올린 사람 -->
-                  <button type="button" id="delete" name="delete" class="btn btn-warning" onclick="delete();">삭제</button>
-                  <button type="button" id="change" name="change" class="btn btn-primary">수정</button>
-                <% } else if(user === session_id) { %>  <!-- 삽니다 게시글 주인 -->
-                  <button type="button" id="choice" name="choice" class="btn btn-success" onclick="buyRequest(<%= results[i].product_id %>);">구매하기</button>
-                <% } else if(session_id === 'sooksmarket') { %>
-                  <button type="button" id="admin_delete" name="admin_delete" class="btn btn-warning">삭제</button>
-                <% } %>
+                <div id="sellProduct<%= i %>" name="sellProduct<%= i %>">
+                  <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="250"/>
+                  <h5 style="text-align:center;word-break:break-all; word-wrap:break-word;">
+                    <label style="color:blue">가격 : </label> <%= results[i].product_price %> 원
+                  </h5>
+                  <h5 style="text-align:center;word-break:break-all; word-wrap:break-word;">
+                    <label style="color:blue">내용 : </label> <%= results[i].product_detail %>
+                  </h5>
+                  <h5 style="text-align:center;word-break:break-all; word-wrap:break-word;">
+                    <label style="color:blue">등록일 : </label> <%= results[i].product_date %>
+                  </h5>
+
+                  <div style="text-align:center;">
+                  <% if(results[i].product_seller === session_id ) { %>  <!-- 파는 글 올린 사람 -->
+                    <button class="btn btn-primary" id="seller_changeAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 수정</button>
+                    <button type="button" id="seller_changeBefore" name="change" class="btn btn-primary" onclick="seller_change(<%= `${results[i].child_id}` %>)">수정</button>
+                    <button class="btn btn-warning" id="seller_deleteAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 삭제</button>
+                    <button type="button" id="seller_deleteBefore" name="delete" class="btn btn-warning" onclick="seller_delete(<%= `${results[i].child_id}` %>, 1)">삭제</button>
+                  <% } else if(user === session_id) { %>  <!-- 삽니다 게시글 주인 -->
+                    <button class="btn btn-success" id="choice_After" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 구매하기</button>
+                    <button type="button" id="choice" name="choice" class="btn btn-success" onclick="buyRequest(<%= results[i].product_id %>);">구매하기</button>
+                  <% } else if(session_id === 'sooksmarket') { %>
+                    <button class="btn btn-warning" id="admin_seller_deleteAfter" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 삭제</button>
+                    <button type="button" id="admin_seller_deleteBefore" name="admin_delete" class="btn btn-warning" onclick="seller_delete(<%= `${results[i].child_id}` %>, 2)">삭제</button>
+                  <% } %>
+                </div>
               </div>
-              </td>
-            </tr>
+            </td>
+          </tr>
           </tbody>
         <% } %> <!-- for문 끝 -->
       </table>
@@ -244,8 +398,13 @@
 
   </div>
 
+  </div>
 
-<% include ./sm_footer %>
+
+  <div style="display:none" id="loadPageFooter">
+    <% include ./sm_footer %>
+  </div>
+
   <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
 </body>
 

@@ -39,13 +39,26 @@
         margin-left: 1%;
       }
 
-      #text_button {
+      #text_button{
+        /*max-width: 9vw;*/
+        width: 50px;
+        height: 30;
+      }
+      #text_buttonAfter{
         /*max-width: 9vw;*/
         width: 50px;
         height: 30;
       }
 
       #time_button{
+        width: 70px;
+        height: 40px;
+        margin-left: 4%;
+        margin-top: 0.5%;
+        margin-bottom : 1%;
+      }
+      #time_buttonAfter{
+        width: 70px;
         height: 40px;
         margin-left: 4%;
         margin-top: 0.5%;
@@ -107,6 +120,33 @@
         #messages li b{
           font-size: 16px;
         }
+
+        #loader {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          z-index: 1;
+          width: 150px;
+          height: 150px;
+          margin: -75px 0 0 -75px;
+          border: 16px solid #f3f3f3;
+          border-radius: 50%;
+          border-top: 16px solid #3498db;
+          width: 120px;
+          height: 120px;
+          -webkit-animation: spin 2s linear infinite;
+          animation: spin 2s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+          0% { -webkit-transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
     </style>
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -129,11 +169,13 @@
                 location.href = '/sm_main';
                 return false;
             } else {
+
                 //alert('join [서버로 전송]');
                 socket.emit('join', {
                     'userid': users,
                     'room': product_id
                 });
+
 
                 $('form').submit(function() {
                     //alert('폼 버튼 클릭되었습니다:)');
@@ -197,6 +239,8 @@
                 })
 
                 socket.on('chat message', function(data) {
+
+
                   //alert('chat message를 클라이언트에서 받음');
                   msg_date = data.date;
                   msg_date = msg_date.substring(5,16);
@@ -207,76 +251,105 @@
                     else {
                       $('#messages').append("<li class='actual_msg' style='text-align:left; float:left; background: #FEFEFE;'><b>" + data.user + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg + "</li>");
                     }
+
+
                 });
+
+                
             }
         });
+
+        function selectTime(id, request_num){
+          var users = '<%= session %>';
+          var product_id = '<%= product_id %>';
+
+          if(id == users){
+            alert("상대방만 시간 선택 버튼을 누를 수 있습니다!");
+          }
+          else{
+            var link = "/sm_selectTime/" + product_id + "/" + request_num;
+            location.href=link;
+          }
+        }
+
+        function complete(id){
+          var users = '<%= session %>';
+          var product_id = '<%= product_id %>';
+
+          if(id == users){
+            alert("상대방만 확인 버튼을 누를 수 있습니다!");
+          }else{
+            alert("거래 취소가 완료되었습니다.\n해당 거래 관련 데이터는 모두 삭제됩니다.");
+            var link = '/sm_chat/'+product_id+'/reject';
+            location.href=link;
+          }
+        }
+
+        function report(id){
+          var users = '<%= session %>';
+          var product_id = '<%= product_id %>';
+
+          if(id == users){
+            alert("상대방만 신고 버튼을 누를 수 있습니다!");
+          }else{
+            var link = '/sm_reportRejector/'+product_id;
+            location.href=link;
+          }
+        }
+
+        function urgent(){
+          var time_buttonAfter = document.getElementById("time_buttonAfter");
+          var time_button = document.getElementById("time_button");
+
+          time_buttonAfter.style.display="";
+          time_button.style.display="none";
+
+          location.href='/sm_urgent/<%= product_id %>';
+        }
 
 
     </script>
 
 </head>
 
-<body>
-  <!-- 네이게이션 상단 부분 -->
-  <% include ./sm_top_navigator %>
+<body id="body" onload="loaded()">
+  <script language=JavaScript>
+  function loaded(){
+    loader.style.display="none";
+    body.style.backgroundColor="#ffffff";
+    loadPage.style.display="";
+    loadPageFooter.style.display="";
+
+    $('#loader').hide();
+  }
+  </script>
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
+
+    <% include ./sm_top_navigator %>
 
         <ul id="messages" style="height:71vh;"></ul>
         <form action="">
           <div>
           <div id="input">
                 <input name="name" id="text" placeholder="  내용을 입력해주세요." style="width:72%;">
+                <button class="btn btn-warning" id="text_buttonAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 확인</button>
                 <button type="submit" class="btn btn-warning" id="text_button">확인</button>
           </div>
           <div id="input2">
             <% if (urgencyCount < 3){ %>
-              <button type="button" class="btn btn-danger" id="time_button" onclick="location.href='/sm_urgent/<%= product_id %>'">긴급</button>
+              <button class="btn btn-danger" id="time_buttonAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 긴급</button>
+              <button type="button" class="btn btn-danger" id="time_button" onclick="urgent()">긴급</button>
             <% } %>
           </div>
         </div>
         </form>
-
-    <script type="text/javascript">
-      function selectTime(id, request_num){
-        var users = '<%= session %>';
-        var product_id = '<%= product_id %>';
-
-        if(id == users){
-          alert("상대방만 시간 선택 버튼을 누를 수 있습니다!");
-        }
-        else{
-          var link = "/sm_selectTime/" + product_id + "/" + request_num;
-          location.href=link;
-        }
-      }
-
-      function complete(id){
-        var users = '<%= session %>';
-        var product_id = '<%= product_id %>';
-
-        if(id == users){
-          alert("상대방만 확인 버튼을 누를 수 있습니다!");
-        }else{
-          alert("거래 취소가 완료되었습니다.\n해당 거래 관련 데이터는 모두 삭제됩니다.");
-          var link = '/sm_chat/'+product_id+'/reject';
-          location.href=link;
-        }
-      }
-
-      function report(id){
-        var users = '<%= session %>';
-        var product_id = '<%= product_id %>';
-
-        if(id == users){
-          alert("상대방만 신고 버튼을 누를 수 있습니다!");
-        }else{
-          var link = '/sm_reportRejector/'+product_id;
-          location.href=link;
-        }
-      }
-    </script>
+  </div>
 
 </body>
 
-</script>
+
 
 </html>

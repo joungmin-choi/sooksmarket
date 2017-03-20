@@ -7,6 +7,33 @@
     <title>scrap</title>
 
     <style>
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     a:link {text-decoration: none;}
     a:visited {text-decoration: none; color: #000066;}
     div.thumbnail:hover { border: 1px solid #777; }
@@ -86,12 +113,26 @@
 
     };
 
+    window.onload = function(){
+      var loader = document.getElementById('loader');
+      var body = document.getElementById('body');
+      var loadPage = document.getElementById('loadPage');
+
+      loader.style.display="none";
+      body.style.backgroundColor="#ffffff";
+      loadPage.style.display="";  
+
+      $('#loader').hide();
+    }
+
 
     </script>
 </head>
 
-<body>
-    <!-- 네이게이션 상단 부분 -->
+<body id="body">
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
     <% include ./sm_top_navigator %>
 
     <div class="container">
@@ -104,17 +145,6 @@
 
         <!-- 본문 1-->
         <div class="row">
-          <!--
-          <div class="col-md-3">
-                <p class="lead"><strong>Shop Name</strong></p>
-                <div class="list-group">
-                    <a href="#" class="list-group-item">Category 1</a>
-                    <a href="#" class="list-group-item">Category 2</a>
-                    <a href="#" class="list-group-item">Category 3</a>
-                </div>
-            </div>
-          -->
-
             <div id="snackbar">스크랩되었습니다.</div>
 
 
@@ -157,6 +187,8 @@
 
 
     <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+
+  </div>
 </body>
 
 

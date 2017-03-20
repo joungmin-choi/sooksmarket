@@ -167,14 +167,99 @@
       var socket = io();
       socket.emit('chat message', 22);
 
+      var tradeOKAfter = document.getElementById("tradeOKAfter");
+      var tradeOKBefore = document.getElementById("tradeOKBefore");
+
+      tradeOKAfter.style.display="";
+      tradeOKBefore.style.display="none";
+
       form.submit();
       return true;
     }
+
+    window.onload = function(){
+      var loader = document.getElementById('loader');
+      var body = document.getElementById('body');
+      var loadPage = document.getElementById('loadPage');
+      var loadPageFooter = document.getElementById('loadPageFooter');
+
+      loader.style.display="none";
+      body.style.backgroundColor="#ffffff";
+      loadPage.style.display="";
+      loadPageFooter.style.display="";
+
+
+      $('#loader').hide();
+    }
+
+    function timeChange(){
+      var timeChangeAfter = document.getElementById("timeChangeAfter");
+      var timeChangeBefore = document.getElementById("timeChangeBefore");
+
+      timeChangeAfter.style.display="";
+      timeChangeBefore.style.display="none";
+
+      location.href='/sm_request/<%=id%>/0';
+    }
+
+    function tradeCancel(){
+      var tradeCancelAfter = document.getElementById("tradeCancelAfter");
+      var tradeCancelBefore = document.getElementById("tradeCancelBefore");
+
+      tradeCancelAfter.style.display="";
+      tradeCancelBefore.style.display="none";
+
+      location.href='/sm_rejectTrade/<%=id%>/<%=num%>/0';
+    }
+
+    function back(){
+      var backAfter = document.getElementById("backAfter");
+      var backBefore = document.getElementById("backBefore");
+
+      backAfter.style.display="";
+      backBefore.style.display="none";
+
+      location.href='/sm_chat/<%=id%>';
+    }
     </script>
+
+
+    <style>
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    </style>
 
 </head>
 
-<body>
+<body id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
     <% include ./sm_top_navigator %>
 
         <div class="container">
@@ -391,14 +476,18 @@
                     <div  style="text-align:center;">
                       <% if (isClicked == 0){ %>
                         <% if (isAllDisabled != 1){ %>
-                          <button type="submit" class="btn btn-primary" style="font-size:13px;">거래 확정</button>
+                          <button class="btn btn-primary" id="tradeOKAfter" style="display:none; font-size:13px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 거래 확정</button>
+                          <button type="submit" class="btn btn-primary" id="tradeOKBefore" style="font-size:13px;">거래 확정</button>
                         <% }else{ %>
                           <h5 style="color:red;">모든 거래 신청 시간이 현재 시간보다 이전입니다.<br/><br>"시간 변경" 혹은 "거래 취소"" 버튼을 눌러주세요.</h5><br/>
                         <% } %>
-                        <button type="button" class="btn btn-success" style="font-size:13px;" onclick="location.href='/sm_request/<%=id%>/0'">시간 변경</button>
-                        <button type="button" class="btn btn-danger" style="font-size:13px;" onclick="location.href='/sm_rejectTrade/<%=id%>/<%=num%>/0'">거래 취소</button>
+                        <button class="btn btn-success" id="timeChangeAfter" style="display:none; font-size:13px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 시간 변경</button>
+                        <button type="button" class="btn btn-success" id="timeChangeBefore" style="font-size:13px;" onclick="timeChange()">시간 변경</button>
+                        <button class="btn btn-danger" id="tradeCancelAfter" style="display:none; font-size:13px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 거래 취소</button>
+                        <button type="button" class="btn btn-danger" id="tradeCancelBefore" style="font-size:13px;" onclick="tradeCancel()">거래 취소</button>
                       <% } %>
-                        <button type="button" class="btn btn-default" style="font-size:13px;" onclick="location.href='/sm_chat/<%=id%>'">돌아가기</button>
+                        <button class="btn btn-default" id="backAfter" style="display:none; font-size:13px;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 돌아가기</button>
+                        <button type="button" class="btn btn-default" id="backBefore" style="font-size:13px;" onclick="back()">돌아가기</button>
                     </div>
                 </div>
 
@@ -409,9 +498,11 @@
         <hr/>
 
         <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
-
+    </div>
 </body>
-<!-- Footer -->
-<% include ./sm_footer %>
+
+<div style="display:none" id="loadPageFooter">
+  <% include ./sm_footer %>
+</div>
 
 </html>

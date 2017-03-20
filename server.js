@@ -1,5 +1,6 @@
 var cors = require('cors');
 var fs = require('fs');
+var im = require('imagemagick');
 var ejs = require('ejs');
 var mysql = require('mysql');
 var express = require('express');
@@ -1262,14 +1263,17 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
 
                     if (type[i].indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
                         outputPath[i] = './fileUploads/' + Date.now() + '_' + name[i];
-                        fs.rename(path[i], outputPath[i], function(err) {});
+                        fs.rename(path[i], outputPath[i], function(err) {});                        
                     }
                 }
                 for (i = file.length; i < 3; i++) {
                     request.files.file[i] = "";
                     outputPath[i] = "";
                 }
+
             }
+
+
 
             client.query('SELECT MAX(product_id) AS maxId FROM ProductInfo', function(err, result) {
                 var length = result.length;
@@ -2537,7 +2541,7 @@ app.get('/sm_changeDetail/:id', function(request, response) {
                     if (object.photo3 !== "") {
                         before_photo.push((object.photo3).substring(1));
                     }
-                    console.log(before_photo);
+                    //console.log(before_photo);
 
                     callback(null, result);
                 });
@@ -5292,29 +5296,33 @@ var sendPwd = function(pwd, email, callback) {
 };
 
 app.get('/sm_unsign', function(req, res) {
+    var allowDate = 0;
 
-    var sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+    var sql;
+
+    sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
     client.query(sql, [loginId[1]], function(err, result) {
         alerm = result.length;
         res.render('sm_unsign.ejs', {
             flag: 0,
             session_id: loginId[1],
-            alerm: alerm
+            alerm: alerm,
+            allowDate: allowDate
         });
-
     });
-
-
 });
 
 app.post('/sm_unsign', function(req, res) {
-    var str = 'SELECT * FROM TradeInfo WHERE (seller=? AND state<4) OR (customer=? AND state<4)';
     var flag = 0;
     var sql;
+    var email;
+    var login_id = loginId[1];
+    var allowDate = 0;
 
     async.series([
             function(callback) {
-                client.query(str, [loginId[1], loginId[1]], function(err, result) {
+              sql = 'SELECT * FROM TradeInfo WHERE (seller=? AND state<4) OR (customer=? AND state<4)';
+                client.query(sql, [login_id, login_id], function(err, result) {
                     //console.log(result[0]);
                     if (result[0] === undefined) { // 거래 중이 아닐 때
                         flag = 1;
@@ -5325,9 +5333,30 @@ app.post('/sm_unsign', function(req, res) {
 
             function(callback) {
                 sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-                client.query(sql, [loginId[1]], function(err, result) {
+                client.query(sql, [login_id], function(err, result) {
                     alerm = result.length;
                     //console.log(result.length);
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                sql = 'SELECT login_email FROM users WHERE username=?';
+                client.query(sql, [login_id], function(err, result) {
+                    email = result[0].login_email;
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                sql = 'SELECT * FROM ComplainIdHistory WHERE email=? AND date(date)>=date(now())';
+                client.query(sql, [email], function(err, result) {
+                    if (result[0] !== undefined) {
+                        flag = 3;
+                        allowDate = result[0].date;
+                    } else {
+                      flag = 1;
+                    }
                     callback(null);
                 });
             },
@@ -5339,6 +5368,9 @@ app.post('/sm_unsign', function(req, res) {
                   callback(null);
                 });
               }
+              else{
+                callback(null);
+              }
             }
 
         ],
@@ -5348,15 +5380,25 @@ app.post('/sm_unsign', function(req, res) {
                 res.render('sm_unsign.ejs', {
                     flag: 1,
                     session_id: loginId[1],
-                    alerm: alerm
+                    alerm: alerm,
+                    allowDate : allowDate
                 });
-                unsign = 1;
-            } else {
-                res.render('sm_unsign.ejs', {
-                    flag: 2,
-                    session_id: loginId[1],
-                    alerm: alerm
-                });
+                unsign = 1;  //sm_logut에서 쓰임
+            } else if (flag === 2){
+              res.render('sm_unsign.ejs', {
+                  flag: 2,
+                  session_id: loginId[1],
+                  alerm: alerm,
+                  allowDate : allowDate
+              });
+            }
+            else if (flag === 3){
+              res.render('sm_unsign.ejs', {
+                  flag: 3,
+                  session_id: loginId[1],
+                  alerm: alerm,
+                  allowDate : allowDate
+              });
             }
         });
 });
@@ -6112,6 +6154,12 @@ app.get('/sm_urgent/:pid', function(request, response) {
 app.get('/sm_buy', function(req, res) {
   var sql;
   var alerm;
+  var queryData = url.parse(req.url, true).query;
+  var searchText = queryData.text;
+  var rows;
+  var on = 0;
+  var allowDate; //신고가 풀리는 날
+  var email;
 
   async.series([
     function(callback){
@@ -6121,19 +6169,53 @@ app.get('/sm_buy', function(req, res) {
         alerm = result.length;
         callback(null);
       });
-    }
+    },
+    function(callback) {
+        if ((searchText !== '') && (searchText !== undefined)) {
+            sql = 'SELECT * FROM ProductInfo WHERE child_id=0 AND product_name LIKE ? AND noticeType LIKE ?';
+            client.query(sql, ['%' + searchText + '%', 'B'], function(err, result) {
+                rows = result;
+                callback(null);
+            });
+        } else {
+          sql = 'SELECT * FROM ProductInfo WHERE child_id=0 AND noticeType LIKE ?'
+            client.query(sql, ['B'], function(err, result) {
+                rows = result;
+                callback(null);
+            });
+        }
+    },
+    function(callback){
+      sql = 'SELECT login_email FROM users WHERE username=?';
+      client.query(sql, [loginId[1]], function(err, result){
+        email = result[0].login_email;
+        callback(null);
+      });
+    },
+    function(callback) {
+                sql = 'SELECT * FROM ComplainIdHistory WHERE email=? AND date(date)>=date(now())';
+                client.query(sql, [email], function(err, result) {
+                    if (result[0] !== undefined) {
+                        on = 1;
+                        allowDate = result[0].date;
+                        //console.log(on);
+                    } else {
+                        on = 0;
+                        //console.log(on);
+                    }
+                    callback(null);
+                });
+            }
   ],
   function(err){
-    sql = 'SELECT * FROM ProductInfo WHERE noticeType LIKE ? AND child_id=0';
-
-    client.query(sql, ['B'], function(err, result){
-      //console.log(result);
       res.render('sm_buy.ejs', {
         session_id: loginId[1],
         alerm: alerm,
-        rows: result
+        rows: rows,
+        on: on,
+        allowDate: allowDate
       });
-    });
+
   });
 });
 
@@ -6218,9 +6300,10 @@ app.get('/sm_buy_itemDetail/:auto/:num', function(req, res){
       });
     },
     function(callback){
-      sql = 'SELECT product_seller FROM ProductInfo WHERE product_id=? AND noticeType LIKE ?';
+      sql = 'SELECT product_seller FROM ProductInfo WHERE product_id=? AND child_id=0';
 
-      client.query(sql, [auto, 'B'], function(err, result){
+      client.query(sql, [auto], function(err, result){
+        //console.log("product_seller: ", result[0].product_seller);
         user = result[0].product_seller;
         callback(null);
       });
@@ -6281,8 +6364,9 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
   var login_id = loginId[1];
   var date = getTimeStamp();
 
+  var buyer;
+
   var productName;
-  var productId;
   var child_id_max;
 
   var sql;
@@ -6310,39 +6394,23 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
       sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
       client.query(sql, [auto], function(err, result){
         productName = result[0].product_name;
+        buyer = result[0].product_seller;
         callback(null);
       });
     },
     function(callback){
-      sql = 'SELECT MAX(parent_id), MAX(child_id) FROM ProductInfo WHERE product_id=?';
+      sql = 'SELECT MAX(parent_id), MAX(child_id) FROM ProductInfo WHERE parent_id=?';
       client.query(sql, [auto], function(err, result){
-        //console.log(result);
         if(`${result[0]['MAX(parent_id)']+1}` === null){
           child_id_max = 1;
         }else{
           child_id_max = `${result[0]['MAX(child_id)']+1}`;
+          //console.log(child_id_max);
         }
 
         callback(null);
       });
     },
-
-    function(callback){
-      client.query('SELECT MAX(product_id) AS maxId FROM ProductInfo', function(err, result) {
-        if(err){
-          console.log(err);
-          throw err;
-        }
-
-        if (result.length === 0) {
-          productId = 1;
-        } else {
-          productId = (result[0].maxId) + 1;
-        }
-        callback(null);
-      });
-    },
-
     function(callback){
       sql = 'INSERT INTO ProductInfo SET ?';
 
@@ -6352,12 +6420,9 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
           photo1: outputPath,
           photo2: "",
           photo3: "",
-          product_way: 3,
           product_detail: body.detail,
-          product_id : productId,
           product_seller: login_id,
           product_date: date,
-          isDone: 0,
           noticeType: 'B',
           parent_id: auto,
           child_id: child_id_max
@@ -6366,48 +6431,268 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
       client.query(sql, product, function(err, result) {
           if (err) {
               console.log(err);
-              throw err;
+              res.status(500);
           }
           callback(null);
       });
     },
-
     function(callback){
-      var state = {
-          pid: productId,
-          seller_state: 0
+      sql = 'INSERT INTO notifyMessage SET ?';
+
+      var notify = {
+          category : 4, // 삽니다 글에 판매글 달릴 때
+          product_id : auto,
+          detail : '[삽니다 게시판] "' + productName + '"에 상품이 올라왔습니다.',
+          date : date,
+          link : '/sm_buy_itemDetail/' + auto + '/' + number,
+          arrow : buyer,
+          id : login_id
+          // ,
+          // parent_id : auto,
+          // child_id : child_id_max
       };
 
-      var stateSql = 'INSERT INTO chat_state SET ?';
-      client.query(stateSql, state, function(err, result) {
-          if (err) {
+      client.query(sql, notify, function(err, result){
+        if (err) {
             console.log(err);
-          }
-          callback(null);
+            res.status(500);
+        }
+        callback(null);
       });
     }
   ],
   function(err){
-    if (err) {
-        console.log(err);
-        res.status(500);
-    }
     var str = '/sm_buy_itemDetail/' + auto + '/' + number;
     res.redirect(str);
   });
 
 });
 
-// app.post('/sm_buy_itemDetail/delete', function(req, res){
-//   var auto = req.body.auto;
-//   var number = req.body.num;
-//
-//   var sql;
-//
-//   sql = 'DELETE FROM SellInfo WHERE auto=?';
-//
-//   client.query(sql, [auto], function(err, result) {
-//     var str = '/sm_buy_itemDetail/' + auto + '/' + number;
-//     res.redirect(str);
-//   });
-// });
+app.get('/buy_itemDetail/:id/:num/delete', function(req, res) { //삭제
+    var id = req.params.id;
+    var numer = req.params.num;
+    var sql;
+
+    async.series([
+        function(callback) {
+            sql = 'DELETE FROM ProductInfo WHERE product_id=? OR parent_id=?';
+            client.query(sql, [id, id], function() {
+                callback(null);
+            });
+        },
+        function(callback) {
+          sql = 'DELETE FROM notifyMessage WHERE product_id=?';
+            client.query(sql, [id], function() {
+                callback(null);
+            });
+        },
+        function(callback) {
+          sql = 'DELETE FROM product_reserve WHERE product_id=?';
+            client.query(sql, [id], function() {
+                res.redirect('/sm_buy');
+            });
+        }
+    ]);
+});
+
+app.get('/buy_itemDetail/:id/:num/change', function(req, res) { //수정
+    var id = req.params.id;
+    var num = req.params.num;
+
+    var sql;
+    var rows;
+
+    async.series([
+      function(callback){
+        sql = 'SELECT * FROM ProductInfo WHERE product_id=? AND child_id=0';
+
+        client.query(sql, [id], function(err, result){
+          rows = result[0];
+          callback(null);
+        });
+      },
+      function(callback){
+        sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+        client.query(sql, [loginId[1]], function(err, result){
+          alerm = result.length;
+          callback(null);
+        });
+      }
+    ],
+    function(err){
+      res.render('sm_changeBuyingDetail.ejs', {
+        session_id : loginId[1],
+        alerm : alerm,
+        rows: rows,
+        id : id,
+        num : num
+      });
+    });
+});
+
+app.post('/buy_itemDetail/:id/:num/change', function(req, res){
+  var body = req.body;
+  var id = req.params.id;
+  var num = req.params.num;
+
+  var login_id = loginId[1];
+  var alerm;
+
+  var sql;
+
+  async.series([
+    function(callback){
+      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+      client.query(sql, [loginId[1]], function(err, result){
+        alerm = result.length;
+        callback(null);
+      });
+    },
+    function(callback){
+      sql = 'UPDATE ProductInfo SET product_name=?, product_price=?, product_detail=? WHERE product_id=?';
+      client.query(sql, [body.product, body.price, body.detail, id], function(err, result) {
+        callback(null);
+      });
+    },
+    function(callback){
+      sql = 'UPDATE ProductInfo SET product_name=? WHERE product_id=? AND parent_id=?';
+      client.query(sql, [body.product, id], function(err, result) {
+        callback(null);
+      });
+    }
+  ], function(err){
+    var link = '/sm_buy_itemDetail/' + id + '/' + num;
+    res.redirect(link);
+  });
+});
+
+app.get('/buy_sellProduct/delete/:child_id/:id/:num', function(req, res){ // [삽니다 게시판] 팔겠다고 글 올린 사람
+  var id = req.params.id;
+  var num = req.params.num;
+  var child_id = req.params.child_id;
+  var sql;
+
+  //console.log("child_id: ", child_id);
+
+  async.series([
+      function(callback) {
+          sql = 'DELETE FROM ProductInfo WHERE parent_id=? AND child_id=?';
+          client.query(sql, [id, child_id], function() {
+              callback(null);
+          });
+      },
+      function(callback) {
+        sql = 'DELETE FROM notifyMessage WHERE product_id=? AND child_id=?';
+          client.query(sql, [id, child_id], function() {
+              callback(null);
+          });
+      },
+      function(callback) {
+        sql = 'DELETE FROM product_reserve WHERE product_id=?';
+          client.query(sql, [id], function() {
+              callback(null);
+          });
+      }
+  ], function(err){
+    var link = '/sm_buy_itemDetail/' + id + '/' + num;
+    res.redirect(link);
+  });
+});
+
+
+app.get('/buy_sellProduct/change/:child_id/:id/:num', function(req, res) { // [삽니다 게시판] 팔겠다고 글 올린 사람
+    var child_id = req.params.child_id;
+    var id = req.params.id;
+    var num = req.params.num;
+
+    var sql;
+    var rows;
+    var photo;
+
+    async.series([
+      function(callback){
+        sql = 'SELECT * FROM ProductInfo WHERE parent_id=? AND child_id=?';
+
+        client.query(sql, [id, child_id], function(err, result){
+          rows = result[0];
+          photo = (result[0].photo1).substring(1);
+          callback(null);
+        });
+      },
+      function(callback){
+        sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+        client.query(sql, [loginId[1]], function(err, result){
+          alerm = result.length;
+          callback(null);
+        });
+      }
+    ],
+    function(err){
+      res.render('sm_changeSellingDetail.ejs', {
+        session_id : loginId[1],
+        alerm : alerm,
+        rows: rows,
+        photo : photo,
+        id : id,
+        num : num,
+        child_id : child_id
+      });
+    });
+});
+
+app.post('/buy_itemDetail/:child_id/:id/:num/change', multipartMiddleware, function(req, res){
+  var child_id = req.params.child_id;
+  var id = req.params.id;
+  var num = req.params.num;
+
+  var body = req.body;
+  var detail = body.detail;
+
+  var file;
+  var name;
+  var path;
+  var type;
+  var outputPath;
+  var hiddenValue = req.body.hidden;
+
+  async.series([
+          function(callback) {
+              if (hiddenValue == 0) {
+                  client.query('SELECT * FROM ProductInfo WHERE parent_id=? AND child_id=?', [id, child_id], function(err, result) {
+                      outputPath = result[0].photo1;
+                      callback(null);
+                  });
+              } else if (hiddenValue == 1) {
+
+                  file = req.files.file;
+
+                  name = file.name;
+                  path = file.path;
+                  type = file.type;
+
+                  if (type.indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
+                    outputPath = './fileUploads/' + Date.now() + '_' + name;
+                    fs.rename(path, outputPath, function(err) {});
+                  }
+
+                  callback(null);
+              }
+
+          },
+
+          function(callback) {
+
+              var update = 'UPDATE ProductInfo SET product_price=?, photo1=?, product_detail=? where parent_id=? AND child_id=?';
+              client.query(update, [body.price, outputPath, detail, id, child_id], function(err, result) {
+                  callback(null);
+              });
+          }
+      ],
+      function(err) {
+          var str = '/sm_buy_itemDetail/' + id + '/' + num;
+          res.redirect(str);
+      });
+
+
+
+});
