@@ -199,6 +199,11 @@
         alert('한 달(<%= `${allowDate}` %>)동안 사용하실 수 없습니다.');
         window.location.href = "/sm_main";
       }
+
+      if(<%=applyRejection%> == 1){
+        alert('거래 취소를 하셨기 때문에, \n취소하신 시간부터 5시간동안 사용하실 수 없습니다.');
+        window.location.href = "/sm_main";
+      }
     }
 
     var scrap = function(i) {

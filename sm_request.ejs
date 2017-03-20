@@ -502,18 +502,15 @@
             // var str = "소켓 테스트";
             //
             // socket.emit('chat message', "a");
-
-
+            var link = "/sm_request/" + <%= id %> + "/" + <%= isUrgent %>;
+            form.action = link;
             form.submit();
+
             return true;
         }
 
         function cancel(){
-
-          var link = '/sm_request/'+<%= id %>+'/cancel';
-          alert("2");
-          location.href=link;
-          alert("3");
+          history.go(-1);
         }
     </script>
 
@@ -531,7 +528,7 @@
           <% } %>
             <hr>
 
-            <form id="eventFrom" action="/sm_request/<%= id %>/<%= isUrgent %>" method="post" class="form-horizontal" onsubmit="return submitCheck()">
+            <form id="eventFrom" method="post" class="form-horizontal" onsubmit="return submitCheck()">
                 <div id="dayAddBtnDiv" style="margin-left:5%;margin-right:5%;">
                     <button type="button" class="btn btn-primary" id="dayAddBtn" onclick="addDay();" style="margin-bottom: 3%;">거래가능 날짜 추가</button>
                     <br/><small>날짜는 3개, 시간은 5개까지 추가 가능합니다 :)</small>
@@ -611,10 +608,12 @@
                       <% }else{ %>
                         <button type="submit" class="btn btn-success">시간 변경 신청</button>
                       <% } %>
+                      </form>
+                      <button type="button" class="btn btn-default" onclick="cancel();"> 취소</button>
                     </div>
                 </div>
-            </form>
-            <button type="button" class="btn btn-default" onclick="cancel();"> 취소</button>
+
+
         </div>
 
 

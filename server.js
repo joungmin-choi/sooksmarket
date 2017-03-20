@@ -4964,6 +4964,7 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
 });
 
 app.get('/sm_request/:id/cancel', function(req, res) {
+  console.log(2);
     var product_id = req.params.id;
     var tasks = [
         function(callback) {
