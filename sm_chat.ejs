@@ -44,7 +44,7 @@
         width: 50px;
         height: 30;
       }
-      #text_buttonAfter{
+      #text_button_After{
         /*max-width: 9vw;*/
         width: 50px;
         height: 30;
@@ -147,6 +147,7 @@
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
+
     </style>
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -157,6 +158,9 @@
 
     <script>
         $(function() {
+
+          $("#mydiv").scrollTop($("#mydiv")[0].scrollHeight);
+
             var socket = io();
             var seller = '<%= seller %>';
             var customer = '<%= customer %>';
@@ -179,6 +183,9 @@
 
                 $('form').submit(function() {
                     //alert('폼 버튼 클릭되었습니다:)');
+                    $('#text_button').hide();
+                    $('#text_button_After').show();
+
                     socket.emit('chat message', $('#text').val());
                     $('#text').val('');
                     return false;
@@ -255,7 +262,7 @@
 
                 });
 
-                
+
             }
         });
 
@@ -312,17 +319,7 @@
 
 </head>
 
-<body id="body" onload="loaded()">
-  <script language=JavaScript>
-  function loaded(){
-    loader.style.display="none";
-    body.style.backgroundColor="#ffffff";
-    loadPage.style.display="";
-    loadPageFooter.style.display="";
-
-    $('#loader').hide();
-  }
-  </script>
+<body id="body">
 
   <div id="loader"></div>
 
@@ -330,12 +327,14 @@
 
     <% include ./sm_top_navigator %>
 
-        <ul id="messages" style="height:71vh;"></ul>
+        <div id="mydiv">
+          <ul id="messages" style="height:71vh;"></ul>
+        </div>
         <form action="">
           <div>
           <div id="input">
-                <input name="name" id="text" placeholder="  내용을 입력해주세요." style="width:72%;">
-                <button class="btn btn-warning" id="text_buttonAfter" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 확인</button>
+                <input name="name" id="text" placeholder="내용을 입력해주세요." style="width:72%;">
+                <button class="btn btn-warning" id="text_button_After" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 확인</button>
                 <button type="submit" class="btn btn-warning" id="text_button">확인</button>
           </div>
           <div id="input2">
