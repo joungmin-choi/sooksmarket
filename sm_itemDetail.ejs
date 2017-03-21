@@ -165,7 +165,7 @@
                 <!-- 1-->
                 <div class="thumbnail">
 
-                    <% for (i=0; i< photo.length; i++){
+                    <% for (i=0; i< photo.length; i++) {
                       if (photo[i] != ""){ %>
                         <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="300" height="200" />
                         <br/>
@@ -255,7 +255,9 @@
                               <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
                             <% } %>
                           <% } else { %>
-                            <% if(session_id === 'sooksmarket') { %>
+                            <% if (session_id === customer) { %>
+                                <h5 style="color:red;font-weight:bold;"> 현재 구매하고 있는 제품 입니다.</h5>
+                            <% } else if (session_id === 'sooksmarket') { %>
                               <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
                             <% } else { %>
                               <% if (session_id !== seller){ %>

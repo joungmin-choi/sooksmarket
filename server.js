@@ -1035,6 +1035,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var flag = 0;
     var nextReserveCustomer;
     var max_reserve_count;
+    var customer;
 
     if (loginId[1] === undefined) {
         response.redirect('/');
@@ -1133,6 +1134,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                         } else {
                             if (result.length) {
                                 flag = 1;
+                                customer = result[0].customer;
+                                console.log(customer);
                             } else {
                             }
                             callback(null, 5);
@@ -1166,7 +1169,6 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                         }
                     });
                 }
-
             ],
 
             // callback (final)
@@ -1191,7 +1193,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                     flag: flag,
                     isDone: isDone,
                     nextReserveCustomer: nextReserveCustomer,
-                    max_reserve_count: max_reserve_count
+                    max_reserve_count: max_reserve_count,
+                    customer : customer
                 });
             });
     }
