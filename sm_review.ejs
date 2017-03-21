@@ -58,7 +58,7 @@
 
 
     $('#loader').hide();
-    
+
     if(<%= notExist %> == 1){
       alert("해당 ID에 대한 후기가 없습니다.");
       location.href='/sm_review';
@@ -123,7 +123,9 @@
             </thead>
             <tbody>
               <% if(notExist != 1){ %>
-              <% for(var i=0; i<results.length; i++){ %>
+              <% for(var i=0,haveResult = 0; i<results.length; i++){ %>
+                <% if(results[i].starScore != 0){
+                  haveResult = 1; %>
               <tr>
                 <td style="text-align:center;"><%= i+1 %></td>
                 <td>
@@ -154,7 +156,12 @@
 
                 </td>
               </tr>
-              <% }} %>
+              <% } %>
+              <% }
+              if(haveResult == 0){ %>
+                <tr><td colspan="2" style="text-align:center">후기가 없습니다.</td></tr>
+            <% }
+            } %>
             </tbody>
           </table>
         </div>
