@@ -35,6 +35,8 @@ var chatFlag = 0;
 var loginFlag = 0;
 var alerm = 0;
 var alarmFlag = 0;
+var registerSellAlarmCount = 0;
+var sellAlarmDate = new Array();
 var pushAlarmLink = "http://203.153.144.75/sm_alermList/";
 
 //DB 설정//
@@ -82,72 +84,67 @@ app.use(passport.session());
 app.use(cors());
 
 
-//서버 실행
-// app.listen(80, function() { //     console.log('server running at http://127.0.0.1:80');
-// });
-
-
 //긴급 3번 매달 1일 12시 업데이트
-var updateUregencyHistoryEveryMonth = schedule.scheduleJob('48 * * * *', function(){
-  client.query('UPDATE UrgencyHistory SET urgencyCount=0', function(err, result){
-    if(err){
-      console.log(err);
-      throw err;
-    }
-  });
+var updateUregencyHistoryEveryMonth = schedule.scheduleJob('0 0 1 * *', function() {
+    client.query('UPDATE UrgencyHistory SET urgencyCount=0', function(err, result) {
+        if (err) {
+            console.log(err);
+            throw err;
+        }
+    });
 });
 
 app.get('/', function(req, res) {
     var flag = req.user && req.user.displayName;
 
-        //추가
-        res.cookie('ExistFlag', 0, {
-          signed : true
-        });
-        res.cookie('checkingId', 0, {
-          signed : true
-        });
-        res.cookie('checkingSookmyung', 0, {
-          signed : true
-        });
-        res.cookie('idText', '', {
-          signed : true
-        });
-        res.cookie('nameText', '', {
-          signed : true
-        });
-        res.cookie('pwText', '', {
-          signed : true
-        });
-        res.cookie('emailText', '', {
-          signed : true
-        });
-        res.cookie('pwCheckText', '', {
-          signed : true
-        });
-        res.cookie('phoneText', '', {
-          signed : true
-        });
+    //추가
+    res.cookie('ExistFlag', 0, {
+        signed: true
+    });
+    res.cookie('checkingId', 0, {
+        signed: true
+    });
+    res.cookie('checkingSookmyung', 0, {
+        signed: true
+    });
+    res.cookie('idText', '', {
+        signed: true
+    });
+    res.cookie('nameText', '', {
+        signed: true
+    });
+    res.cookie('pwText', '', {
+        signed: true
+    });
+    res.cookie('emailText', '', {
+        signed: true
+    });
+    res.cookie('pwCheckText', '', {
+        signed: true
+    });
+    res.cookie('phoneText', '', {
+        signed: true
+    });
 
-        if (flag !== undefined) {
-            res.redirect('/sm_main');
-        } else {
-            if (loginFlag === 0) {
-                res.render('index', {
-                    loginon: 0
-                });
-            } else if (loginFlag == 1) {
-                loginFlag = 0;
-                res.render('index', {
-                    loginon: 1
-                });
-            } else if (loginFlag == 2) {
-                loginFlag = 0;
-                res.render('index', {
-                    loginon: 2
-                });
-            }
+    if (flag !== undefined) {
+        res.redirect('/sm_main');
+    } else {
+        if (loginFlag === 0) {
+            res.render('index', {
+                loginon: 0
+            });
+        } else if (loginFlag == 1) {
+            loginFlag = 0;
+            res.render('index', {
+                loginon: 1
+            });
+        } else if (loginFlag == 2) {
+            loginFlag = 0;
+            res.render('index', {
+                loginon: 2
+            });
         }
+    }
 
 });
 
@@ -230,12 +227,12 @@ app.get('/sm_main', function(req, res) {
                     callback(null);
                 });
             },
-            function(callback){
-              sql = 'SELECT login_email FROM users WHERE username=?';
-              client.query(sql, [loginId[1]], function(err, result){
-                email = result[0].login_email;
-                callback(null);
-              });
+            function(callback) {
+                sql = 'SELECT login_email FROM users WHERE username=?';
+                client.query(sql, [loginId[1]], function(err, result) {
+                    email = result[0].login_email;
+                    callback(null);
+                });
             },
             function(callback) {
                 sql = 'SELECT * FROM ComplainIdHistory WHERE email=? AND date(date)>=date(now())';
@@ -278,16 +275,15 @@ app.get('/sm_main', function(req, res) {
                             });
                         }
                     }
-                }
-                else if ((category !== "전체 검색") && (searchText === '')){
+                } else if ((category !== "전체 검색") && (searchText === '')) {
                     sql = 'SELECT * FROM ProductInfo WHERE product_category=? AND noticeType LIKE ?';
                     client.query(sql, [category, 'S'], function(err, result) {
                         rows = result;
                         callback(null);
                     });
-              } else {
+                } else {
                     sql = 'SELECT * FROM ProductInfo WHERE noticeType LIKE ?';
-                    client.query(sql, ['S'],function(err, result) {
+                    client.query(sql, ['S'], function(err, result) {
                         rows = result;
                         //console.log(rows);
                         callback(null);
@@ -428,44 +424,44 @@ app.get('/sm_main', function(req, res) {
             },
 
             //정민 추가
-            function(callback){
+            function(callback) {
 
-              token = req.cookies.andToken;
+                token = req.cookies.andToken;
 
-              if((token !== null) && (token !== undefined) && (token != 'null')){
-                sql = 'SELECT phoneToken FROM users WHERE username=?';
-                client.query(sql, [loginId[1]], function(err, result){
-                  if(err){
-                    console.log(err);
-                    throw err;
-                  }
+                if ((token !== null) && (token !== undefined) && (token != 'null')) {
+                    sql = 'SELECT phoneToken FROM users WHERE username=?';
+                    client.query(sql, [loginId[1]], function(err, result) {
+                        if (err) {
+                            console.log(err);
+                            throw err;
+                        }
 
-                  if(token != result[0].phoneToken){
-                    isNeededToBeChanged = 1;
-                  }else{
-                    isNeededToBeChanged = 0;
-                  }
-                  callback(null);
-                });
-              }else{
-                callback(null);
-              }
+                        if (token != result[0].phoneToken) {
+                            isNeededToBeChanged = 1;
+                        } else {
+                            isNeededToBeChanged = 0;
+                        }
+                        callback(null);
+                    });
+                } else {
+                    callback(null);
+                }
             },
 
             //정민 추가
-            function(callback){
-              if(isNeededToBeChanged == 1){
-                sql = 'UPDATE users SET phoneToken=? WHERE username=?';
-                client.query(sql, [token, loginId[1]], function(err, result){
-                  if(err){
-                    console.log(err);
-                    throw err;
-                  }
-                  callback(null);
-                });
-              }else{
-                callback(null);
-              }
+            function(callback) {
+                if (isNeededToBeChanged == 1) {
+                    sql = 'UPDATE users SET phoneToken=? WHERE username=?';
+                    client.query(sql, [token, loginId[1]], function(err, result) {
+                        if (err) {
+                            console.log(err);
+                            throw err;
+                        }
+                        callback(null);
+                    });
+                } else {
+                    callback(null);
+                }
             },
 
             function(callback) {
@@ -512,7 +508,7 @@ app.post('/sm_main/:id', function(req, res) {
     if (scrapImg === "★") {
         async.series([
                 function(callback) {
-                  sql = 'SELECT * FROM ProductInfo WHERE product_name=? AND noticeType LIKE ?';
+                    sql = 'SELECT * FROM ProductInfo WHERE product_name=? AND noticeType LIKE ?';
                     client.query(sql, [scrapName, 'S'], function(err, result) {
                         photo = result[0].photo1;
                         seller = result[0].product_seller;
@@ -597,8 +593,10 @@ passport.use(new LocalStrategy(
     }
 ));
 
-app.get('/index', function(req, res){
-  res.render('index.ejs', {loginon:0});
+app.get('/index', function(req, res) {
+    res.render('index.ejs', {
+        loginon: 0
+    });
 });
 
 app.post(
@@ -626,11 +624,11 @@ app.get('/sm_signup', function(request, response) {
 
     var tasks = [
         function(callback) {
-          // if(token !== null){
-          //   token = null;
-          //   console.log(request.cookies.andToken);
-          // }
-          console.log("andToken : ",request.cookies.andToken);
+            // if(token !== null){
+            //   token = null;
+            //   console.log(request.cookies.andToken);
+            // }
+            console.log("andToken : ", request.cookies.andToken);
             haveSignUpInfo = request.signedCookies.ExistFlag;
 
             if (haveSignUpInfo == 1) {
@@ -688,8 +686,22 @@ app.post('/sm_signup', function(req, res) {
             urgencyCount: 0
         };
 
+        var reviewInit = {
+            trader: req.body.username,
+            isCompleted: 1,
+            starScore: 0
+        };
+
         var sqlQuery = 'INSERT INTO UrgencyHistory SET ?';
         client.query(sqlQuery, data, function(err, result) {
+            if (err) {
+                console.log(err);
+                throw err;
+            }
+        });
+
+        var reviewQuery = 'INSERT INTO TradeReview SET ?';
+        client.query(reviewQuery, reviewInit, function(err, result) {
             if (err) {
                 console.log(err);
                 throw err;
@@ -738,31 +750,31 @@ app.post('/sm_signup', function(req, res) {
 app.get('/sm_signup/cancel', function(request, response) {
 
     response.cookie('ExistFlag', 0, {
-      signed : true
+        signed: true
     });
     response.cookie('checkingId', 0, {
-      signed : true
+        signed: true
     });
     response.cookie('checkingSookmyung', 0, {
-      signed : true
+        signed: true
     });
     response.cookie('idText', '', {
-      signed : true
+        signed: true
     });
     response.cookie('nameText', '', {
-      signed : true
+        signed: true
     });
     response.cookie('pwText', '', {
-      signed : true
+        signed: true
     });
     response.cookie('emailText', '', {
-      signed : true
+        signed: true
     });
     response.cookie('pwCheckText', '', {
-      signed : true
+        signed: true
     });
     response.cookie('phoneText', '', {
-      signed : true
+        signed: true
     });
 
     response.redirect('/');
@@ -814,28 +826,28 @@ app.post('/sm_signup/checkId', function(request, response) {
 
         function(callback) {
             response.cookie('checkingId', checkingId, {
-              signed : true
+                signed: true
             });
             response.cookie('idText', idText, {
-              signed : true
+                signed: true
             });
             response.cookie('nameText', nameText, {
-              signed : true
+                signed: true
             });
             response.cookie('pwText', pwText, {
-              signed : true
+                signed: true
             });
             response.cookie('emailText', emailText, {
-              signed : true
+                signed: true
             });
             response.cookie('pwCheckText', pwCheckText, {
-              signed : true
+                signed: true
             });
             response.cookie('phoneText', phoneText, {
-              signed : true
+                signed: true
             });
             response.cookie('ExistFlag', 1, {
-              signed : true
+                signed: true
             });
             callback(null);
         },
@@ -912,25 +924,25 @@ app.post('/authenticateSookmyung', function(request, response) {
 
         function(callback) {
             response.cookie('idText', idText, {
-              signed : true
+                signed: true
             });
             response.cookie('nameText', nameText, {
-              signed : true
+                signed: true
             });
             response.cookie('pwText', pwText, {
-              signed : true
+                signed: true
             });
             response.cookie('emailText', emailText, {
-              signed : true
+                signed: true
             });
             response.cookie('pwCheckText', pwCheckText, {
-              signed : true
+                signed: true
             });
             response.cookie('phoneText', phoneText, {
-              signed : true
+                signed: true
             });
             response.cookie('ExistFlag', 1, {
-              signed : true
+                signed: true
             });
             callback(null);
         },
@@ -991,7 +1003,7 @@ app.post('/authenticateSookmyung', function(request, response) {
 app.get('/complete/authenticate', function(request, response) {
     var checkingSookmyung = 1;
     response.cookie('checkingSookmyung', checkingSookmyung, {
-      signed : true
+        signed: true
     });
     response.redirect('/sm_signup');
 });
@@ -1135,7 +1147,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                             if (result.length) {
                                 flag = 1;
                                 customer = result[0].customer;
-                                console.log(customer);
+                                //console.log(customer);
                             } else {
                             }
                             callback(null, 5);
@@ -1164,7 +1176,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                             console.log(err);
                         } else {
                             max_reserve_count = `${result[0]['MAX(reserve_count)']}`;
-                          //  console.log('reserve_count',reserve_count);
+                            //  console.log('reserve_count',reserve_count);
                             callback(null);
                         }
                     });
@@ -1278,27 +1290,27 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
             var time = getTimeStamp();
             var sql = 'INSERT INTO ProductInfo SET ?';
             var data = {
-              product_name : productName,
-              product_price : body.price,
-              product_category : category,
-              photo1 : outputPath[0],
-              photo2 : outputPath[1],
-              photo3 : outputPath[2],
-              product_way : value,
-              product_detail : detail,
-              product_seller : login_id,
-              product_date : time,
-              isDone : 0,
-              noticeType : 'S'
+                product_name: productName,
+                product_price: body.price,
+                product_category: category,
+                photo1: outputPath[0],
+                photo2: outputPath[1],
+                photo3: outputPath[2],
+                product_way: value,
+                product_detail: detail,
+                product_seller: login_id,
+                product_date: time,
+                isDone: 0,
+                noticeType: 'S'
             };
 
             client.query(sql, data, function(err, result) {
-              if(err){
-                console.log("err",err);
-                throw err;
-              }
-              productId = result.insertId;
-              callback(null, 4);
+                if (err) {
+                    console.log("err", err);
+                    throw err;
+                }
+                productId = result.insertId;
+                callback(null, 4);
             });
         },
 
@@ -1360,10 +1372,10 @@ app.post('/sm_addItems', multipartMiddleware, function(request, response) {
             });
         },
 
-        function(callback){
-          response.redirect('/');
+        function(callback) {
+            response.redirect('/');
 
-          callback(null);
+            callback(null);
         }
     ];
     async.series(tasks, function(err, results) {});
@@ -1544,11 +1556,11 @@ app.post('/sm_request/:id/:isUrgent', function(request, response) {
 
             SqlQuery = 'INSERT INTO TradeInfo SET ?';
             client.query(SqlQuery, tradeInfoData, function(err, result) {
-              if(err){
-                console.log(err);
-                throw err;
-              }
-              callback(null);
+                if (err) {
+                    console.log(err);
+                    throw err;
+                }
+                callback(null);
             });
 
         },
@@ -2054,7 +2066,7 @@ io.on('connection', function(socket) {
             },
 
             function(callback) {
-              console.log(temp);
+                console.log(temp);
                 content = '"' + product_name + '"' + " 채팅방에 메시지가 도착했습니다.";
                 var chatAlarm = {
                     category: 2,
@@ -2415,28 +2427,28 @@ app.get('/sm_chat/:id/reject', function(request, response) {
 });
 
 app.get('/sm_changeInfo', function(req, res) {
-  var sql;
-  var tasks = [
-    function(callback){
-      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-      client.query(sql, [loginId[1]], function(err, result) {
-          alerm = result.length;
-          callback(null);
-      });
-    },
-    function(callback){
-      sql = 'SELECT * FROM users  WHERE username=?';
-      client.query(sql, loginId[1], function(err, rows, fields) {
-          res.render('sm_changeInfo', {
-              rows: rows,
-              session_id: loginId[1],
-              alerm: alerm
-          });
-          callback(null);
-      });
-    }
-  ];
-  async.series(tasks, function(err, result) {});
+    var sql;
+    var tasks = [
+        function(callback) {
+            sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+            client.query(sql, [loginId[1]], function(err, result) {
+                alerm = result.length;
+                callback(null);
+            });
+        },
+        function(callback) {
+            sql = 'SELECT * FROM users  WHERE username=?';
+            client.query(sql, loginId[1], function(err, rows, fields) {
+                res.render('sm_changeInfo', {
+                    rows: rows,
+                    session_id: loginId[1],
+                    alerm: alerm
+                });
+                callback(null);
+            });
+        }
+    ];
+    async.series(tasks, function(err, result) {});
 });
 
 app.post('/sm_changeInfo', function(req, res) {
@@ -2644,24 +2656,24 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
 });
 
 app.get('/sm_enter_changeInfo', function(req, res) {
-  var sql;
+    var sql;
 
-  var tasks = [
-      function(callback) {
-          sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-          client.query(sql, [loginId[1]], function(err, result) {
-              alerm = result.length;
-              callback(null);
-          });
-      },
-      function(callback){
-        res.render('sm_enter_changeInfo.ejs',{
-          session_id: loginId[1],
-          alerm: alerm
-        });
-      }
+    var tasks = [
+        function(callback) {
+            sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+            client.query(sql, [loginId[1]], function(err, result) {
+                alerm = result.length;
+                callback(null);
+            });
+        },
+        function(callback) {
+            res.render('sm_enter_changeInfo.ejs', {
+                session_id: loginId[1],
+                alerm: alerm
+            });
+        }
     ];
-      async.series(tasks, function(err, result) {});
+    async.series(tasks, function(err, result) {});
 });
 
 app.post('/sm_enter_changeInfo', function(req, res) {
@@ -2833,15 +2845,14 @@ app.post('/sm_itemDetail/:id/comment/:parent_id/reply/:i', function(req, res) { 
     var receiver = "";
 
     async.series([
-            function(callback){
-              if(arrayCheckResult === true){
-                contents = content[iNum];
-                callback(null);
-              }
-              else {
-                contents=content;
-                callback(null);
-              }
+            function(callback) {
+                if (arrayCheckResult === true) {
+                    contents = content[iNum];
+                    callback(null);
+                } else {
+                    contents = content;
+                    callback(null);
+                }
             },
             function(callback) {
 
@@ -3814,17 +3825,6 @@ app.post('/sm_completeTrade/:id/:num', function(request, response) {
             });
         },
 
-        function(callback) {
-            sqlQuery = 'SELECT MAX(id) as maxId FROM TradeReview';
-            client.query(sqlQuery, function(err, result) {
-                if (result[0].maxId === null) {
-                    id = 1;
-                } else {
-                    id = result[0].maxId + 1;
-                }
-                callback(null);
-            });
-        },
 
         function(callback) {
             var m = moment();
@@ -3846,7 +3846,6 @@ app.post('/sm_completeTrade/:id/:num', function(request, response) {
             sqlQuery = 'INSERT INTO TradeReview SET ?';
 
             var data = {
-                id: id,
                 product_id: product_id,
                 product_name: product_name,
                 trader: trader,
@@ -3865,8 +3864,17 @@ app.post('/sm_completeTrade/:id/:num', function(request, response) {
                 }
                 callback(null);
             });
+        },
 
-
+        function(callback) {
+            sqlQuery = 'DELETE FROM TradeReview WHERE trader=? AND starScore=0';
+            client.query(sqlQuery, [username], function(err, result) {
+                if (err) {
+                    console.log(err);
+                    throw err;
+                }
+                callback(null);
+            });
         },
 
         function(callback) {
@@ -3937,81 +3945,32 @@ app.post('/sm_completeTrade/:id/:num', function(request, response) {
         },
 
         function(callback) {
-            console.log('1');
             sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
             client.query(sql, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
                 } else {
                     reserve_count = `${result[0]['MAX(reserve_count)']}`;
-                    console.log('reserve_count',reserve_count);
                     callback(null);
                 }
             });
         },
 
 
-        function(callback){
-          console.log(2);
-          if(reserve_count !== 1){
-          sql = 'UPDATE product_reserve SET reserve_count=-1 WHERE product_id=?';
-          client.query(sql, [product_id], function(err, result) {
-              if (err) {
-                  console.log(err);
-              } else {
-                  reserveList = result;
-                  console.log('reserveList',reserveList);
-                  callback(null);
-              }
-          });
-        } else {
-          callback(null);
-          }
-        },
-
         function(callback) {
-            console.log('3');
-
-            // for(var i=;i<)
-            //   content='"' + product_id + '"' + "에 대한 예약이 취소되었습니다";
-            //    var ReserveAlarm = {
-            //        category: 3,
-            //        product_id: product_id,
-            //        detail: content,
-            //        date: 0,
-            //        flag: 0,
-            //        link: '/sm_main/',
-            //        arrow: reserveList[reserve_count].session_id,
-            //        id: username
-            //    };
-            //    sql = 'INSERT INTO notifyMessage SET ?';
-            //    client.query(sql, ReserveAlarm, function(err, result) {
-            //        if (err) {
-            //            console.log(err);
-            //        }
-            //        reserve_count = reserve_count-1;
-            //        console.log('reserve_count',reserve_count);
-            //
-            //    });
-            //
-            // }
-             callback(null);
-
-        },
-
-
-        function(callback){
-            console.log('4');
-          // sql = 'DELETE FROM product_reserve WHERE product_id=?';
-          // client.query(sql, [product_id], function(err, result) {
-          //     if (err) {
-          //         console.log(err);
-          //     } else {
-          //         //console.log('삭제되었습니다')
-          //         callback(null);
-          //     }
-          // });
-          callback(null);
+            if (reserve_count !== 1) {
+                sql = 'UPDATE product_reserve SET reserve_count=-1 WHERE product_id=?';
+                client.query(sql, [product_id], function(err, result) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        reserveList = result;
+                        callback(null);
+                    }
+                });
+            } else {
+                callback(null);
+            }
         },
 
         function(callback) {
@@ -4026,8 +3985,86 @@ app.post('/sm_completeTrade/:id/:num', function(request, response) {
 
 app.get('/sm_scrap', function(req, res) {
     var sql;
+    var results;
+    var applyRejection, confirmRejection, changeSql;
 
     var tasks = [
+        function(callback) {
+            sql = 'SELECT * FROM TradeRejection WHERE username=? ORDER BY id DESC';
+            client.query(sql, [loginId[1]], function(err, result) {
+                if (err) {
+                    console.log(err);
+                    throw err;
+                }
+                results = result;
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            if (results.length === 0) {
+                applyRejection = 0;
+                confirmRejection = 1;
+                changeSql = 0;
+            } else {
+                for (var i = 0; i < results.length; i++) {
+                    if (results[i].applyRejection == 1) {
+
+                        var date = [];
+                        var time = [];
+                        var rejectTime = results[i].time;
+                        date[0] = parseInt(rejectTime.substring(5, 7)) - 1;
+                        date[1] = parseInt(rejectTime.substring(8, 10));
+                        time[0] = parseInt(rejectTime.substring(11, 13));
+                        time[1] = parseInt(rejectTime.substring(14, 16));
+
+                        var tradeTime = new Date(2017, date[0], date[1], time[0], time[1], 0);
+                        var presentTime = new Date();
+                        var interval = presentTime - tradeTime;
+
+
+                        if (interval < 18000000) {
+                            applyRejection = 1;
+                            confirmRejection = 1;
+                        } else {
+                            applyRejection = 0;
+                            confirmRejection = 1;
+                            changeSql = 1;
+                            rejectProduct_id = results[i].product_id;
+                        }
+                        break;
+                    } else if (results[i].confirmRejection === 0) {
+                        applyRejection = 0;
+                        confirmRejection = 0;
+                        changeSql = 0;
+                        rejectProduct_id = results[i].product_id;
+                        break;
+                    } else {
+                        applyRejection = 0;
+                        confirmRejection = 1;
+                        changeSql = 0;
+                    }
+                }
+            }
+
+            callback(null);
+        },
+        function(callback) {
+            if (changeSql !== 0) {
+                sql = 'UPDATE TradeRejection SET applyRejection=0 WHERE product_id=? AND username=?';
+                client.query(sql, [rejectProduct_id, loginId[1]], function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
+                    changeSql = 0;
+                    callback(null);
+                });
+            } else {
+                callback(null);
+            }
+        },
+
         function(callback) {
             sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
             client.query(sql, [loginId[1]], function(err, result) {
@@ -4039,11 +4076,17 @@ app.get('/sm_scrap', function(req, res) {
 
         function(callback) {
             client.query('SELECT * FROM ScrapInfo WHERE user=?', [loginId[1]], function(err, result) {
+                if (err) {
+                    console.log(err);
+                    throw err;
+                }
                 res.render('sm_scrap.ejs', {
                     result: result,
                     session_id: loginId[1],
-                    alerm: alerm
+                    alerm: alerm,
+                    applyRejection: applyRejection
                 });
+                callback(null);
             });
         }
     ];
@@ -4097,15 +4140,15 @@ app.post('/sm_complain', function(req, res) {
     var alerm;
 
     async.series([
-          function(callback) {
-            sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-            client.query(sql, [loginId[1]], function(err, result) {
-                alerm = result.length;
-                callback(null);
-              });
+            function(callback) {
+                sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+                client.query(sql, [loginId[1]], function(err, result) {
+                    alerm = result.length;
+                    callback(null);
+                });
             },
             function(callback) {
-              var sql = 'SELECT * FROM users WHERE username IN (?, ?)';
+                var sql = 'SELECT * FROM users WHERE username IN (?, ?)';
                 //var sql = 'SELECT * FROM users WHERE (username LIKE ?) AND (username LIKE ?)';
                 client.query(sql, [complainID, loginId[1]], function(err, result) {
                     if (result.length === 2) {
@@ -4117,7 +4160,7 @@ app.post('/sm_complain', function(req, res) {
         ],
 
         function(err) {
-          console.log("flag", flag);
+            console.log("flag", flag);
             if (flag == 1) {
                 var time = getTimeStamp();
                 var sql = 'INSERT INTO complainInfo (userID, complainID, detail, date, flag) VALUES (?,?,?,?,?)';
@@ -4310,12 +4353,12 @@ app.get('/sm_complainOK/:id', function(req, res) {
                 }
             },
 
-            function(callback){
-              var time = ProhibitAccessTime();
-              sql = 'INSERT INTO ComplainIdHistory (complainID, date, reason, email) VALUES (?,?,?,?)';
-              client.query(sql, [row.complainID, time, row.detail, mail], function(err, result) {
-                  callback(null);
-              });
+            function(callback) {
+                var time = ProhibitAccessTime();
+                sql = 'INSERT INTO ComplainIdHistory (complainID, date, reason, email) VALUES (?,?,?,?)';
+                client.query(sql, [row.complainID, time, row.detail, mail], function(err, result) {
+                    callback(null);
+                });
             },
 
             function(callback) {
@@ -4385,26 +4428,26 @@ app.post('/sm_suggest', function(req, res) {
     var alerm;
 
     async.series([
-      function(callback){
-        sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-        client.query(sql, [loginId[1]], function(err, result){
-          alerm = result.length;
-          //console.log(result.length);
-          callback(null);
-        });
-      },
-      function(callback){
-        var time = getTimeStamp();
-        var sql = 'INSERT INTO suggestInfo (userID, comment, date) VALUES (?,?,?)';
-        client.query(sql, [userID, comment, time], function() {
-            res.render('sm_suggest.ejs', {
-                userID: loginId[1],
-                session_id: loginId[1],
-                alerm: alerm
+        function(callback) {
+            sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+            client.query(sql, [loginId[1]], function(err, result) {
+                alerm = result.length;
+                //console.log(result.length);
+                callback(null);
             });
-        });
-      }
-    ], function(err){});
+        },
+        function(callback) {
+            var time = getTimeStamp();
+            var sql = 'INSERT INTO suggestInfo (userID, comment, date) VALUES (?,?,?)';
+            client.query(sql, [userID, comment, time], function() {
+                res.render('sm_suggest.ejs', {
+                    userID: loginId[1],
+                    session_id: loginId[1],
+                    alerm: alerm
+                });
+            });
+        }
+    ], function(err) {});
 
 });
 
@@ -4473,9 +4516,85 @@ app.get('/category/:id', function(req, res) {
     var allowDate; //신고가 풀리는 날
     var photo = [];
     var sql;
+    var results, applyRejection, confirmRejection, changeSql;
 
     if (flag !== undefined) {
         async.series([
+                function(callback) {
+                    sql = 'SELECT * FROM TradeRejection WHERE username=? ORDER BY id DESC';
+                    client.query(sql, [loginId[1]], function(err, result) {
+                        if (err) {
+                            console.log(err);
+                            throw err;
+                        }
+                        results = result;
+                        callback(null);
+                    });
+                },
+
+                function(callback) {
+                    if (results.length === 0) {
+                        applyRejection = 0;
+                        confirmRejection = 1;
+                        changeSql = 0;
+                    } else {
+                        for (var i = 0; i < results.length; i++) {
+                            if (results[i].applyRejection == 1) {
+
+                                var date = [];
+                                var time = [];
+                                var rejectTime = results[i].time;
+                                date[0] = parseInt(rejectTime.substring(5, 7)) - 1;
+                                date[1] = parseInt(rejectTime.substring(8, 10));
+                                time[0] = parseInt(rejectTime.substring(11, 13));
+                                time[1] = parseInt(rejectTime.substring(14, 16));
+
+                                var tradeTime = new Date(2017, date[0], date[1], time[0], time[1], 0);
+                                var presentTime = new Date();
+                                var interval = presentTime - tradeTime;
+
+
+                                if (interval < 18000000) {
+                                    applyRejection = 1;
+                                    confirmRejection = 1;
+                                } else {
+                                    applyRejection = 0;
+                                    confirmRejection = 1;
+                                    changeSql = 1;
+                                    rejectProduct_id = results[i].product_id;
+                                }
+                                break;
+                            } else if (results[i].confirmRejection === 0) {
+                                applyRejection = 0;
+                                confirmRejection = 0;
+                                changeSql = 0;
+                                rejectProduct_id = results[i].product_id;
+                                break;
+                            } else {
+                                applyRejection = 0;
+                                confirmRejection = 1;
+                                changeSql = 0;
+                            }
+                        }
+                    }
+
+                    callback(null);
+                },
+                function(callback) {
+                    if (changeSql !== 0) {
+                        sql = 'UPDATE TradeRejection SET applyRejection=0 WHERE product_id=? AND username=?';
+                        client.query(sql, [rejectProduct_id, loginId[1]], function(err, result) {
+                            if (err) {
+                                console.log(err);
+                                throw err;
+                            }
+                            changeSql = 0;
+                            callback(null);
+                        });
+                    } else {
+                        callback(null);
+                    }
+                },
                 function(callback) {
                     sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
                     client.query(sql, [loginId[1]], function(err, result) {
@@ -4485,12 +4604,12 @@ app.get('/category/:id', function(req, res) {
                     });
                 },
 
-                function(callback){
-                  sql = 'SELECT login_email FROM users WHERE username=?';
-                  client.query(sql, [loginId[1]], function(err, result){
-                    email = result[0].login_email;
-                    callback(null);
-                  });
+                function(callback) {
+                    sql = 'SELECT login_email FROM users WHERE username=?';
+                    client.query(sql, [loginId[1]], function(err, result) {
+                        email = result[0].login_email;
+                        callback(null);
+                    });
                 },
 
                 function(callback) {
@@ -4547,7 +4666,8 @@ app.get('/category/:id', function(req, res) {
                     photo: photo,
                     option: option,
                     session_id: loginId[1],
-                    alerm: alerm
+                    alerm: alerm,
+                    applyRejection : applyRejection
                 });
             });
 
@@ -4891,75 +5011,7 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
                     callback(null);
                 }
             });
-        }//,
-
-        // function(callback) {
-        //     var time = getTimeStamp();
-        //     var link = '/sm_itemDetail/' + product_id;
-        //     content = '"' + productName + '"' + " 상품 구매 요청이 도착했습니다.";
-        //
-        //     var notify = {
-        //         category: 3,
-        //         product_id: product_id,
-        //         detail: content,
-        //         date: time,
-        //         link: link,
-        //         arrow: session_id,
-        //         reserve_count: reserve_count
-        //     };
-        //
-        //     if (reserve_count !== 0) {
-        //         sql = 'INSERT INTO notifyMessage SET ?';
-        //         client.query(sql, notify, function(err, result) {
-        //             if (err) {
-        //                 console.log(err);
-        //             } else {
-        //                 callback(null);
-        //             }
-        //         });
-        //     } else {
-        //         callback(null);
-        //     }
-        // },
-        //
-        // function(callback) {
-        //     if (reserve_count !== 0) {
-        //         if (session_id !== null) {
-        //             sql = 'SELECT phoneToken FROM users WHERE username=?';
-        //             client.query(sql, [session_id], function(err, result) {
-        //                 if (result[0].phoneToken !== null) {
-        //                     receiver = result[0].phoneToken;
-        //                     callback(null);
-        //                 } else {
-        //                     receiver = "";
-        //                     callback(null);
-        //                 }
-        //             });
-        //         } else {
-        //             callback(null);
-        //         }
-        //     } else {
-        //         callback(null);
-        //     }
-        // },
-        //
-        // function(callback) {
-        //     if (reserve_count !== 0) {
-        //         if (session_id !== null) {
-        //             if (receiver !== "") {
-        //                 pushAlarmLink = pushAlarmLink + session_id;
-        //                 sendTopicMessage("숙스마켓", content, pushAlarmLink, receiver);
-        //                 callback(null);
-        //             } else {
-        //                 callback(null);
-        //             }
-        //         } else {
-        //             callback(null);
-        //         }
-        //     } else {
-        //         callback(null);
-        //     }
-        // }
+        }
     ];
     async.series(tasks, function(err, results) {
         var link = '/sm_itemDetail/' + product_id;
@@ -4968,7 +5020,7 @@ app.get('/sm_request/:id/reserve/:sid', function(req, res) {
 });
 
 app.get('/sm_request/:id/cancel', function(req, res) {
-  console.log(2);
+    console.log(2);
     var product_id = req.params.id;
     var tasks = [
         function(callback) {
@@ -5111,7 +5163,9 @@ app.get('/sm_reserve_list', function(request, response) {
 });
 
 app.get('/find', function(req, res) {
-    res.render('find.ejs', {flag: 0});
+    res.render('find.ejs', {
+        flag: 0
+    });
 });
 
 app.post('/find/:type', function(req, res) {
@@ -5123,58 +5177,58 @@ app.post('/find/:type', function(req, res) {
         var value;
 
         if (req.body.id !== undefined) {
-          async.series([
-            function(callback){
-              login_email = req.body.id + '@sm.ac.kr';
+            async.series([
+                    function(callback) {
+                        login_email = req.body.id + '@sm.ac.kr';
 
-              str = 'SELECT id FROM users WHERE login_name=? AND login_email=?';
+                        str = 'SELECT id FROM users WHERE login_name=? AND login_email=?';
 
-              client.query(str, [req.body.userName, login_email], function(err, result) {
-                console.log("1: ", result[0]);
-                  value = result[0];
-                  callback(null);
-              });
-            },
-            function(callback){
-              if(value !== undefined){
-                login_email = req.body.id + '@sm.ac.kr';
-                str = 'SELECT * FROM users WHERE login_email=?';
-
-                client.query(str, [login_email], function(err, result) {
-                    if (result[0] !== undefined) {
-                        sendId(result[0].username, login_email, function() {
-                            console.log("메일보냄");
+                        client.query(str, [req.body.userName, login_email], function(err, result) {
+                            console.log("1: ", result[0]);
+                            value = result[0];
+                            callback(null);
                         });
+                    },
+                    function(callback) {
+                        if (value !== undefined) {
+                            login_email = req.body.id + '@sm.ac.kr';
+                            str = 'SELECT * FROM users WHERE login_email=?';
+
+                            client.query(str, [login_email], function(err, result) {
+                                if (result[0] !== undefined) {
+                                    sendId(result[0].username, login_email, function() {
+                                        console.log("메일보냄");
+                                    });
+                                }
+                                callback(null);
+                            });
+                        } else {
+                            console.log("인증 실패");
+                            flag = 2;
+                            callback(null);
+                        }
                     }
-                    callback(null);
+                ],
+                function(err) {
+                    if (err) {
+                        console.log(err);
+                    }
+
+                    if (flag != 2) {
+                        flag = 1;
+                    }
+
+                    context = {
+                        flag: flag
+                    };
+                    req.app.render('checkFindData.ejs', context, function(err, html) {
+                        if (err) {
+                            throw err;
+                        }
+                        res.end(html);
+                    });
                 });
-              } else{
-                console.log("인증 실패");
-                flag = 2;
-                callback(null);
-              }
-            }
-          ],
-          function(err){
-            if(err){
-              console.log(err);
-            }
-
-            if(flag != 2){
-              flag = 1;
-            }
-
-            context = {
-                flag: flag
-            };
-            req.app.render('checkFindData.ejs', context, function(err, html) {
-                if (err) {
-                    throw err;
-                }
-                res.end(html);
-            });
-          });
-      } // ENDIF
+        } // ENDIF
     } else if (type === "pwd") {
         var value;
 
@@ -5185,29 +5239,31 @@ app.post('/find/:type', function(req, res) {
 
             async.series([
                     function(callback) {
-                      sql = 'SELECT id FROM users WHERE username=? AND login_email=?';
+                        sql = 'SELECT id FROM users WHERE username=? AND login_email=?';
 
-                      client.query(sql, [req.body.userID, login_email], function(err, result) {
-                          value = result[0];
-                          callback(null);
-                      });
-                    },
-                    function(callback) {
-                      if (value !== undefined){
-                        client.query(str, [login_email], function(err, result) { //console.log(result[0]);
-                            if (result[0] !== undefined) {
-                                sendPwd(tempPass, login_email, function() {
-                                    console.log("메일보냄11");
-                                });
-                            }
+                        client.query(sql, [req.body.userID, login_email], function(err, result) {
+                            value = result[0];
                             callback(null);
                         });
-                      } else{
-                        console.log("인증 실패");
-                        flag = 2;
-                        res.render('checkFindData.ejs', {flag: 2});
-                        //callback(null);
-                      }
+                    },
+                    function(callback) {
+                        if (value !== undefined) {
+                            client.query(str, [login_email], function(err, result) { //console.log(result[0]);
+                                if (result[0] !== undefined) {
+                                    sendPwd(tempPass, login_email, function() {
+                                        console.log("메일보냄11");
+                                    });
+                                }
+                                callback(null);
+                            });
+                        } else {
+                            console.log("인증 실패");
+                            flag = 2;
+                            res.render('checkFindData.ejs', {
+                                flag: 2
+                            });
+                            //callback(null);
+                        }
 
                     },
                 ],
@@ -5222,7 +5278,9 @@ app.post('/find/:type', function(req, res) {
                         //users.push(user);
                         var sql = 'UPDATE users SET password=?, salt=? WHERE login_email=?';
                         client.query(sql, [password, salts, login_email], function(err, result) {
-                          res.render('checkFindData.ejs', {flag: 1});
+                            res.render('checkFindData.ejs', {
+                                flag: 1
+                            });
                         });
                     });
                 });
@@ -5297,7 +5355,7 @@ app.post('/sm_unsign', function(req, res) {
 
     async.series([
             function(callback) {
-              sql = 'SELECT * FROM TradeInfo WHERE (seller=? AND state<4) OR (customer=? AND state<4)';
+                sql = 'SELECT * FROM TradeInfo WHERE (seller=? AND state<4) OR (customer=? AND state<4)';
                 client.query(sql, [login_id, login_id], function(err, result) {
                     //console.log(result[0]);
                     if (result[0] === undefined) { // 거래 중이 아닐 때
@@ -5331,22 +5389,21 @@ app.post('/sm_unsign', function(req, res) {
                         flag = 3;
                         allowDate = result[0].date;
                     } else {
-                      flag = 1;
+                        flag = 1;
                     }
                     callback(null);
                 });
             },
 
-            function(callback){
-              if (flag === 1){
-                sql = 'DELETE FROM UrgencyHistory WHERE username=?';
-                client.query(sql, [loginId[1]], function(err, result){
-                  callback(null);
-                });
-              }
-              else{
-                callback(null);
-              }
+            function(callback) {
+                if (flag === 1) {
+                    sql = 'DELETE FROM UrgencyHistory WHERE username=?';
+                    client.query(sql, [loginId[1]], function(err, result) {
+                        callback(null);
+                    });
+                } else {
+                    callback(null);
+                }
             }
 
         ],
@@ -5357,24 +5414,23 @@ app.post('/sm_unsign', function(req, res) {
                     flag: 1,
                     session_id: loginId[1],
                     alerm: alerm,
-                    allowDate : allowDate
+                    allowDate: allowDate
                 });
-                unsign = 1;  //sm_logut에서 쓰임
-            } else if (flag === 2){
-              res.render('sm_unsign.ejs', {
-                  flag: 2,
-                  session_id: loginId[1],
-                  alerm: alerm,
-                  allowDate : allowDate
-              });
-            }
-            else if (flag === 3){
-              res.render('sm_unsign.ejs', {
-                  flag: 3,
-                  session_id: loginId[1],
-                  alerm: alerm,
-                  allowDate : allowDate
-              });
+                unsign = 1; //sm_logut에서 쓰임
+            } else if (flag === 2) {
+                res.render('sm_unsign.ejs', {
+                    flag: 2,
+                    session_id: loginId[1],
+                    alerm: alerm,
+                    allowDate: allowDate
+                });
+            } else if (flag === 3) {
+                res.render('sm_unsign.ejs', {
+                    flag: 3,
+                    session_id: loginId[1],
+                    alerm: alerm,
+                    allowDate: allowDate
+                });
             }
         });
 });
@@ -5803,20 +5859,20 @@ app.get('/sm_reserveAlarm_yes/:pid', function(req, res) {
                 if (err) {
                     console.log(err);
                 } else {
-                  //  console.log('예약yes에서 삭제되었습니다');
+                    //  console.log('예약yes에서 삭제되었습니다');
                     callback(null);
                 }
             });
         },
         function(callback) {
-          //  console.log('2');
+            //  console.log('2');
             sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
             client.query(sql, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
                 } else {
                     reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
-                  //  console.log('reserve_count',reserve_count);
+                    //  console.log('reserve_count',reserve_count);
                     callback(null);
                 }
             });
@@ -5833,7 +5889,7 @@ app.get('/sm_reserveAlarm_yes/:pid', function(req, res) {
                     });
                 }
                 callback(null);
-            } else{
+            } else {
                 callback(null);
             }
 
@@ -5850,7 +5906,7 @@ app.get('/sm_reserveAlarm_yes/:pid', function(req, res) {
         },
         function(callback) {
             //console.log('5');
-            var str = '/sm_request/' + product_id +'/0';
+            var str = '/sm_request/' + product_id + '/0';
             res.redirect(str);
             callback(null);
         }
@@ -5868,7 +5924,7 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
 
     var tasks = [
         function(callback) {
-          //console.log(1);
+            //console.log(1);
             sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
             client.query(sql, [product_id], function(err, result) {
                 if (err) {
@@ -5881,21 +5937,21 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
         },
 
         function(callback) {
-          //console.log(2);
+            //console.log(2);
             sql = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
             client.query(sql, [product_id], function(err, result) {
                 if (err) {
                     console.log(err);
                 } else {
                     reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
-                  //  console.log('reserve_count',reserve_count);
+                    //  console.log('reserve_count',reserve_count);
                     callback(null);
                 }
             });
         },
 
         function(callback) {
-          //console.log(3);
+            //console.log(3);
             if (reserve_count == 1) {
                 state = 1;
                 sql = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
@@ -5909,11 +5965,11 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
                 state = 0;
                 callback(null);
             }
-          //  console.log('state',state);
+            //  console.log('state',state);
         },
 
         function(callback) {
-        //  console.log(4,'디비업데이트중');
+            //  console.log(4,'디비업데이트중');
             if (state === 0) {
                 for (var i = 2; i < reserve_count; i++) {
                     sql = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
@@ -5929,16 +5985,16 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
 
         //다음 1번 디비에 있는거 알람 추가
         function(callback) {
-          //console.log(5);
+            //console.log(5);
             if (state === 0) {
                 sql = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
                 client.query(sql, [product_id], function(err, result) {
-                  if(err){
-                    console.log(err);
-                    throw err;
-                  }
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
                     temp = result[0].session_id;
-                  //  console.log("처음 temp :", temp);
+                    //  console.log("처음 temp :", temp);
                     callback(null);
                 });
             } else {
@@ -5948,28 +6004,28 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
         },
 
         function(callback) {
-          //console.log(6);
+            //console.log(6);
             if (state === 0) {
-              //console.log('product_id',product_id);
+                //console.log('product_id',product_id);
                 sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
                 client.query(sql, [product_id], function(err, result) {
-                  if(err){
-                    console.log(err);
-                  }
-                  //console.log(result);
-                //  console.log(result[0]);
+                    if (err) {
+                        console.log(err);
+                    }
+                    //console.log(result);
+                    //  console.log(result[0]);
                     product_name = result[0].product_name;
                     callback(null);
                 });
                 //console.log(product_name);
-            } else{
+            } else {
                 callback(null);
             }
         },
         function(callback) {
-          //console.log(7);
-        //  console.log('temp',temp);
-        console.log(product_name);
+            //console.log(7);
+            //  console.log('temp',temp);
+            console.log(product_name);
             if (state === 0) {
                 var m = moment();
                 msg_date = m.format("YYYY-MM-DD HH:mm:ss");
@@ -5991,17 +6047,16 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
                     }
                     callback(null);
                 });
-            }
-            else {
-              callback(null);
+            } else {
+                callback(null);
             }
         },
 
         function(callback) {
-        //  console.log(8);
+            //  console.log(8);
             if (state === 0) {
                 if (temp !== null) {
-                //  console.log("temp :", temp);
+                    //  console.log("temp :", temp);
                     sql = 'SELECT phoneToken FROM users WHERE username=?';
                     client.query(sql, [temp], function(err, result) {
                         if (result[0].phoneToken !== null) {
@@ -6021,7 +6076,7 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
         },
 
         function(callback) {
-         //console.log(9);
+            //console.log(9);
             if (state === 0) {
                 if (temp !== null) {
                     if (receiver !== "") {
@@ -6040,7 +6095,7 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
         },
 
         function(callback) {
-          //console.log(10);
+            //console.log(10);
             sql = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
             client.query(sql, [temp, product_id], function(err, result) {
                 if (err) {
@@ -6114,47 +6169,48 @@ app.get('/sm_urgent/:pid', function(request, response) {
 });
 
 app.get('/sm_buy', function(req, res) {
-  var sql;
-  var alerm;
-  var queryData = url.parse(req.url, true).query;
-  var searchText = queryData.text;
-  var rows;
-  var on = 0;
-  var allowDate; //신고가 풀리는 날
-  var email;
+    var sql;
+    var alerm;
+    var queryData = url.parse(req.url, true).query;
+    var searchText = queryData.text;
+    var rows, results;
+    var on = 0;
+    var allowDate; //신고가 풀리는 날
+    var email;
+    var applyRejection, confirmRejection, changeSql;
 
-  async.series([
-    function(callback){
-      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+    async.series([
+            function(callback) {
+                sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
 
-      client.query(sql, [loginId[1]], function(err, result){
-        alerm = result.length;
-        callback(null);
-      });
-    },
-    function(callback) {
-        if ((searchText !== '') && (searchText !== undefined)) {
-            sql = 'SELECT * FROM ProductInfo WHERE child_id=0 AND product_name LIKE ? AND noticeType LIKE ?';
-            client.query(sql, ['%' + searchText + '%', 'B'], function(err, result) {
-                rows = result;
-                callback(null);
-            });
-        } else {
-          sql = 'SELECT * FROM ProductInfo WHERE child_id=0 AND noticeType LIKE ?'
-            client.query(sql, ['B'], function(err, result) {
-                rows = result;
-                callback(null);
-            });
-        }
-    },
-    function(callback){
-      sql = 'SELECT login_email FROM users WHERE username=?';
-      client.query(sql, [loginId[1]], function(err, result){
-        email = result[0].login_email;
-        callback(null);
-      });
-    },
-    function(callback) {
+                client.query(sql, [loginId[1]], function(err, result) {
+                    alerm = result.length;
+                    callback(null);
+                });
+            },
+            function(callback) {
+                if ((searchText !== '') && (searchText !== undefined)) {
+                    sql = 'SELECT * FROM ProductInfo WHERE child_id=0 AND product_name LIKE ? AND noticeType LIKE ?';
+                    client.query(sql, ['%' + searchText + '%', 'B'], function(err, result) {
+                        rows = result;
+                        callback(null);
+                    });
+                } else {
+                    sql = 'SELECT * FROM ProductInfo WHERE child_id=0 AND noticeType LIKE ?'
+                    client.query(sql, ['B'], function(err, result) {
+                        rows = result;
+                        callback(null);
+                    });
+                }
+            },
+            function(callback) {
+                sql = 'SELECT login_email FROM users WHERE username=?';
+                client.query(sql, [loginId[1]], function(err, result) {
+                    email = result[0].login_email;
+                    callback(null);
+                });
+            },
+            function(callback) {
                 sql = 'SELECT * FROM ComplainIdHistory WHERE email=? AND date(date)>=date(now())';
                 client.query(sql, [email], function(err, result) {
                     if (result[0] !== undefined) {
@@ -6167,383 +6223,539 @@ app.get('/sm_buy', function(req, res) {
                     }
                     callback(null);
                 });
+            },
+
+            function(callback) {
+                sql = 'SELECT * FROM TradeRejection WHERE username=? ORDER BY id DESC';
+                client.query(sql, [loginId[1]], function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
+                    results = result;
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                if (results.length === 0) {
+                    applyRejection = 0;
+                    confirmRejection = 1;
+                    changeSql = 0;
+                } else {
+                    for (var i = 0; i < results.length; i++) {
+                        if (results[i].applyRejection == 1) {
+
+                            var date = [];
+                            var time = [];
+                            var rejectTime = results[i].time;
+                            date[0] = parseInt(rejectTime.substring(0, 4));
+                            date[1] = parseInt(rejectTime.substring(5, 7)) - 1;
+                            date[2] = parseInt(rejectTime.substring(8, 10));
+                            time[0] = parseInt(rejectTime.substring(11, 13));
+                            time[1] = parseInt(rejectTime.substring(14, 16));
+
+                            var tradeTime = new Date(date[0], date[1], date[2], time[0], time[1], 0);
+                            var presentTime = new Date();
+                            var interval = presentTime - tradeTime;
+
+
+                            if (interval < 18000000) {
+                                applyRejection = 1;
+                                confirmRejection = 1;
+                            } else {
+                                applyRejection = 0;
+                                confirmRejection = 1;
+                                changeSql = 1;
+                                rejectProduct_id = results[i].product_id;
+                            }
+                            break;
+                        } else if (results[i].confirmRejection === 0) {
+                            applyRejection = 0;
+                            confirmRejection = 0;
+                            changeSql = 0;
+                            rejectProduct_id = results[i].product_id;
+                            break;
+                        } else {
+                            applyRejection = 0;
+                            confirmRejection = 1;
+                            changeSql = 0;
+                        }
+                    }
+                }
+                callback(null);
+            },
+
+            function(callback) {
+                if (changeSql !== 0) {
+                    sql = 'UPDATE TradeRejection SET applyRejection=0 WHERE product_id=? AND username=?';
+                    client.query(sql, [rejectProduct_id, loginId[1]], function(err, result) {
+                        if (err) {
+                            console.log(err);
+                            throw err;
+                        }
+                        changeSql = 0;
+                        callback(null);
+                    });
+                } else {
+                    callback(null);
+                }
             }
-  ],
-  function(err){
-      res.render('sm_buy.ejs', {
-        session_id: loginId[1],
-        alerm: alerm,
-        rows: rows,
-        on: on,
-        allowDate: allowDate
-      });
+        ],
+        function(err) {
+            res.render('sm_buy.ejs', {
+                session_id: loginId[1],
+                alerm: alerm,
+                rows: rows,
+                on: on,
+                allowDate: allowDate,
+                applyRejection: applyRejection,
+                confirmRejection: confirmRejection
+            });
 
-  });
+        });
 });
 
-app.get('/sm_addBuyingItems', function(req, res){
-  var sql;
+app.get('/sm_addBuyingItems', function(req, res) {
+    var sql;
 
-  sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+    sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
 
-  client.query(sql, [loginId[1]], function(err, result){
-    res.render('sm_addBuyingItems.ejs', {
-      session_id: loginId[1],
-      alerm: result.length
+    client.query(sql, [loginId[1]], function(err, result) {
+        res.render('sm_addBuyingItems.ejs', {
+            session_id: loginId[1],
+            alerm: result.length
+        });
     });
-  });
 });
 
-app.post('/sm_addBuyingItems', function(req, res){
-  var body = req.body;
-  var login_id = loginId[1];
-  var date = getTimeStamp();
-  var alerm;
+app.post('/sm_addBuyingItems', function(req, res) {
+    var body = req.body;
+    var login_id = loginId[1];
+    var date = getTimeStamp();
+    var scheduleDate;
+    var alerm;
+    var productId;
+    var period = body.category;
 
-  var sql;
+    var sql;
 
-  var product = {
-      product_name: body.product,
-      product_price: body.price,
-      photo1: "",
-      photo2: "",
-      photo3: "",
-      product_way: 3,
-      product_detail: body.detail,
-      product_seller: login_id,
-      product_date: date,
-      isDone: 0,
-      noticeType: 'B',
-      product_period: body.category
-  };
+    var product = {
+        product_name: body.product,
+        product_price: body.price,
+        photo1: "",
+        photo2: "",
+        photo3: "",
+        product_way: 3,
+        product_detail: body.detail,
+        product_seller: login_id,
+        product_date: date,
+        isDone: 0,
+        noticeType: 'B',
+        product_period: body.category
+    };
 
-  async.series([
-    function(callback){
-      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-      client.query(sql, [loginId[1]], function(err, result){
-        alerm = result.length;
-        //console.log(result.length);
-        callback(null);
-      });
-    }
-  ], function(err){
-    sql = 'INSERT INTO ProductInfo SET ?';
-    client.query(sql, product, function(err, result) {
+    async.series([
+        function(callback) {
+            sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+            client.query(sql, [loginId[1]], function(err, result) {
+                alerm = result.length;
+                //console.log(result.length);
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            sql = 'INSERT INTO ProductInfo SET ?';
+            client.query(sql, product, function(err, result) {
+                if (err) {
+                    console.log(err);
+                    throw err;
+                } else {
+                    productId = result.insertId;
+                    console.log(productId);
+                }
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            sql = 'SELECT product_date FROM ProductInfo WHERE product_id=?';
+            client.query(sql, [productId], function(err, result) {
+                if (err) {
+                    console.log(err);
+                    throw err;
+                }
+                scheduleDate = result[0].product_date;
+                callback(null);
+            });
+        },
+
+        function(callback) {
+            var s_date = new Array();
+            var s_time = new Array();
+            var periodIntDays = parseInt(period.substring(0, 1));
+
+            s_date[0] = parseInt(scheduleDate.substring(0, 4));
+            s_date[1] = parseInt(scheduleDate.substring(5, 7)) - 1;
+            s_date[2] = parseInt(scheduleDate.substring(8, 10));
+
+            s_time[0] = parseInt(scheduleDate.substring(11, 13));
+            s_time[1] = parseInt(scheduleDate.substring(14, 16));
+            s_time[2] = parseInt(scheduleDate.substring(17, 19));
+
+            var dueTime = new Date(s_date[0], s_date[1], s_date[2] + periodIntDays, s_time[0], s_time[1], s_time[2]);
+            sellAlarmDate[productId] = schedule.scheduleJob(dueTime, function() {
+                //알림
+            });
+            callback(null);
+        }
+    ], function(err) {
         if (err) {
             console.log(err);
             res.status(500);
         } else {
-          res.redirect('/sm_buy');
+            res.redirect('/sm_buy');
         }
     });
-  });
 
 });
 
-app.get('/sm_buy_itemDetail/:auto/:num', function(req, res){
-  var auto = req.params.auto;  // 상품번호
-  var number = req.params.num;  // 순번
+app.get('/sm_buy_itemDetail/:auto/:num', function(req, res) {
+    var auto = req.params.auto; // 상품번호
+    var number = req.params.num; // 순번
 
-  var sql;
+    var sql;
 
-  var results;
-  var photo = [];
-  var user;
-  var avgRating;
-  var sellingResult;
-  var isTimeOut = 0;
-  var isTrading = 0;
-  var tradingProduct;
+    var results;
+    var photo = [];
+    var user;
+    var avgRating;
+    var sellingResult;
+    var isTimeOut = 0;
+    var isTrading = 0;
+    var tradingProduct;
 
 
-  async.series([
-    function(callback){
-      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-      client.query(sql, [loginId[1]], function(err, result){
-        alerm = result.length;
-        //console.log(result.length);
-        callback(null);
-      });
-    },
+    async.series([
+            function(callback) {
+                sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+                client.query(sql, [loginId[1]], function(err, result) {
+                    alerm = result.length;
+                    //console.log(result.length);
+                    callback(null);
+                });
+            },
 
-    function(callback){
-      sql = 'SELECT product_seller FROM ProductInfo WHERE product_id=? AND child_id=0';
+            function(callback) {
+                sql = 'SELECT product_seller FROM ProductInfo WHERE product_id=? AND child_id=0';
 
-      client.query(sql, [auto], function(err, result){
-        //console.log("product_seller: ", result[0].product_seller);
-        user = result[0].product_seller;
-        callback(null);
-      });
-    },
+                client.query(sql, [auto], function(err, result) {
+                    //console.log("product_seller: ", result[0].product_seller);
+                    user = result[0].product_seller;
+                    callback(null);
+                });
+            },
 
-    function(callback){
-      sql = 'SELECT p.*, AVG(starScore) AS avgRating FROM ProductInfo p right join TradeReview t on p.product_seller = t.trader WHERE (p.parent_id=? AND p.noticeType LIKE ?) ORDER BY p.product_price ASC';
+            function(callback) {
+                sql = 'SELECT p.*, AVG(starScore) AS avgRating FROM ProductInfo p right join TradeReview t on p.product_seller = t.trader WHERE (p.parent_id=? AND p.noticeType LIKE ?) ORDER BY p.product_price ASC';
 
-      client.query(sql, [auto, 'B'], function(err, result){
-        if(err){
-          console.log(err);
-        }
-        for (var i in result) {
-          if(result[i].photo1 !== null){
-            photo.push((result[i].photo1).substring(1));
-          }
-            //console.log(photo);
-        }
-        results = result;
-        callback(null);
-      });
-    },
+                client.query(sql, [auto, 'B'], function(err, result) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    for (var i in result) {
+                        if (result[i].photo1 !== null) {
+                            photo.push((result[i].photo1).substring(1));
+                        }
+                        //console.log(photo);
+                    }
+                    results = result;
+                    callback(null);
+                });
+            },
 
-    function(callback) {
-        sql = 'SELECT AVG(starScore) AS avgStar FROM TradeReview WHERE trader=?';
-        client.query(sql, [user], function(err, result) {  // trader를 login_id랑 매칭해도 되는가????????
-            if (err) {
-                throw err;
+            function(callback) {
+                sql = 'SELECT AVG(starScore) AS avgStar FROM TradeReview WHERE trader=?';
+                client.query(sql, [user], function(err, result) { // trader를 login_id랑 매칭해도 되는가????????
+                    if (err) {
+                        throw err;
+                    }
+                    //console.log(result.length);
+
+                    if (result.length > 0) {
+                        avgRating = result[0].avgStar;
+                    } else {
+                        avgRating = 0;
+                    }
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
+                client.query(sql, [auto], function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
+                    sellingResult = result[0];
+                    var postTime = sellingResult.product_date;
+                    var period = sellingResult.product_period;
+                    var periodIntDays = parseInt(period.substring(0, 1));
+
+                    var date = new Array();
+                    var time = new Array();
+
+                    date[0] = parseInt(postTime.substring(0, 4));
+                    date[1] = parseInt(postTime.substring(5, 7)) - 1;
+                    date[2] = parseInt(postTime.substring(8, 10));
+
+                    time[0] = parseInt(postTime.substring(11, 13));
+                    time[1] = parseInt(postTime.substring(14, 16));
+                    time[2] = parseInt(postTime.substring(17, 19));
+
+                    var convertedPostTime = new Date(date[0], date[1], date[2], time[0], time[1], time[2]);
+                    var dueTime = new Date(date[0], date[1], date[2] + periodIntDays, time[0], time[1], time[2]);
+
+                    var presentTime = new Date();
+
+                    periodIntDays = periodIntDays * 86400000;
+                    if (dueTime < presentTime) {
+                        isTimeOut = 1;
+                    } else {
+                        isTimeOut = 0;
+                    }
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                sql = 'SELECT p.product_id FROM ProductInfo p, TradeInfo t WHERE p.parent_id = ? AND p.product_id = t.product_id';
+                client.query(sql, [sellingResult.product_id], function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
+                    if (result.length > 0) {
+                        isTrading = 1;
+                        tradingProduct = result[0].product_id;
+                    } else {
+                        isTrading = 0;
+                    }
+                    callback(null);
+                });
             }
-            //console.log(result.length);
+        ],
 
-            if (result.length > 0) {
-                avgRating = result[0].avgStar;
-            } else {
-                avgRating = 0;
-            }
-            callback(null);
+        function(err) {
+            res.render('sm_buy_itemDetail.ejs', {
+                session_id: loginId[1],
+                alerm: alerm,
+                rows: sellingResult, //result[0]: "삽니다" 게시판 주인공 글
+                num: number,
+                user: user,
+                results: results, //results: 물건을 파려는 사람의 글
+                avgRating: avgRating,
+                photo: photo,
+                isTimeOut: isTimeOut,
+                isTrading: isTrading,
+                tradingProduct: tradingProduct
+            });
         });
-    },
-
-    function(callback){
-      sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
-      client.query(sql, [auto], function(err, result){
-        if(err){
-          console.log(err);
-          throw err;
-        }
-        sellingResult = result[0];
-        var postTime = sellingResult.product_date;
-        var period = sellingResult.product_period;
-        var periodIntDays = parseInt(period.substring(0,1));
-
-        var date = new Array();
-        var time = new Array();
-
-        date[0] = parseInt(postTime.substring(0,4));
-        date[1] = parseInt(postTime.substring(5,7))-1;
-        date[2] = parseInt(postTime.substring(8,10));
-
-        time[0] = parseInt(postTime.substring(11,13));
-        time[1] = parseInt(postTime.substring(14,16));
-        time[2] = parseInt(postTime.substring(17,19));
-
-        var convertedPostTime = new Date(date[0], date[1], date[2], time[0], time[1], time[2]);
-        var dueTime = new Date(date[0], date[1], date[2]+periodIntDays, time[0], time[1], time[2]);
-
-        var presentTime = new Date();
-
-        periodIntDays = periodIntDays * 86400000;
-        if(dueTime < presentTime){
-          isTimeOut = 1;
-        }else{
-          isTimeOut = 0;
-        }
-        callback(null);
-      });
-    },
-
-    function(callback){
-      sql = 'SELECT p.product_id FROM ProductInfo p, TradeInfo t WHERE p.parent_id = ? AND p.product_id = t.product_id';
-      client.query(sql, [sellingResult.product_id], function(err, result){
-        if(err){
-          console.log(err);
-          throw err;
-        }
-        if(result.length >0){
-          isTrading = 1;
-          tradingProduct = result[0].product_id;
-        }else{
-          isTrading = 0;
-        }
-        callback(null);
-      });
-    }
-  ],
-
-  function(err){
-      res.render('sm_buy_itemDetail.ejs', {
-        session_id: loginId[1],
-        alerm: alerm,
-        rows: sellingResult,  //result[0]: "삽니다" 게시판 주인공 글
-        num: number,
-        user: user,
-        results: results,  //results: 물건을 파려는 사람의 글
-        avgRating: avgRating,
-        photo: photo,
-        isTimeOut : isTimeOut,
-        isTrading : isTrading,
-        tradingProduct : tradingProduct
-      });
-  });
 
 });
 
-app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res){
-  var auto = req.params.auto;
-  var number = req.params.num;
+app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res) {
+    var auto = req.params.auto;
+    var number = req.params.num;
 
-  var body = req.body;
-  var login_id = loginId[1];
-  var date = getTimeStamp();
+    var body = req.body;
+    var login_id = loginId[1];
+    var date = getTimeStamp();
 
-  var buyer;
+    var buyer;
+    var reciever, detail;
 
-  var productName;
-  var child_id_max;
+    var productName;
+    var child_id_max;
 
-  var sql;
+    var sql;
 
-  var file = req.files.file;
-  var name = file.name;
-  var path = file.path;
-  var type = file.type;
+    var file = req.files.file;
+    var name = file.name;
+    var path = file.path;
+    var type = file.type;
 
-  if (type.indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
-      outputPath = './fileUploads/' + Date.now() + '_' + name;
-      fs.rename(path, outputPath, function(err) {});
-  }
-
-  async.series([
-    function(callback){
-      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-      client.query(sql, [login_id], function(err, result){
-        alerm = result.length;
-        //console.log(result.length);
-        callback(null);
-      });
-    },
-
-    function(callback){
-      sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
-      client.query(sql, [auto], function(err, result){
-        productName = result[0].product_name;
-        buyer = result[0].product_seller;
-        callback(null);
-      });
-    },
-
-    function(callback){
-      sql = 'SELECT MAX(parent_id), MAX(child_id) FROM ProductInfo WHERE parent_id=?';
-      client.query(sql, [auto], function(err, result){
-        if(`${result[0]['MAX(parent_id)']+1}` === null){
-          child_id_max = 1;
-        }else{
-          child_id_max = `${result[0]['MAX(child_id)']+1}`;
-          //console.log(child_id_max);
-        }
-
-        callback(null);
-      });
-    },
-
-    function(callback){
-      sql = 'INSERT INTO ProductInfo SET ?';
-
-      var product = {
-          product_name: productName,
-          product_price: body.price,
-          photo1: outputPath,
-          photo2: "",
-          photo3: "",
-          product_detail: body.detail,
-          product_seller: login_id,
-          product_date: date,
-          noticeType: 'B',
-          parent_id: auto,
-          child_id: child_id_max
-      };
-
-      client.query(sql, product, function(err, result) {
-          if (err) {
-              console.log(err);
-              res.status(500);
-          }
-          productId = result.insertId;
-          callback(null);
-      });
-    },
-
-    function(callback){
-      sql = 'INSERT INTO notifyMessage SET ?';
-
-      var notify = {
-          category : 4, // 삽니다 글에 판매글 달릴 때
-          product_id : auto,
-          detail : '[삽니다 게시판] "' + productName + '"에 상품이 올라왔습니다.',
-          date : date,
-          link : '/sm_buy_itemDetail/' + auto + '/' + number,
-          arrow : buyer,
-          id : login_id
-          // ,
-          // parent_id : auto,
-          // child_id : child_id_max
-      };
-
-      client.query(sql, notify, function(err, result){
-        if (err) {
-            console.log(err);
-            res.status(500);
-        }
-        callback(null);
-      });
-    },
-
-    function(callback) {
-        var reserver = {
-            flag: 0,
-            product_id: productId,
-            session_id: null,
-            reserve_count: 0,
-            pName: productName
-        };
-        var reserveSql = 'INSERT INTO product_reserve SET ?';
-        client.query(reserveSql, reserver, function(err, result) {
-            if (err) {
-                console.log(err);
-            }
-            callback(null, 2);
-        });
-    },
-
-    function(callback) {
-        var state = {
-            product_id: productId,
-            delete_btn: 1
-        };
-        sql = 'INSERT INTO btn_state SET ?';
-        client.query(sql, state, function(err, result) {
-            if (err) {
-                console.log(err);
-            }
-            callback(null, 3);
-        });
-    },
-
-    function(callback) {
-        var reserveState = {
-            pid: productId,
-            customer: null
-        };
-        sql = 'INSERT INTO reserveAlarmState SET ?';
-        client.query(sql, reserveState, function(err, result) {
-            if (err) {
-                console.log(err);
-            }
-            callback(null, 5);
-        });
+    if (type.indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
+        outputPath = './fileUploads/' + Date.now() + '_' + name;
+        fs.rename(path, outputPath, function(err) {});
     }
-  ],
-  function(err){
-    var str = '/sm_buy_itemDetail/' + auto + '/' + number;
-    res.redirect(str);
-  });
+
+    async.series([
+            function(callback) {
+                sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+                client.query(sql, [login_id], function(err, result) {
+                    alerm = result.length;
+                    //console.log(result.length);
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                sql = 'SELECT * FROM ProductInfo WHERE product_id=?';
+                client.query(sql, [auto], function(err, result) {
+                    productName = result[0].product_name;
+                    buyer = result[0].product_seller;
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                sql = 'SELECT MAX(parent_id), MAX(child_id) FROM ProductInfo WHERE parent_id=?';
+                client.query(sql, [auto], function(err, result) {
+                    if (`${result[0]['MAX(parent_id)']+1}` === null) {
+                        child_id_max = 1;
+                    } else {
+                        child_id_max = `${result[0]['MAX(child_id)']+1}`;
+                        //console.log(child_id_max);
+                    }
+
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                sql = 'INSERT INTO ProductInfo SET ?';
+
+                var product = {
+                    product_name: productName,
+                    product_price: body.price,
+                    photo1: outputPath,
+                    photo2: "",
+                    photo3: "",
+                    product_detail: body.detail,
+                    product_seller: login_id,
+                    product_date: date,
+                    noticeType: 'B',
+                    parent_id: auto,
+                    child_id: child_id_max
+                };
+
+                client.query(sql, product, function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500);
+                    }
+                    productId = result.insertId;
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                sql = 'INSERT INTO notifyMessage SET ?';
+                detail = '[삽니다 게시판] "' + productName + '"에 판매 상품이 올라왔습니다.';
+
+                var notify = {
+                    category: 4, // 삽니다 글에 판매글 달릴 때
+                    product_id: auto,
+                    detail: detail,
+                    date: date,
+                    link: '/sm_buy_itemDetail/' + auto + '/' + number,
+                    arrow: buyer,
+                    id: login_id
+                };
+
+                client.query(sql, notify, function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        res.status(500);
+                    }
+                    callback(null);
+                });
+            },
+
+            function(callback) {
+                if (buyer !== null) {
+                    sql = 'SELECT phoneToken FROM users WHERE username=?';
+                    client.query(sql, [buyer], function(err, result) {
+                        if (result[0].phoneToken !== null) {
+                            receiver = result[0].phoneToken;
+                            callback(null);
+                        } else {
+                            receiver = "";
+                            callback(null);
+                        }
+                    });
+                } else {
+                    callback(null);
+                }
+            },
+
+            function(callback) {
+                if (buyer !== null) {
+                    if (receiver !== "") {
+                        pushAlarmLink = pushAlarmLink + buyer;
+                        sendTopicMessage("숙스마켓", detail, pushAlarmLink, receiver);
+                        callback(null);
+                    } else {
+                        callback(null);
+                    }
+                } else {
+                    callback(null);
+                }
+            },
+
+
+            function(callback) {
+                var reserver = {
+                    flag: 0,
+                    product_id: productId,
+                    session_id: null,
+                    reserve_count: 0,
+                    pName: productName
+                };
+                var reserveSql = 'INSERT INTO product_reserve SET ?';
+                client.query(reserveSql, reserver, function(err, result) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    callback(null, 2);
+                });
+            },
+
+            function(callback) {
+                var state = {
+                    product_id: productId,
+                    delete_btn: 1
+                };
+                sql = 'INSERT INTO btn_state SET ?';
+                client.query(sql, state, function(err, result) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    callback(null, 3);
+                });
+            },
+
+            function(callback) {
+                var reserveState = {
+                    pid: productId,
+                    customer: null
+                };
+                sql = 'INSERT INTO reserveAlarmState SET ?';
+                client.query(sql, reserveState, function(err, result) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    callback(null, 5);
+                });
+            }
+        ],
+        function(err) {
+            var str = '/sm_buy_itemDetail/' + auto + '/' + number;
+            res.redirect(str);
+        });
 
 });
 
@@ -6560,13 +6772,13 @@ app.get('/buy_itemDetail/:id/:num/delete', function(req, res) { //삭제
             });
         },
         function(callback) {
-          sql = 'DELETE FROM notifyMessage WHERE product_id=?';
+            sql = 'DELETE FROM notifyMessage WHERE product_id=?';
             client.query(sql, [id], function() {
                 callback(null);
             });
         },
         function(callback) {
-          sql = 'DELETE FROM product_reserve WHERE product_id=?';
+            sql = 'DELETE FROM product_reserve WHERE product_id=?';
             client.query(sql, [id], function() {
                 res.redirect('/sm_buy');
             });
@@ -6582,100 +6794,100 @@ app.get('/buy_itemDetail/:id/:num/change', function(req, res) { //수정
     var rows;
 
     async.series([
-      function(callback){
-        sql = 'SELECT * FROM ProductInfo WHERE product_id=? AND child_id=0';
+            function(callback) {
+                sql = 'SELECT * FROM ProductInfo WHERE product_id=? AND child_id=0';
 
-        client.query(sql, [id], function(err, result){
-          rows = result[0];
-          callback(null);
+                client.query(sql, [id], function(err, result) {
+                    rows = result[0];
+                    callback(null);
+                });
+            },
+            function(callback) {
+                sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+                client.query(sql, [loginId[1]], function(err, result) {
+                    alerm = result.length;
+                    callback(null);
+                });
+            }
+        ],
+        function(err) {
+            res.render('sm_changeBuyingDetail.ejs', {
+                session_id: loginId[1],
+                alerm: alerm,
+                rows: rows,
+                id: id,
+                num: num
+            });
         });
-      },
-      function(callback){
-        sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-        client.query(sql, [loginId[1]], function(err, result){
-          alerm = result.length;
-          callback(null);
-        });
-      }
-    ],
-    function(err){
-      res.render('sm_changeBuyingDetail.ejs', {
-        session_id : loginId[1],
-        alerm : alerm,
-        rows: rows,
-        id : id,
-        num : num
-      });
+});
+
+app.post('/buy_itemDetail/:id/:num/change', function(req, res) {
+    var body = req.body;
+    var id = req.params.id;
+    var num = req.params.num;
+
+    var login_id = loginId[1];
+    var alerm;
+
+    var sql;
+
+    async.series([
+        function(callback) {
+            sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+            client.query(sql, [loginId[1]], function(err, result) {
+                alerm = result.length;
+                callback(null);
+            });
+        },
+        function(callback) {
+            sql = 'UPDATE ProductInfo SET product_name=?, product_price=?, product_detail=? WHERE product_id=?';
+            client.query(sql, [body.product, body.price, body.detail, id], function(err, result) {
+                callback(null);
+            });
+        },
+        function(callback) {
+            sql = 'UPDATE ProductInfo SET product_name=? WHERE product_id=? AND parent_id=?';
+            client.query(sql, [body.product, id], function(err, result) {
+                callback(null);
+            });
+        }
+    ], function(err) {
+        var link = '/sm_buy_itemDetail/' + id + '/' + num;
+        res.redirect(link);
     });
 });
 
-app.post('/buy_itemDetail/:id/:num/change', function(req, res){
-  var body = req.body;
-  var id = req.params.id;
-  var num = req.params.num;
+app.get('/buy_sellProduct/delete/:child_id/:id/:num', function(req, res) { // [삽니다 게시판] 팔겠다고 글 올린 사람
+    var id = req.params.id;
+    var num = req.params.num;
+    var child_id = req.params.child_id;
+    var sql;
 
-  var login_id = loginId[1];
-  var alerm;
+    //console.log("child_id: ", child_id);
 
-  var sql;
-
-  async.series([
-    function(callback){
-      sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-      client.query(sql, [loginId[1]], function(err, result){
-        alerm = result.length;
-        callback(null);
-      });
-    },
-    function(callback){
-      sql = 'UPDATE ProductInfo SET product_name=?, product_price=?, product_detail=? WHERE product_id=?';
-      client.query(sql, [body.product, body.price, body.detail, id], function(err, result) {
-        callback(null);
-      });
-    },
-    function(callback){
-      sql = 'UPDATE ProductInfo SET product_name=? WHERE product_id=? AND parent_id=?';
-      client.query(sql, [body.product, id], function(err, result) {
-        callback(null);
-      });
-    }
-  ], function(err){
-    var link = '/sm_buy_itemDetail/' + id + '/' + num;
-    res.redirect(link);
-  });
-});
-
-app.get('/buy_sellProduct/delete/:child_id/:id/:num', function(req, res){ // [삽니다 게시판] 팔겠다고 글 올린 사람
-  var id = req.params.id;
-  var num = req.params.num;
-  var child_id = req.params.child_id;
-  var sql;
-
-  //console.log("child_id: ", child_id);
-
-  async.series([
-      function(callback) {
-          sql = 'DELETE FROM ProductInfo WHERE parent_id=? AND child_id=?';
-          client.query(sql, [id, child_id], function() {
-              callback(null);
-          });
-      },
-      function(callback) {
-        sql = 'DELETE FROM notifyMessage WHERE product_id=? AND child_id=?';
-          client.query(sql, [id, child_id], function() {
-              callback(null);
-          });
-      },
-      function(callback) {
-        sql = 'DELETE FROM product_reserve WHERE product_id=?';
-          client.query(sql, [id], function() {
-              callback(null);
-          });
-      }
-  ], function(err){
-    var link = '/sm_buy_itemDetail/' + id + '/' + num;
-    res.redirect(link);
-  });
+    async.series([
+        function(callback) {
+            sql = 'DELETE FROM ProductInfo WHERE parent_id=? AND child_id=?';
+            client.query(sql, [id, child_id], function() {
+                callback(null);
+            });
+        },
+        function(callback) {
+            sql = 'DELETE FROM notifyMessage WHERE product_id=? AND child_id=?';
+            client.query(sql, [id, child_id], function() {
+                callback(null);
+            });
+        },
+        function(callback) {
+            sql = 'DELETE FROM product_reserve WHERE product_id=?';
+            client.query(sql, [id], function() {
+                callback(null);
+            });
+        }
+    ], function(err) {
+        var link = '/sm_buy_itemDetail/' + id + '/' + num;
+        res.redirect(link);
+    });
 });
 
 
@@ -6689,87 +6901,87 @@ app.get('/buy_sellProduct/change/:child_id/:id/:num', function(req, res) { // [�
     var photo;
 
     async.series([
-      function(callback){
-        sql = 'SELECT * FROM ProductInfo WHERE parent_id=? AND child_id=?';
+            function(callback) {
+                sql = 'SELECT * FROM ProductInfo WHERE parent_id=? AND child_id=?';
 
-        client.query(sql, [id, child_id], function(err, result){
-          rows = result[0];
-          photo = (result[0].photo1).substring(1);
-          callback(null);
+                client.query(sql, [id, child_id], function(err, result) {
+                    rows = result[0];
+                    photo = (result[0].photo1).substring(1);
+                    callback(null);
+                });
+            },
+            function(callback) {
+                sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
+                client.query(sql, [loginId[1]], function(err, result) {
+                    alerm = result.length;
+                    callback(null);
+                });
+            }
+        ],
+        function(err) {
+            res.render('sm_changeSellingDetail.ejs', {
+                session_id: loginId[1],
+                alerm: alerm,
+                rows: rows,
+                photo: photo,
+                id: id,
+                num: num,
+                child_id: child_id
+            });
         });
-      },
-      function(callback){
-        sql = 'SELECT * FROM notifyMessage WHERE arrow=? AND flag=0';
-        client.query(sql, [loginId[1]], function(err, result){
-          alerm = result.length;
-          callback(null);
-        });
-      }
-    ],
-    function(err){
-      res.render('sm_changeSellingDetail.ejs', {
-        session_id : loginId[1],
-        alerm : alerm,
-        rows: rows,
-        photo : photo,
-        id : id,
-        num : num,
-        child_id : child_id
-      });
-    });
 });
 
-app.post('/buy_itemDetail/:child_id/:id/:num/change', multipartMiddleware, function(req, res){
-  var child_id = req.params.child_id;
-  var id = req.params.id;
-  var num = req.params.num;
+app.post('/buy_itemDetail/:child_id/:id/:num/change', multipartMiddleware, function(req, res) {
+    var child_id = req.params.child_id;
+    var id = req.params.id;
+    var num = req.params.num;
 
-  var body = req.body;
-  var detail = body.detail;
+    var body = req.body;
+    var detail = body.detail;
 
-  var file;
-  var name;
-  var path;
-  var type;
-  var outputPath;
-  var hiddenValue = req.body.hidden;
+    var file;
+    var name;
+    var path;
+    var type;
+    var outputPath;
+    var hiddenValue = req.body.hidden;
 
-  async.series([
-          function(callback) {
-              if (hiddenValue == 0) {
-                  client.query('SELECT * FROM ProductInfo WHERE parent_id=? AND child_id=?', [id, child_id], function(err, result) {
-                      outputPath = result[0].photo1;
-                      callback(null);
-                  });
-              } else if (hiddenValue == 1) {
+    async.series([
+            function(callback) {
+                if (hiddenValue == 0) {
+                    client.query('SELECT * FROM ProductInfo WHERE parent_id=? AND child_id=?', [id, child_id], function(err, result) {
+                        outputPath = result[0].photo1;
+                        callback(null);
+                    });
+                } else if (hiddenValue == 1) {
 
-                  file = req.files.file;
+                    file = req.files.file;
 
-                  name = file.name;
-                  path = file.path;
-                  type = file.type;
+                    name = file.name;
+                    path = file.path;
+                    type = file.type;
 
-                  if (type.indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
-                    outputPath = './fileUploads/' + Date.now() + '_' + name;
-                    fs.rename(path, outputPath, function(err) {});
-                  }
+                    if (type.indexOf('image') != -1) { // image 타입이면 이름을 재지정함(현재날짜로)
+                        outputPath = './fileUploads/' + Date.now() + '_' + name;
+                        fs.rename(path, outputPath, function(err) {});
+                    }
 
-                  callback(null);
-              }
+                    callback(null);
+                }
 
-          },
+            },
 
-          function(callback) {
+            function(callback) {
 
-              var update = 'UPDATE ProductInfo SET product_price=?, photo1=?, product_detail=? where parent_id=? AND child_id=?';
-              client.query(update, [body.price, outputPath, detail, id, child_id], function(err, result) {
-                  callback(null);
-              });
-          }
-      ],
-      function(err) {
-          var str = '/sm_buy_itemDetail/' + id + '/' + num;
-          res.redirect(str);
-      });
+                var update = 'UPDATE ProductInfo SET product_price=?, photo1=?, product_detail=? where parent_id=? AND child_id=?';
+                client.query(update, [body.price, outputPath, detail, id, child_id], function(err, result) {
+                    callback(null);
+                });
+            }
+        ],
+        function(err) {
+            var str = '/sm_buy_itemDetail/' + id + '/' + num;
+            res.redirect(str);
+        });
 
 });
