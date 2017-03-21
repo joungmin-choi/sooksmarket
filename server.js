@@ -6368,6 +6368,7 @@ app.post('/sm_addBuyingItems', function(req, res) {
     var alerm;
     var productId;
     var period = body.category;
+    var reciever, detail;
 
     var sql;
 
@@ -6438,13 +6439,15 @@ app.post('/sm_addBuyingItems', function(req, res) {
             var dueTime = new Date(s_date[0], s_date[1], s_date[2] + periodIntDays, s_time[0], s_time[1], s_time[2]);
             sellAlarmDate[productId] = schedule.scheduleJob(dueTime, function() {
 
+              detail = '[삽니다 게시판] "' + body.product + '"의 경매기간이 마감되었습니다.';
+
               var option = {
                 category : 5,
                 product_id : productId,
-                detail : '[삽니다 게시판] "' + body.product + '"의 경매기간이 마감되었습니다.',
+                detail : detail,
                 date : date,
                 link: '/sm_buy_itemDetail/' + productId,
-                arrow: login[1]
+                arrow: login_id
               };
 
               sql = 'INSERT INTO notifyMessage SET ?';
@@ -6453,9 +6456,23 @@ app.post('/sm_addBuyingItems', function(req, res) {
                       console.log(err);
                       throw err;
                   }
-                  callback(null);
               });
+
+
+                  if (login_id !== null) {
+                      var sql2 = 'SELECT phoneToken FROM users WHERE username=?';
+                      client.query(sql2, [login_id], function(err, result) {
+                          if (result[0].phoneToken !== null) {
+                              receiver = result[0].phoneToken;
+                              pushAlarmLink = pushAlarmLink + login_id;
+                              sendTopicMessage("숙스마켓", detail, pushAlarmLink, receiver);
+                          } else {
+                              receiver = "";
+                          }
+                      });
+                  }
             });
+            callback(null);
         }
     ], function(err) {
         if (err) {
@@ -6809,6 +6826,7 @@ app.get('/buy_itemDetail/:id/delete', function(req, res) { //삭제
 
     async.series([
         function(callback) {
+            sellAlarmDate[id].cancel();
             sql = 'DELETE FROM ProductInfo WHERE product_id=? OR parent_id=?';
             client.query(sql, [id, id], function() {
                 callback(null);

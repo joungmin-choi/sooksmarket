@@ -108,6 +108,7 @@
       var remainTimeDiv = document.getElementById("remainTimeDiv");
       var requestSellingDiv = document.getElementById("requestSellingDiv");
       var periodIntDays = parseInt(period.substring(0,1));
+      var modifyBuyingBtn = document.getElementById("seller_changeBefore");
 
       var date = new Array();
       var time = new Array();
@@ -130,6 +131,7 @@
       if(dueTime < presentTime){
         remainTimeDiv.innerHTML = "마감되었습니다.";
         requestSellingDiv.style.display = "none";
+        modifyBuyingBtn.style.display = "none";
         clearInterval(countTimer);
       }else{
         var interval = dueTime - presentTime;
@@ -224,11 +226,6 @@
       location.href='/buy_sellProduct/delete/'+child_id+'/<%= `${rows.product_id}` %>';
     }
 
-
-
-
-
-
   </script>
 
 </head>
@@ -318,7 +315,7 @@
 
       <div class="col-xs-13 col-md-8 col-md-offset-2">
       <div id="reportDiv" class="collapse text-center" style="margin-top:10px;">
-        <form id="form" name="form" method='post' enctype="multipart/form-data" action="/sm_buy_itemDetail/<%= `${rows.product_id}` %>>
+        <form id="form" name="form" method='post' enctype="multipart/form-data" action="/sm_buy_itemDetail/<%= `${rows.product_id}` %>">
         <table class="table table-bordered">
           <tbody class="text-center">
             <tr>
