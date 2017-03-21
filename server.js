@@ -1048,6 +1048,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
     var flag = 0;
     var nextReserveCustomer;
     var max_reserve_count;
+    var customer;
 
     if (loginId[1] === undefined) {
         response.redirect('/');
@@ -1146,7 +1147,10 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                         } else {
                             if (result.length) {
                                 flag = 1;
-                            } else {}
+                                customer = result[0].customer;
+                                //console.log(customer);
+                            } else {
+                            }
                             callback(null, 5);
                         }
                     });
@@ -1178,7 +1182,6 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                         }
                     });
                 }
-
             ],
 
             // callback (final)
@@ -1203,7 +1206,8 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                     flag: flag,
                     isDone: isDone,
                     nextReserveCustomer: nextReserveCustomer,
-                    max_reserve_count: max_reserve_count
+                    max_reserve_count: max_reserve_count,
+                    customer : customer
                 });
             });
     }
@@ -3986,8 +3990,33 @@ app.get('/sm_scrap', function(req, res) {
     var sql;
     var results;
     var applyRejection, confirmRejection, changeSql;
+    var on = 0;
+    var allowDate; //신고가 풀리는 날
+    var email;
 
     var tasks = [
+      function(callback) {
+              sql = 'SELECT login_email FROM users WHERE username=?';
+              client.query(sql, [loginId[1]], function(err, result) {
+                  email = result[0].login_email;
+                  callback(null);
+              });
+     },
+
+     function(callback) {
+              sql = 'SELECT * FROM ComplainIdHistory WHERE email=? AND date(date)>=date(now())';
+              client.query(sql, [email], function(err, result) {
+                  if (result[0] !== undefined) {
+                      on = 1;
+                      allowDate = result[0].date;
+                      //console.log(on);
+                  } else {
+                      on = 0;
+                      //console.log(on);
+                  }
+                  callback(null);
+              });
+     },
         function(callback) {
             sql = 'SELECT * FROM TradeRejection WHERE username=? ORDER BY id DESC';
             client.query(sql, [loginId[1]], function(err, result) {
@@ -4083,7 +4112,9 @@ app.get('/sm_scrap', function(req, res) {
                     result: result,
                     session_id: loginId[1],
                     alerm: alerm,
-                    applyRejection: applyRejection
+                    applyRejection: applyRejection,
+                    on: on,
+                    allowDate: allowDate
                 });
                 callback(null);
             });
@@ -6406,9 +6437,25 @@ app.post('/sm_addBuyingItems', function(req, res) {
 
             var dueTime = new Date(s_date[0], s_date[1], s_date[2] + periodIntDays, s_time[0], s_time[1], s_time[2]);
             sellAlarmDate[productId] = schedule.scheduleJob(dueTime, function() {
-                //알림
+
+              var option = {
+                category : 5,
+                product_id : productId,
+                detail : '[삽니다 게시판] "' + body.product + '"의 경매기간이 마감되었습니다.',
+                date : date,
+                link: '/sm_buy_itemDetail/' + productId,
+                arrow: login[1]
+              };
+
+              sql = 'INSERT INTO notifyMessage SET ?';
+              client.query(sql, [option], function(err, result) {
+                  if (err) {
+                      console.log(err);
+                      throw err;
+                  }
+                  callback(null);
+              });
             });
-            callback(null);
         }
     ], function(err) {
         if (err) {
@@ -6421,9 +6468,8 @@ app.post('/sm_addBuyingItems', function(req, res) {
 
 });
 
-app.get('/sm_buy_itemDetail/:auto/:num', function(req, res) {
+app.get('/sm_buy_itemDetail/:auto', function(req, res) {
     var auto = req.params.auto; // 상품번호
-    var number = req.params.num; // 순번
 
     var sql;
 
@@ -6553,7 +6599,6 @@ app.get('/sm_buy_itemDetail/:auto/:num', function(req, res) {
                 session_id: loginId[1],
                 alerm: alerm,
                 rows: sellingResult, //result[0]: "삽니다" 게시판 주인공 글
-                num: number,
                 user: user,
                 results: results, //results: 물건을 파려는 사람의 글
                 avgRating: avgRating,
@@ -6566,9 +6611,8 @@ app.get('/sm_buy_itemDetail/:auto/:num', function(req, res) {
 
 });
 
-app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res) {
+app.post('/sm_buy_itemDetail/:auto', multipartMiddleware, function(req, res) {
     var auto = req.params.auto;
-    var number = req.params.num;
 
     var body = req.body;
     var login_id = loginId[1];
@@ -6661,7 +6705,7 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
                     product_id: auto,
                     detail: detail,
                     date: date,
-                    link: '/sm_buy_itemDetail/' + auto + '/' + number,
+                    link: '/sm_buy_itemDetail/' + auto,
                     arrow: buyer,
                     id: login_id
                 };
@@ -6753,15 +6797,14 @@ app.post('/sm_buy_itemDetail/:auto/:num', multipartMiddleware, function(req, res
             }
         ],
         function(err) {
-            var str = '/sm_buy_itemDetail/' + auto + '/' + number;
+            var str = '/sm_buy_itemDetail/' + auto;
             res.redirect(str);
         });
 
 });
 
-app.get('/buy_itemDetail/:id/:num/delete', function(req, res) { //삭제
+app.get('/buy_itemDetail/:id/delete', function(req, res) { //삭제
     var id = req.params.id;
-    var numer = req.params.num;
     var sql;
 
     async.series([
@@ -6786,9 +6829,8 @@ app.get('/buy_itemDetail/:id/:num/delete', function(req, res) { //삭제
     ]);
 });
 
-app.get('/buy_itemDetail/:id/:num/change', function(req, res) { //수정
+app.get('/buy_itemDetail/:id/change', function(req, res) { //수정
     var id = req.params.id;
-    var num = req.params.num;
 
     var sql;
     var rows;
@@ -6815,16 +6857,14 @@ app.get('/buy_itemDetail/:id/:num/change', function(req, res) { //수정
                 session_id: loginId[1],
                 alerm: alerm,
                 rows: rows,
-                id: id,
-                num: num
+                id: id
             });
         });
 });
 
-app.post('/buy_itemDetail/:id/:num/change', function(req, res) {
+app.post('/buy_itemDetail/:id/change', function(req, res) {
     var body = req.body;
     var id = req.params.id;
-    var num = req.params.num;
 
     var login_id = loginId[1];
     var alerm;
@@ -6852,14 +6892,13 @@ app.post('/buy_itemDetail/:id/:num/change', function(req, res) {
             });
         }
     ], function(err) {
-        var link = '/sm_buy_itemDetail/' + id + '/' + num;
+        var link = '/sm_buy_itemDetail/' + id;
         res.redirect(link);
     });
 });
 
-app.get('/buy_sellProduct/delete/:child_id/:id/:num', function(req, res) { // [삽니다 게시판] 팔겠다고 글 올린 사람
+app.get('/buy_sellProduct/delete/:child_id/:id', function(req, res) { // [삽니다 게시판] 팔겠다고 글 올린 사람
     var id = req.params.id;
-    var num = req.params.num;
     var child_id = req.params.child_id;
     var sql;
 
@@ -6885,16 +6924,15 @@ app.get('/buy_sellProduct/delete/:child_id/:id/:num', function(req, res) { // [�
             });
         }
     ], function(err) {
-        var link = '/sm_buy_itemDetail/' + id + '/' + num;
+        var link = '/sm_buy_itemDetail/' + id;
         res.redirect(link);
     });
 });
 
 
-app.get('/buy_sellProduct/change/:child_id/:id/:num', function(req, res) { // [삽니다 게시판] 팔겠다고 글 올린 사람
+app.get('/buy_sellProduct/change/:child_id/:id', function(req, res) { // [삽니다 게시판] 팔겠다고 글 올린 사람
     var child_id = req.params.child_id;
     var id = req.params.id;
-    var num = req.params.num;
 
     var sql;
     var rows;
@@ -6925,16 +6963,14 @@ app.get('/buy_sellProduct/change/:child_id/:id/:num', function(req, res) { // [�
                 rows: rows,
                 photo: photo,
                 id: id,
-                num: num,
                 child_id: child_id
             });
         });
 });
 
-app.post('/buy_itemDetail/:child_id/:id/:num/change', multipartMiddleware, function(req, res) {
+app.post('/buy_itemDetail/:child_id/:id/change', multipartMiddleware, function(req, res) {
     var child_id = req.params.child_id;
     var id = req.params.id;
-    var num = req.params.num;
 
     var body = req.body;
     var detail = body.detail;
@@ -6980,7 +7016,7 @@ app.post('/buy_itemDetail/:child_id/:id/:num/change', multipartMiddleware, funct
             }
         ],
         function(err) {
-            var str = '/sm_buy_itemDetail/' + id + '/' + num;
+            var str = '/sm_buy_itemDetail/' + id;
             res.redirect(str);
         });
 

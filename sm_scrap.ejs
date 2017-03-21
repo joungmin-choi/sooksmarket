@@ -120,10 +120,24 @@
 
       loader.style.display="none";
       body.style.backgroundColor="#ffffff";
-      loadPage.style.display="";  
+      loadPage.style.display="";
 
       $('#loader').hide();
     }
+
+    var itemDetail = function(i){
+      if ("<%= `${on}` %>" == 1){
+        alert('한 달(<%= `${allowDate}` %>)동안 사용하실 수 없습니다.');
+        detail="Detail" + i;
+        var element = document.getElementById(detail);
+        element.href = '/sm_main';
+      } else if(<%=applyRejection%> == 1){
+        alert('거래 취소를 하셨기 때문에, \n취소하신 시간부터 5시간동안 사용하실 수 없습니다.');
+        detail="Detail" + i;
+        var element = document.getElementById(detail);
+        element.href = '/sm_main';
+      }
+    };
 
 
     </script>
@@ -157,7 +171,7 @@
                         ★
                       </a>
                     </p>
-                    <a href="/sm_itemDetail/<%= result[i].product_id %>">
+                    <a href="/sm_itemDetail/<%= result[i].product_id %>" id="Detail<%= i %>" onclick="itemDetail(<%= i %>)">
                       <% if(result[i].scrap_photo != ""){ %>
                         <img class="img-responsive img-center" src="<%= result[i].scrap_photo %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
                       <% } else{ %>

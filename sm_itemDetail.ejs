@@ -59,74 +59,107 @@
                 background-color: mediumblue;
                 border-color: mediumblue;
             }
+
+            #loader {
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              z-index: 1;
+              width: 150px;
+              height: 150px;
+              margin: -75px 0 0 -75px;
+              border: 16px solid #f3f3f3;
+              border-radius: 50%;
+              border-top: 16px solid #3498db;
+              width: 120px;
+              height: 120px;
+              -webkit-animation: spin 2s linear infinite;
+              animation: spin 2s linear infinite;
+            }
+
+            @-webkit-keyframes spin {
+              0% { -webkit-transform: rotate(0deg); }
+              100% { -webkit-transform: rotate(360deg); }
+            }
+
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
         </style>
         <script>
             var next = `<%= nextReserveCustomer %>`;
-            $(document).ready(function() {
-                var session_id = `<%= session_id %>`;
 
-                $('._edit').hide();
-                $('.re').hide();
-                $('.reply').click(function() {
-                    $(this).next().toggle();
-                });
+            window.onload = function(){
+              var loader = document.getElementById('loader');
+              var body = document.getElementById('body');
+              var loadPage = document.getElementById('loadPage');
 
-                $('.edit').click(function() {
-                    var id = $(this).attr('id');
-                    $('.' + id).removeAttr("disabled");
-                    $('#_' + id).show();
-                });
+              loader.style.display="none";
+              body.style.backgroundColor="#ffffff";
+              loadPage.style.display="";
 
+              $('#loader').hide();
 
-                if (`${<%= flag %>}` == 1) {
-                    if (`${<%= delete_btn %>}` == 0) {
-                        $('#button_delete').attr("disabled", true);
-                        $('#button_change').attr("disabled", true);
-                        $('#button_buy').attr("disabled", true);
-                    }
-                } else {
-                    if (next !== null) {
+              var session_id = `<%= session_id %>`;
 
-                    } else {
-                        $('#button_reserve').attr("disabled", true);
-                    }
-                }
+              $('._edit').hide();
+              $('.re').hide();
+              $('.reply').click(function() {
+                  $(this).next().toggle();
+              });
 
-                if (session_id === 'sooksmarket') {
-                    $('#button_delete').attr("disabled", false);
-                }
+              $('.edit').click(function() {
+                  var id = $(this).attr('id');
+                  $('.' + id).removeAttr("disabled");
+                  $('#_' + id).show();
+              });
 
 
+              if (`${<%= flag %>}` == 1) {
+                  if (`${<%= delete_btn %>}` == 0) {
+                      $('#button_delete').attr("disabled", true);
+                      $('#button_change').attr("disabled", true);
+                      $('#button_buy').attr("disabled", true);
+                  }
+              } else {
+                  if (next !== null) {
 
-                var reserve_flag = 0;
+                  } else {
+                      $('#button_reserve_Before').attr("disabled", true);
+                  }
+              }
 
-                var reserveMembers = new Array();
-                <% for(var i=0; i<reserveMember.length; i++){ %>
+              if (session_id === 'sooksmarket') {
+                  $('#button_delete').attr("disabled", false);
+              }
+
+
+
+              var reserve_flag = 0;
+
+              var reserveMembers = new Array();
+              <% for(var i=0; i<reserveMember.length; i++){ %>
                 <% if(session_id == reserveMember[i].session_id){ %>
-                reserve_flag = 1;
+                  reserve_flag = 1;
                 <% } %>
-                <% } %>
+              <% } %>
 
-                if (reserve_flag == 1) {
+              if (reserve_flag == 1) {
 
-                } else {
-                    $('#button_reserve_no').attr("disabled", true);
-                }
+              } else {
+                  $('#button_reserve_no_Before').attr("disabled", true);
+              }
 
-                setTimeout(function(){
+              setTimeout(function(){
+                  var testimg = $("#testimg");
+                  if (testimg.exif("Orientation") == 8) {
+                      testimg.addClass("rotate90");
+                  }
+                  testimg.show();
+              }, 500);
+            }
 
-                    var testimg = $("#testimg");
-
-                    if (testimg.exif("Orientation") == 8) {
-
-                        testimg.addClass("rotate90");
-
-                    }
-
-                    testimg.show();
-
-                }, 500);
-            });
 
             function buy() {
                 var button_buy_after = document.getElementById("button_buy_after");
@@ -155,11 +188,11 @@
                 if (flag == 1) {
                     alert("당신은 이미 대기상태 입니다")
                 } else {
-                    var button_reserve_after = document.getElementById("button_reserve_after");
-                    var button_reserve = document.getElementById("button_reserve");
+                    var button_reserve_After = document.getElementById("button_reserve_After");
+                    var button_reserve_Before = document.getElementById("button_reserve_Before");
 
-                    button_reserve_after.style.display = "";
-                    button_reserve.style.display = "none";
+                    button_reserve_After.style.display = "";
+                    button_reserve_Before.style.display = "none";
 
                     var reserve_count = `${<%= reserve_ordernumber %>}`;
                     alert(" 당신은 " + reserve_count + "번째 대기자 입니다 :)");
@@ -169,21 +202,104 @@
 
 
             function reserve_no() {
+              var button_reserve_no_After = document.getElementById("button_reserve_no_After");
+              var button_reserve_no_Before = document.getElementById("button_reserve_no_Before");
+
+              button_reserve_no_After.style.display="";
+              button_reserve_no_Before.style.display="none";
+
                 alert("예약이 취소되었습니다");
                 location.href = '/sm_request/<%= id %>/reserve_no/<%= session_id%>';
             }
 
+            function send(link, i){
+              if(i == 1){
+                var sendAfter = document.getElementById("sendAfter");
+                var sendBefore = document.getElementById("sendBefore");
+
+                sendAfter.style.display="";
+                sendBefore.style.display="none";
+              } else if (i == 2){
+                var send_After = document.getElementById("send_After");
+                var send_Before = document.getElementById("send_Before");
+
+                send_After.style.display="";
+                send_Before.style.display="none";
+              }
+
+              var myForm = document.getElementById("myForm");
+              myForm.action = link;
+              myForm.submit();
+
+            }
+
             function submitCheck(link) {
+              if(i == 1){
+                var sendAfter = document.getElementById("sendAfter");
+                var sendBefore = document.getElementById("sendBefore");
+
+                sendAfter.style.display="";
+                sendBefore.style.display="none";
+              }
+
                 var myForm = document.getElementById("myForm");
                 myForm.action = link;
                 myForm.submit();
             }
 
+<<<<<<< HEAD
+=======
+            function sm_reserveAlarm_yes(){
+              var reserveAlarm_yes_After = document.getElementById("sm_reserveAlarm_yes_After");
+              var reserveAlarm_yes_Before = document.getElementById("sm_reserveAlarm_yes_Before");
+
+              reserveAlarm_yes_After.style.display="";
+              reserveAlarm_yes_Before.style.display="none";
+
+              location.href='/sm_reserveAlarm_yes/<%= id %>';
+            }
+
+            function sm_reserveAlarm_no(){
+              var reserveAlarm_no_After = document.getElementById("sm_reserveAlarm_no_After");
+              var reserveAlarm_no_Before = document.getElementById("sm_reserveAlarm_no_Before");
+
+              reserveAlarm_no_After.style.display="";
+              reserveAlarm_no_Before.style.display="none";
+
+              location.href='/sm_reserveAlarm_no/<%= id %>';
+            }
+
+            function productDelete(){
+              var button_delete_after = document.getElementById("button_delete_after");
+              var button_delete = document.getElementById("button_delete");
+
+              button_delete_after.style.display="";
+              button_delete.style.display="none";
+
+              location.href='/sm_itemDetail/<%= id %>/delete';
+            }
+
+            function productChange(){
+              var button_change_after = document.getElementById("button_change_after");
+              var button_change = document.getElementById("button_change");
+
+              button_change_after.style.display="";
+              button_change.style.display="none";
+
+              location.href='/sm_changeDetail/<%= id %>';
+            }
+
+
+>>>>>>> 2f7bf0a79026f73c6e61d26140124281bac99571
         </script>
 
 </head>
 
-<body>
+<body id="body">
+
+  <div id="loader"></div>
+
+  <div style="display:none" id="loadPage">
     <!-- Navigation -->
     <% include ./sm_top_navigator %>
 
@@ -199,7 +315,7 @@
                 <!-- 1-->
                 <div class="thumbnail">
 
-                    <% for (i=0; i< photo.length; i++){
+                    <% for (i=0; i< photo.length; i++) {
                       if (photo[i] != ""){ %>
                         <img id="testimg" exif="true" class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="300" height="200" style="display:none;"/>
                         <br/>
@@ -273,8 +389,10 @@
                         <%  } else { %>
                           <% if(session_id === nextReserveCustomer) { %>
                             <h2>거래를 신청하시겠습니까?</h2><br/>
-                            <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_yes/<%= id %>'">수락</button>
-                            <button type="button" class="btn btn-warning" onclick="location.href='/sm_reserveAlarm_no/<%= id %>'">거부</button>
+                            <button class="btn btn-warning" id="sm_reserveAlarm_yes_After" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 수락</button>
+                            <button type="button" class="btn btn-warning" id="sm_reserveAlarm_yes_Before" onclick="sm_reserveAlarm_yes()">수락</button>
+                            <button class="btn btn-warning" id="sm_reserveAlarm_no_After" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 거부</button>
+                            <button type="button" class="btn btn-warning" id="sm_reserveAlarm_no_Before" onclick="sm_reserveAlarm_no()">거부</button>
                           <% } else if( nextReserveCustomer !== null) { %>
                             <h1>들어옴</h1>
                             <% for(var i=0; i<reserveMember.length; i++){ %>
@@ -285,23 +403,31 @@
                             <% if(session_id == seller) { %>
                               <h1>거래가 진행중입니다.</h1>
                             <% } else { %>
-                              <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber %>명</button>
-                              <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
+                              <button id="button_reserve_After" type="button"class="btn btn-primary" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약하기/현재 대기자수 <%= reserve_ordernumber %>명</button>
+                              <button id="button_reserve_Before" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber %>명</button>
+                              <button id="button_reserve_no_After" type="button"class="btn btn-primary" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약취소</button>
+                              <button id="button_reserve_no_Before" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
                             <% } %>
                           <% } else { %>
-                            <% if(session_id === 'sooksmarket') { %>
-                              <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
+                            <% if (session_id === customer) { %>
+                                <h5 style="color:red;font-weight:bold;"> 현재 구매하고 있는 제품 입니다.</h5>
+                            <% } else if (session_id === 'sooksmarket') { %>
+                              <button id="button_delete_after" class="btn btn-warning" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 삭제</button>
+                              <button id="button_delete" type="button" class="btn btn-warning" onclick="productDelete()">삭제</button>
                             <% } else { %>
                               <% if (session_id !== seller){ %>
-                                <button class="btn btn-primary" id="button_buy_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 구매하기</button>
+                                <button id="button_buy_after" class="btn btn-primary" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 구매하기</button>
                                 <button id="button_buy" type="button" class="btn btn-primary" onclick="buy();">구매하기</button>
-                                <button class="btn btn-primary" id="button_reserve_after" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약하기/현재 대기자수 <%= reserve_ordernumber %>명</button>
-                                <button id="button_reserve" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
-                                <button id="button_reserve_no" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
+                                <button id="button_reserve_After" class="btn btn-primary" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
+                                <button id="button_reserve_Before" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
+                                <button id="button_reserve_no_After" type="button"class="btn btn-primary" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약취소</button>
+                                <button id="button_reserve_no_Before" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
                               <% } %>
                               <% if (session_id == seller) { %>
-                                <button id="button_delete" type="button" class="btn btn-warning" onclick="location.href='/sm_itemDetail/<%= id %>/delete'">삭제</button>
-                                <button id="button_change" type="button" class="btn btn-default" onclick="location.href='/sm_changeDetail/<%= id %>'">수정</button>
+                                <button id="button_delete_after" type="button"class="btn btn-warning" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 삭제</button>
+                                <button id="button_delete" type="button" class="btn btn-warning" onclick="productDelete()">삭제</button>
+                                <button id="button_change_after" type="button"class="btn btn-default" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 수정</button>
+                                <button id="button_change" type="button" class="btn btn-default" onclick="productChange()">수정</button>
                               <% } %>
                             <% } %>
                           <% } %>
@@ -325,7 +451,8 @@
                     <div class="form-group">
                         <textarea class="form-control" rows="3" id="comment_detail" name="comment_detail" onchange="textChange()"></textarea>
                     </div>
-                    <button type="button" class="btn btn-warning btn-sm" id="sendBefore" onclick="submitCheck('/sm_itemDetail/<%= id %>/comments');" >보내기</button>
+                    <button id="sendAfter" type="button" class="btn btn-warning btn-sm" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 보내기</button>
+                    <button id="sendBefore" type="button" class="btn btn-warning btn-sm" onclick="send('/sm_itemDetail/<%= id %>/comments', 1);" >보내기</button>
                     <!-- </form> -->
                 </div>
 
@@ -370,14 +497,32 @@
                                                 <h5>댓글을 남겨주세요:)</h5>
                                                 <!-- <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply' method='post' role="form"> -->
                                                 <div class="form-group">
-                                                    <textarea class="form-control" rows="3" name="each_comment_detail"></textarea>
+                                                    <textarea class="form-control" rows="3" name="each_comment_detail" id="each_comment_detail"></textarea>
                                                 </div>
 
-                                                <button type="button" class="btn btn-default btn-sm" onclick="submitCheck('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply/<%=j%>');">보내기</button>
+                                                <button id="send_After" type="button" class="btn btn-default btn-sm" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 보내기</button>
+                                                <button id="send_Before" type="button" class="btn btn-default btn-sm" onclick="send('/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply/<%=j%>', 2);">보내기</button>
                                                 <% j++ %>
 
                                                     <!-- </form> -->
                                             </div>
+                                            <script>
+                                            document.getElementById("send_Before").disabled = "true";
+                                            document.onkeyup = textChange;
+                                            document.onmouseup = textChange;
+                                            document.onmousedown = textChange;
+
+
+                                            function textChange(){
+
+                                              if (document.getElementById("each_comment_detail").value == '') {
+                                                //alert(document.getElementById("comment_detail").value);
+                                                  document.getElementById("send_Before").setAttribute('disabled', 'disabled');
+                                              } else {
+                                                  document.getElementById("send_Before").removeAttribute('disabled');
+                                              }
+                                            }
+                                            </script>
                             </div>
                         </div>
                         <% } else { %>
@@ -426,6 +571,8 @@
 
         <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
         <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+
+  </div>
 </body>
 
 </html>

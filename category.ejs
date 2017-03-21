@@ -126,6 +126,11 @@
         detail="Detail" + i;
         var element = document.getElementById(detail);
         element.href = '/sm_main';
+      } else if(<%=applyRejection%> == 1){
+        alert('거래 취소를 하셨기 때문에, \n취소하신 시간부터 5시간동안 사용하실 수 없습니다.');
+        detail="Detail" + i;
+        var element = document.getElementById(detail);
+        element.href = '/sm_main';
       }
 
     }
