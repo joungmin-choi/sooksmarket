@@ -37,6 +37,7 @@ var alerm = 0;
 var alarmFlag = 0;
 var registerSellAlarmCount = 0;
 var sellAlarmDate = new Array();
+// var reservationAlarmDate = new Array();
 var pushAlarmLink = "http://203.153.144.75/sm_alermList/";
 
 //DB 설정//
@@ -2409,9 +2410,11 @@ app.get('/sm_chat/:id/reject', function(request, response) {
                     console.log(err);
                     throw err;
                 }
+                reserve_count = state = 0;
                 callback(null, 5);
             });
         },
+
         function(callback) {
             response.redirect('/sm_main');
             callback(null);
@@ -4663,7 +4666,7 @@ app.get('/category/:id', function(req, res) {
                     option: option,
                     session_id: loginId[1],
                     alerm: alerm,
-                    applyRejection : applyRejection
+                    applyRejection: applyRejection
                 });
             });
 
@@ -5921,6 +5924,7 @@ app.get('/sm_reserveAlarm_no/:pid', function(req, res) {
     var tasks = [
         function(callback) {
             //console.log(1);
+
             sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
             client.query(sql, [product_id], function(err, result) {
                 if (err) {
