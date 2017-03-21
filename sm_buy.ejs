@@ -220,7 +220,7 @@
                 <tr>
                   <td><%= i+1 %></td>
                   <td style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;"><%= rows[i].product_seller %></td>
-                  <td style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;"><a onclick="itemDetail(<%= i %>)" href="/sm_buy_itemDetail/<%= rows[i].product_id %>/<%= i+1 %>" id="Detail<%= i %>" onclick="itemDetail(<%= i %>)"><%= rows[i].product_name %></a></td>
+                  <td style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;"><a onclick="itemDetail(<%= i %>)" href="/sm_buy_itemDetail/<%= rows[i].product_id %>" id="Detail<%= i %>" onclick="itemDetail(<%= i %>)"><%= rows[i].product_name %></a></td>
                   <td>
                     <div id="remainTimeDiv<%=i%>" class="remainTimeDiv"></div>
                   </td>

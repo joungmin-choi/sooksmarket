@@ -2067,7 +2067,6 @@ io.on('connection', function(socket) {
             },
 
             function(callback) {
-                console.log(temp);
                 content = '"' + product_name + '"' + " 채팅방에 메시지가 도착했습니다.";
                 var chatAlarm = {
                     category: 2,
@@ -2418,6 +2417,118 @@ app.get('/sm_chat/:id/reject', function(request, response) {
                 callback(null, 5);
             });
         },
+
+        //
+        function(callback) {
+                    var scheduleDate = msg_date;
+                    var s_date = new Array();
+                    var s_time = new Array();
+
+                    s_date[0] = parseInt(scheduleDate.substring(0, 4));
+                    s_date[1] = parseInt(scheduleDate.substring(5, 7)) - 1;
+                    s_date[2] = parseInt(scheduleDate.substring(8, 10));
+
+                    s_time[0] = parseInt(scheduleDate.substring(11, 13));
+                    s_time[1] = parseInt(scheduleDate.substring(14, 16));
+                    s_time[2] = parseInt(scheduleDate.substring(17, 19));
+
+                    var dueTime = new Date(s_date[0], s_date[1], s_date[2], s_time[0], s_time[1], s_time[2] + 1);
+                    reservationAlarmDate[product_id] = schedule.scheduleJob(dueTime, function() {
+                        console.log("1");
+
+                        sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
+                        client.query(sql, [product_id], function(err, result) {
+                            if (err) {
+                                console.log(err);
+                            }
+                            console.log("2");
+                            sql2 = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
+                            client.query(sql2, [product_id], function(err, result) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
+                                    console.log("3");
+                                    if (reserve_count == 1) {
+                                        state = 1;
+                                        sql3 = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
+                                        client.query(sql3, [null, product_id], function(err, result) {
+                                            if (err) {
+                                                console.log(err);
+                                            }
+                                            console.log("4");
+                                        });
+                                    } else {
+                                        state = 0;
+                                        console.log("4");
+                                    }
+
+                                    if (state === 0) {
+                                        for (var i = 2; i < reserve_count; i++) {
+                                            sql4 = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
+                                            client.query(sql4, [i - 1, product_id, i], function(err, result) {
+                                                if (err) {
+                                                    console.log(err);
+                                                } else {
+                                                  console.log("5");
+                                                }
+                                            });
+                                        }
+                                    }else{
+                                      console.log("5");
+                                    }
+                                    sql5 = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
+                                    client.query(sq5l, [product_id], function(err, result) {
+                                        if (err) {
+                                            console.log(err);
+                                            throw err;
+                                        }
+                                        temp = result[0].session_id;
+                                        console.log("6");
+                                        sql6 = 'SELECT * FROM ProductInfo WHERE product_id=?';
+                                        client.query(sql6, [product_id], function(err, result) {
+                                            if (err) {
+                                                console.log(err);
+                                            }
+                                            product_name = result[0].product_name;
+                                            console.log("7");
+                                            var m = moment();
+                                            msg_date = m.format("YYYY-MM-DD HH:mm:ss");
+                                            content = '예약하신 ' + product_name + ' 상품이 도착하였습니다.';
+                                            var reserveAlarm = {
+                                                category: 3,
+                                                product_id: product_id,
+                                                detail: content,
+                                                date: msg_date,
+                                                flag: 0,
+                                                link: '/sm_itemDetail/' + product_id,
+                                                arrow: temp,
+                                                id: null
+                                            };
+                                            sql8 = 'INSERT INTO notifyMessage SET ?';
+                                            client.query(sql8, reserveAlarm, function(err, result) {
+                                                if (err) {
+                                                    console.log(err);
+                                                }
+                                                console.log("8");
+                                                sql9 = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
+                                                client.query(sql9, [temp, product_id], function(err, result) {
+                                                    if (err) {
+                                                        console.log(err);
+                                                    }
+                                                    console.log("9");
+                                                });
+                                            });
+                                        });
+                                    });
+                                }
+                            });
+                        });
+
+                    callback(null);
+                });
+              },
+              //
 
         function(callback) {
             response.redirect('/sm_main');
