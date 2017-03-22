@@ -367,16 +367,16 @@
               <td>
                 <a href="/sm_review/search/<%= results[i].product_seller %>" title="후기 보기" style="">
                 <%= results[i].product_seller %></a>
-                <% if(results[i].avgRating != null){
-                    if(results[i].avgRating >= 4.7){ %>
+                <% if(results[i].avgStar != null){
+                    if(results[i].avgStar >= 4.7){ %>
                       <label class="star">★★★★★</label>
-                    <% }else if((results[i].avgRating>=3.7)&&(results[i].avgRating<4.7)){ %>
+                    <% }else if((results[i].avgStar>=3.7)&&(results[i].avgStar<4.7)){ %>
                       <label class="star">★★★★</label><label class="not">★</label>
-                    <% }else if((results[i].avgRating>=2.7)&&(results[i].avgRating<3.7)){ %>
+                    <% }else if((results[i].avgStar>=2.7)&&(results[i].avgStar<3.7)){ %>
                       <label class="star">★★★</label><label class="not">★★</label>
-                    <% }else if((results[i].avgRating>=1.7)&&(results[i].avgRating<2.7)){ %>
+                    <% }else if((results[i].avgStar>=1.7)&&(results[i].avgStar<2.7)){ %>
                       <label class="star">★★</label><label class="not">★★★</label>
-                    <% }else if((results[i].avgRating>=1)&&(results[i].avgRating<1.7)){ %>
+                    <% }else if((results[i].avgStar>=1)&&(results[i].avgStar<1.7)){ %>
                       <label class="star">★</label><label class="not">★★★★</label>
                     <% } %>
                 <% } %>

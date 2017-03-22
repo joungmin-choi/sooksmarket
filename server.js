@@ -687,10 +687,9 @@ app.post('/sm_signup', function(req, res) {
             urgencyCount: 0
         };
 
-        var reviewInit = {
-            trader: req.body.username,
-            isCompleted: 1,
-            starScore: 0
+        var starInit = {
+            username: req.body.username,
+            avgStar: 0
         };
 
         var sqlQuery = 'INSERT INTO UrgencyHistory SET ?';
@@ -701,8 +700,8 @@ app.post('/sm_signup', function(req, res) {
             }
         });
 
-        var reviewQuery = 'INSERT INTO TradeReview SET ?';
-        client.query(reviewQuery, reviewInit, function(err, result) {
+        var reviewQuery = 'INSERT INTO avgStar SET ?';
+        client.query(reviewQuery, starInit, function(err, result) {
             if (err) {
                 console.log(err);
                 throw err;
@@ -3913,6 +3912,7 @@ app.post('/sm_completeTrade/:id/:num', function(request, response) {
     var reserve_count;
     var reserveList;
     var content;
+    var avgStar;
 
     isDone = 0;
     body = request.body;
@@ -3981,15 +3981,28 @@ app.post('/sm_completeTrade/:id/:num', function(request, response) {
         },
 
         function(callback) {
-            sqlQuery = 'DELETE FROM TradeReview WHERE trader=? AND starScore=0';
+            sqlQuery = 'SELECT AVG(starScore) AS avgStar FROM TradeReview WHERE trader=?';
             client.query(sqlQuery, [username], function(err, result) {
                 if (err) {
                     console.log(err);
                     throw err;
                 }
+                avgStar = result[0].avgStar;
                 callback(null);
             });
         },
+
+        function(callback){
+          sqlQuery = 'UPDATE avgStar SET avgStar=? WHERE username=?';
+          client.query(sqlQuery, [avgStar, username], function(err, result) {
+              if (err) {
+                  throw err;
+              }
+              callback(null);
+          });
+        },
+
+
 
         function(callback) {
             sqlQuery = 'UPDATE CompletionInfo SET haveCompletion=? WHERE product_id=? AND username=?';
@@ -6609,6 +6622,7 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
     var isTimeOut = 0;
     var isTrading = 0;
     var tradingProduct;
+    var sellerAvgRating = new Array();
 
 
     async.series([
@@ -6632,9 +6646,9 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
             },
 
             function(callback) {
-                sql = 'SELECT p.*, AVG(starScore) AS avgRating FROM ProductInfo p right join TradeReview t on p.product_seller = t.trader WHERE (p.parent_id=? AND p.noticeType LIKE ?) ORDER BY p.product_price ASC';
+                sql = 'SELECT p.*,a.avgStar  FROM ProductInfo p, avgStar a WHERE (p.parent_id=? AND a.username = p.product_seller) ORDER BY p.product_price ASC';
 
-                client.query(sql, [auto, 'B'], function(err, result) {
+                client.query(sql, [auto], function(err, result) {
                     if (err) {
                         console.log(err);
                     }
@@ -6644,6 +6658,7 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
                         }
                         //console.log(photo);
                     }
+                    console.log(result);
                     results = result;
                     callback(null);
                 });
@@ -6733,7 +6748,8 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
                 photo: photo,
                 isTimeOut: isTimeOut,
                 isTrading: isTrading,
-                tradingProduct: tradingProduct
+                tradingProduct: tradingProduct,
+                sellerAvgRating : sellerAvgRating
             });
         });
 
@@ -6806,6 +6822,7 @@ app.post('/sm_buy_itemDetail/:auto', multipartMiddleware, function(req, res) {
                     photo1: outputPath,
                     photo2: "",
                     photo3: "",
+                    product_way : 3,
                     product_detail: body.detail,
                     product_seller: login_id,
                     product_date: date,
@@ -6823,6 +6840,66 @@ app.post('/sm_buy_itemDetail/:auto', multipartMiddleware, function(req, res) {
                     callback(null);
                 });
             },
+
+            function(callback){
+      var state = {
+          pid: productId,
+          seller_state: 0
+      };
+
+      var stateSql = 'INSERT INTO chat_state SET ?';
+      client.query(stateSql, state, function(err, result) {
+          if (err) {
+            console.log(err);
+          }
+          callback(null);
+      });
+    },
+
+    function(callback) {
+        var reserver = {
+            flag: 0,
+            product_id: productId,
+            session_id: null,
+            reserve_count: 0,
+            pName: productName
+        };
+        var reserveSql = 'INSERT INTO product_reserve SET ?';
+        client.query(reserveSql, reserver, function(err, result) {
+            if (err) {
+                console.log(err);
+            }
+            callback(null, 2);
+        });
+    },
+
+    function(callback) {
+        var state = {
+            product_id: productId,
+            delete_btn: 1
+        };
+        sql = 'INSERT INTO btn_state SET ?';
+        client.query(sql, state, function(err, result) {
+            if (err) {
+                console.log(err);
+            }
+            callback(null, 3);
+        });
+    },
+
+    function(callback) {
+        var reserveState = {
+            pid: productId,
+            customer: null
+        };
+        sql = 'INSERT INTO reserveAlarmState SET ?';
+        client.query(sql, reserveState, function(err, result) {
+            if (err) {
+                console.log(err);
+            }
+            callback(null, 5);
+        });
+    },
 
             function(callback) {
                 sql = 'INSERT INTO notifyMessage SET ?';
