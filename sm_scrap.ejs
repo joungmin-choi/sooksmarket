@@ -79,6 +79,7 @@
       from {bottom: 30px; opacity: 1;}
       to {bottom: 0; opacity: 0;}
     }
+
     </style>
 
     <script>
@@ -185,6 +186,13 @@
                       <small><%= result[i].scrap_seller %></small>
                     </a>
                   </div>
+                </div>
+              <% } %>
+
+              <% if(`${result.length}` == 0 ){ %>
+                <div>
+                  <h3 style="text-align:center;">스크랩 내역이 없습니다.</h3>
+                  <br /><hr />
                 </div>
               <% } %>
 

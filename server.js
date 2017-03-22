@@ -1391,8 +1391,13 @@ app.get('/sm_request/:id/:isUrgent', function(request, response) {
             isUrgent = request.params.isUrgent;
             var findTradeWaySql = 'SELECT product_way FROM ProductInfo WHERE product_id=?';
             client.query(findTradeWaySql, [product_id], function(err, result) {
+              if(result[0] == undefined){
+                response.redirect('/');
+                callback(null);
+              } else {
                 product_way = result[0].product_way;
                 callback(null, product_way);
+              }
             });
         },
 
@@ -1464,15 +1469,16 @@ app.post('/sm_request/:id/:isUrgent', function(request, response) {
             isUrgent = request.params.isUrgent;
             SqlQuery = 'SELECT product_seller, product_way, product_name, product_price FROM ProductInfo WHERE product_id=?';
             client.query(SqlQuery, [product_id], function(err, result) {
-                if (err) {
-                    console.log(err);
-                    throw err;
-                }
+              if(result[0] == undefined){
+                response.redirect('/');
+                callback(null);
+              } else {
                 seller = result[0].product_seller;
                 trade_way = result[0].product_way;
                 product_name = result[0].product_name;
                 product_price = result[0].product_price;
                 callback(null);
+              }
             });
         },
 
@@ -2418,115 +2424,115 @@ app.get('/sm_chat/:id/reject', function(request, response) {
         },
 
         //
-        function(callback) {
-                    var scheduleDate = msg_date;
-                    var s_date = new Array();
-                    var s_time = new Array();
-
-                    s_date[0] = parseInt(scheduleDate.substring(0, 4));
-                    s_date[1] = parseInt(scheduleDate.substring(5, 7)) - 1;
-                    s_date[2] = parseInt(scheduleDate.substring(8, 10));
-
-                    s_time[0] = parseInt(scheduleDate.substring(11, 13));
-                    s_time[1] = parseInt(scheduleDate.substring(14, 16));
-                    s_time[2] = parseInt(scheduleDate.substring(17, 19));
-
-                    var dueTime = new Date(s_date[0], s_date[1], s_date[2], s_time[0], s_time[1], s_time[2] + 1);
-                    reservationAlarmDate[product_id] = schedule.scheduleJob(dueTime, function() {
-                        console.log("1");
-
-                        sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
-                        client.query(sql, [product_id], function(err, result) {
-                            if (err) {
-                                console.log(err);
-                            }
-                            console.log("2");
-                            sql2 = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
-                            client.query(sql2, [product_id], function(err, result) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
-                                    console.log("3");
-                                    if (reserve_count == 1) {
-                                        state = 1;
-                                        sql3 = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
-                                        client.query(sql3, [null, product_id], function(err, result) {
-                                            if (err) {
-                                                console.log(err);
-                                            }
-                                            console.log("4");
-                                        });
-                                    } else {
-                                        state = 0;
-                                        console.log("4");
-                                    }
-
-                                    if (state === 0) {
-                                        for (var i = 2; i < reserve_count; i++) {
-                                            sql4 = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
-                                            client.query(sql4, [i - 1, product_id, i], function(err, result) {
-                                                if (err) {
-                                                    console.log(err);
-                                                } else {
-                                                  console.log("5");
-                                                }
-                                            });
-                                        }
-                                    }else{
-                                      console.log("5");
-                                    }
-                                    sql5 = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
-                                    client.query(sq5l, [product_id], function(err, result) {
-                                        if (err) {
-                                            console.log(err);
-                                            throw err;
-                                        }
-                                        temp = result[0].session_id;
-                                        console.log("6");
-                                        sql6 = 'SELECT * FROM ProductInfo WHERE product_id=?';
-                                        client.query(sql6, [product_id], function(err, result) {
-                                            if (err) {
-                                                console.log(err);
-                                            }
-                                            product_name = result[0].product_name;
-                                            console.log("7");
-                                            var m = moment();
-                                            msg_date = m.format("YYYY-MM-DD HH:mm:ss");
-                                            content = '예약하신 ' + product_name + ' 상품이 도착하였습니다.';
-                                            var reserveAlarm = {
-                                                category: 3,
-                                                product_id: product_id,
-                                                detail: content,
-                                                date: msg_date,
-                                                flag: 0,
-                                                link: '/sm_itemDetail/' + product_id,
-                                                arrow: temp,
-                                                id: null
-                                            };
-                                            sql8 = 'INSERT INTO notifyMessage SET ?';
-                                            client.query(sql8, reserveAlarm, function(err, result) {
-                                                if (err) {
-                                                    console.log(err);
-                                                }
-                                                console.log("8");
-                                                sql9 = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
-                                                client.query(sql9, [temp, product_id], function(err, result) {
-                                                    if (err) {
-                                                        console.log(err);
-                                                    }
-                                                    console.log("9");
-                                                });
-                                            });
-                                        });
-                                    });
-                                }
-                            });
-                        });
-
-                    callback(null);
-                });
-              },
+        // function(callback) {
+        //             var scheduleDate = msg_date;
+        //             var s_date = new Array();
+        //             var s_time = new Array();
+        //
+        //             s_date[0] = parseInt(scheduleDate.substring(0, 4));
+        //             s_date[1] = parseInt(scheduleDate.substring(5, 7)) - 1;
+        //             s_date[2] = parseInt(scheduleDate.substring(8, 10));
+        //
+        //             s_time[0] = parseInt(scheduleDate.substring(11, 13));
+        //             s_time[1] = parseInt(scheduleDate.substring(14, 16));
+        //             s_time[2] = parseInt(scheduleDate.substring(17, 19));
+        //
+        //             var dueTime = new Date(s_date[0], s_date[1], s_date[2], s_time[0], s_time[1], s_time[2] + 1);
+        //             reservationAlarmDate[product_id] = schedule.scheduleJob(dueTime, function() {
+        //                 console.log("1");
+        //
+        //                 sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
+        //                 client.query(sql, [product_id], function(err, result) {
+        //                     if (err) {
+        //                         console.log(err);
+        //                     }
+        //                     console.log("2");
+        //                     sql2 = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
+        //                     client.query(sql2, [product_id], function(err, result) {
+        //                         if (err) {
+        //                             console.log(err);
+        //                         } else {
+        //                             reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
+        //                             console.log("3");
+        //                             if (reserve_count == 1) {
+        //                                 state = 1;
+        //                                 sql3 = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
+        //                                 client.query(sql3, [null, product_id], function(err, result) {
+        //                                     if (err) {
+        //                                         console.log(err);
+        //                                     }
+        //                                     console.log("4");
+        //                                 });
+        //                             } else {
+        //                                 state = 0;
+        //                                 console.log("4");
+        //                             }
+        //
+        //                             if (state === 0) {
+        //                                 for (var i = 2; i < reserve_count; i++) {
+        //                                     sql4 = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
+        //                                     client.query(sql4, [i - 1, product_id, i], function(err, result) {
+        //                                         if (err) {
+        //                                             console.log(err);
+        //                                         } else {
+        //                                           console.log("5");
+        //                                         }
+        //                                     });
+        //                                 }
+        //                             }else{
+        //                               console.log("5");
+        //                             }
+        //                             sql5 = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
+        //                             client.query(sq5l, [product_id], function(err, result) {
+        //                                 if (err) {
+        //                                     console.log(err);
+        //                                     throw err;
+        //                                 }
+        //                                 temp = result[0].session_id;
+        //                                 console.log("6");
+        //                                 sql6 = 'SELECT * FROM ProductInfo WHERE product_id=?';
+        //                                 client.query(sql6, [product_id], function(err, result) {
+        //                                     if (err) {
+        //                                         console.log(err);
+        //                                     }
+        //                                     product_name = result[0].product_name;
+        //                                     console.log("7");
+        //                                     var m = moment();
+        //                                     msg_date = m.format("YYYY-MM-DD HH:mm:ss");
+        //                                     content = '예약하신 ' + product_name + ' 상품이 도착하였습니다.';
+        //                                     var reserveAlarm = {
+        //                                         category: 3,
+        //                                         product_id: product_id,
+        //                                         detail: content,
+        //                                         date: msg_date,
+        //                                         flag: 0,
+        //                                         link: '/sm_itemDetail/' + product_id,
+        //                                         arrow: temp,
+        //                                         id: null
+        //                                     };
+        //                                     sql8 = 'INSERT INTO notifyMessage SET ?';
+        //                                     client.query(sql8, reserveAlarm, function(err, result) {
+        //                                         if (err) {
+        //                                             console.log(err);
+        //                                         }
+        //                                         console.log("8");
+        //                                         sql9 = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
+        //                                         client.query(sql9, [temp, product_id], function(err, result) {
+        //                                             if (err) {
+        //                                                 console.log(err);
+        //                                             }
+        //                                             console.log("9");
+        //                                         });
+        //                                     });
+        //                                 });
+        //                             });
+        //                         }
+        //                     });
+        //                 });
+        //
+        //             callback(null);
+        //         });
+        //       },
               //
 
         function(callback) {
@@ -5291,7 +5297,7 @@ app.get('/sm_reserve_list', function(request, response) {
                     throw err;
                 }
                 reserve_result = result;
-                console.log('0', reserve_result);
+                //console.log('0', reserve_result);
                 callback(null);
             });
         },
@@ -6622,7 +6628,7 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
     var isTimeOut = 0;
     var isTrading = 0;
     var tradingProduct;
-    var sellerAvgRating = new Array();
+    var child_id_max = 0;
 
 
     async.series([
@@ -6658,7 +6664,7 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
                         }
                         //console.log(photo);
                     }
-                    console.log(result);
+
                     results = result;
                     callback(null);
                 });
@@ -6734,6 +6740,20 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
                     }
                     callback(null);
                 });
+            },
+
+            function(callback) {
+                sql = 'SELECT * FROM ProductInfo WHERE parent_id=?';
+                client.query(sql, [auto], function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
+
+                    child_id_max = result[0].length;
+
+                    callback(null);
+                });
             }
         ],
 
@@ -6749,7 +6769,7 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
                 isTimeOut: isTimeOut,
                 isTrading: isTrading,
                 tradingProduct: tradingProduct,
-                sellerAvgRating : sellerAvgRating
+                child_id_max : child_id_max
             });
         });
 
