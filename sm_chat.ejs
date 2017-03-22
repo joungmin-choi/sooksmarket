@@ -11,6 +11,10 @@
             box-sizing: border-box;
         }
 
+        body{
+          padding-top: 32px;
+        }
+
         #form{
         position:fixed;
         width:100%;
@@ -74,7 +78,6 @@
             padding-right: 15px;
             margin-bottom: 0px;
             background: lightblue;
-            margin-top: -6%;
         }
 
         #messages li {
@@ -172,6 +175,7 @@
     }
         $(function() {
 
+          document.body.style.overflow='hidden';
 
             var socket = io();
             var seller = '<%= seller %>';
@@ -352,7 +356,7 @@
         <form action="">
           <div>
           <div id="input">
-                <input name="name" id="text" placeholder="내용을 입력해주세요." style="width:72%;">
+                <input name="name" id="text" placeholder="내용을 입력해주세요." style="width:72%; border: 1px solid #ccc; border-radius: 4px;">
                 <button type="submit" class="btn btn-warning" id="text_button">확인</button>
           </div>
           <div id="input2">
@@ -367,7 +371,5 @@
   </div>
 
 </body>
-
-
 
 </html>

@@ -6609,6 +6609,7 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
     var isTimeOut = 0;
     var isTrading = 0;
     var tradingProduct;
+    var child_id_max = 0;
 
 
     async.series([
@@ -6644,6 +6645,7 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
                         }
                         //console.log(photo);
                     }
+                    //console.log(result);
                     results = result;
                     callback(null);
                 });
@@ -6719,6 +6721,20 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
                     }
                     callback(null);
                 });
+            },
+
+            function(callback) {
+                sql = 'SELECT * FROM ProductInfo WHERE parent_id=?';
+                client.query(sql, [auto], function(err, result) {
+                    if (err) {
+                        console.log(err);
+                        throw err;
+                    }
+
+                    child_id_max = result[0].length;
+
+                    callback(null);
+                });
             }
         ],
 
@@ -6733,7 +6749,8 @@ app.get('/sm_buy_itemDetail/:auto', function(req, res) {
                 photo: photo,
                 isTimeOut: isTimeOut,
                 isTrading: isTrading,
-                tradingProduct: tradingProduct
+                tradingProduct: tradingProduct,
+                child_id_max : child_id_max
             });
         });
 
