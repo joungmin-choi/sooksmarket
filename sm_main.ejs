@@ -4,6 +4,33 @@
     <meta charset="utf-8">
     <% include ./sm_head %>
 
+    <script type="text/javascript" src="/js/jquery.js"></script>
+
+        <script type="text/javascript" src="/js/jquery.exif.js"></script>
+
+        <style type="text/css">
+
+        #testimg {
+            transform-origin: top right; /* IE 10+, Firefox, etc. */
+            -webkit-transform-origin: top right; /* Chrome */
+            -ms-transform-origin: top right; /* IE 9 */
+        }
+
+        .rotate90 {
+
+            transform: rotate(90deg)translateY(100%);
+            -webkit-transform: rotate(-90deg)
+            -ms-transform: rotate(90deg)translateY(100%);
+            margin-top: 50%;
+           height:50%;
+           max-width: 30%;
+          }
+
+          .thumbnail>img {
+            max-width: 55%;
+          }
+
+        </style>
 
     <style>
 
@@ -162,6 +189,15 @@
         link = '/sm_chat/'+`<%=rejectProduct_id %>`;
         location.href=link;
       <% } %>
+
+      setTimeout(function(){
+
+          var testimg = $("#testimg");
+          if (testimg.exif("Orientation") == 8) {
+              testimg.addClass("rotate90");
+          }
+          testimg.show();
+      }, 500);
     }
 
     function isExit() {
@@ -240,6 +276,7 @@
       $.post("/sm_main/"+i, {scrapName: scrapName, scrapImg: scrapImg});
 
     };
+
 
     </script>
   </head>
@@ -368,7 +405,7 @@
                 <a onclick="itemDetail(<%= i %>)" id="Detail<%= i %>" href="/sm_itemDetail/<%= rows[i].product_id  %>">
                   <% if(rows[i].isDone == 0){ %>
                     <% if(rows[i].photo1 != ""){ %>
-                      <img class="img-responsive img-center" src="<%= rows[i].photo1 %>" alt="x" style="height:30vh; width: 38vh; margin-top:2%"/>
+                      <img id="testimg<%= i %>" exif="true" class="img-responsive img-center" src="<%= rows[i].photo1 %>" alt="x" style="height:30vh; width: 38vh; margin-top:2%"/>
                     <% } else { %>
                       <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:30vh; width: 38vh; margin-top:2%"/>
                       <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->

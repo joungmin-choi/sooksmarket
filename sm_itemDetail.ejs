@@ -17,9 +17,14 @@
 
         .rotate90 {
             transform: rotate(90deg)translateY(100%);
-            -webkit-transform: rotate(270deg)translateY(-80%);
+            -webkit-transform: rotate(270deg)translateY(-78%);
             -ms-transform: rotate(90deg)translateY(100%);
-            margin-top: 20%;
+            margin-top: 50%;
+           height:100%;
+          }
+
+          .thumbnail>img {
+            max-width: 55%;
           }
 
         </style>
@@ -313,7 +318,7 @@
 
                     <% for (i=0; i< photo.length; i++) {
                       if (photo[i] != ""){ %>
-                        <img id="testimg" exif="true" class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="300" height="200" style="display:none;"/>
+                        <img id="testimg" exif="true" class="img-responsive img-center" src="<%= photo[i] %>" alt="x" width="400" height="200" style="display:none;"/>
                         <br/>
                       <% } %>
                       <% if (photo[0] == ""){ %>
@@ -390,7 +395,6 @@
                             <button class="btn btn-warning" id="sm_reserveAlarm_no_After" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 거부</button>
                             <button type="button" class="btn btn-warning" id="sm_reserveAlarm_no_Before" onclick="sm_reserveAlarm_no()">거부</button>
                           <% } else if( nextReserveCustomer !== null) { %>
-                            <h1>들어옴</h1>
                             <% for(var i=0; i<reserveMember.length; i++){ %>
                               <% if(session_id == reserveMember[i].session_id) { %>
                                 <h1>거래가 진행중입니다.</h1>
