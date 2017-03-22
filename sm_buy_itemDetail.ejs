@@ -108,6 +108,7 @@
       var remainTimeDiv = document.getElementById("remainTimeDiv");
       var requestSellingDiv = document.getElementById("requestSellingDiv");
       var periodIntDays = parseInt(period.substring(0,1));
+      var modifyBuyingBtn = document.getElementById("seller_changeBefore");
 
       var date = new Array();
       var time = new Array();
@@ -130,6 +131,7 @@
       if(dueTime < presentTime){
         remainTimeDiv.innerHTML = "마감되었습니다.";
         requestSellingDiv.style.display = "none";
+        modifyBuyingBtn.style.display = "none";
         clearInterval(countTimer);
       }else{
         var interval = dueTime - presentTime;
@@ -223,11 +225,6 @@
       }
       location.href='/buy_sellProduct/delete/'+child_id+'/<%= `${rows.product_id}` %>';
     }
-
-
-
-
-
 
   </script>
 
