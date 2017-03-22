@@ -1,6 +1,5 @@
 var cors = require('cors');
-var fs = require('fs');
-var im = require('imagemagick');
+var fs = require('fs');``
 var ejs = require('ejs');
 var mysql = require('mysql');
 var express = require('express');
@@ -6569,7 +6568,7 @@ app.post('/sm_addBuyingItems', function(req, res) {
             var dueTime = new Date(s_date[0], s_date[1], s_date[2] + periodIntDays, s_time[0], s_time[1], s_time[2]);
             sellAlarmDate[productId] = schedule.scheduleJob(dueTime, function() {
 
-              detail = '[삽니다 게시판] "' + body.product + '"의 경매기간이 마감되었습니다.';
+              detail = '[삽니다 게시판] "' + body.product + '"의 신청기간이 마감되었습니다.';
 
               var option = {
                 category : 5,
