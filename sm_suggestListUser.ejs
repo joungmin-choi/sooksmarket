@@ -91,6 +91,13 @@
                   <td style="text-align:center"><%= rows[i].date %></td>
                 </tr>
             <% } %>
+
+            <% if(`${rows.length}` == 0 ){ %>
+              <tr>
+                <td colspan="2" style="text-align:center;">건의내역이 없습니다.</td>
+              </tr>
+            <% } %>
+
           </tbody>
       </table>
 

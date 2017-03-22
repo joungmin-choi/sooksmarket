@@ -181,6 +181,13 @@
                 </tr>
               <% } %>
             <% } %>
+
+            <% if(`${rows.length}` == 0 ){ %>
+              <tr>
+                <td colspan="4" style="text-align:center;">신고내역이 없습니다.</td>
+              </tr>
+            <% } %>
+
           </tbody>
       </table>
 

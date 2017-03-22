@@ -11,6 +11,10 @@
             box-sizing: border-box;
         }
 
+        body{
+          padding-top: 32px;
+        }
+
         #form{
         position:fixed;
         width:100%;
@@ -74,7 +78,6 @@
             padding-right: 15px;
             margin-bottom: 0px;
             background: lightblue;
-            margin-top: -6%;
         }
 
         #messages li {
@@ -157,9 +160,21 @@
     <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
     <script>
-        $(function() {
+    window.onload = function(){
+      var loader = document.getElementById('loader');
+      var body = document.getElementById('body');
+      var loadPage = document.getElementById('loadPage');
 
-          $("#mydiv").scrollTop($("#mydiv")[0].scrollHeight);
+      loader.style.display="none";
+      body.style.backgroundColor="#ffffff";
+      loadPage.style.display="";
+
+      $('#loader').hide();
+
+
+    }
+        $(function() {
+          document.body.style.overflow='hidden';
 
             var socket = io();
             var seller = '<%= seller %>';
@@ -183,8 +198,6 @@
 
                 $('form').submit(function() {
                     //alert('폼 버튼 클릭되었습니다:)');
-                    $('#text_button').hide();
-                    $('#text_button_After').show();
 
                     socket.emit('chat message', $('#text').val());
                     $('#text').val('');
@@ -201,10 +214,12 @@
                           msg_date = data.msg[i].msg_date;
                           msg_date = msg_date.substring(5,16);
                           if(data.msg[i].msg_id == users){
-                            $('#messages').append('<li class="actual_msg" style="background: #FEFE7C; float:right; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg+'</li>');
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFE7C; float:right;margin-bottom:1% "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg+'</li>');
+                            $("#messages").animate({'scrollTop':$("#messages")[0].scrollHeight}, 200);
                           }
                           else{
-                            $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg + '</li>');
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; margin-bottom:1%"><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg + '</li>');
+                            $("#messages").animate({'scrollTop':$("#messages")[0].scrollHeight}, 200);
                           }
                         }
                     }
@@ -228,10 +243,12 @@
                           msg_date = data.msg[i].msg_date;
                           msg_date = msg_date.substring(5,16);
                           if(data.msg[i].msg_id == users){
-                            $('#messages').append('<li class="actual_msg" style="background: #FEFE7C; float:right; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg+'</li>');
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFE7C; float:right; margin-bottom:1%"><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg+'</li>');
+                            $("#messages").animate({'scrollTop':$("#messages")[0].scrollHeight}, 200);
                           }
                           else{
-                            $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg + '</li>');
+                            $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; margin-bottom:1%"><b>' + data.msg[i].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[i].msg + '</li>');
+                            $("#messages").animate({'scrollTop':$("#messages")[0].scrollHeight}, 200);
                           }
                         }
                     }
@@ -240,7 +257,8 @@
                       msg_date = data.msg[length-1].msg_date;
                       msg_date = msg_date.substring(5,16);
                       //$('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[data.msg.length].msg_id + "</b><br/><label>"+"1"+"</label><hr/>" + data.msg[length].msg + '</li>');
-                      $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; "><b>' + data.msg[length-1].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[length-1].msg + '</li>');
+                      $('#messages').append('<li class="actual_msg" style="background: #FEFEFE; float:left; margin-bottom:1%"><b>' + data.msg[length-1].msg_id + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg[length-1].msg + '</li>');
+                      $("#messages").animate({'scrollTop':$("#messages")[0].scrollHeight}, 200);
 
                     }
                 })
@@ -253,10 +271,12 @@
                   msg_date = msg_date.substring(5,16);
 
                     if(data.user == users){
-                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:right; background: #FEFE7C;'><b>" + data.user + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg + "</li>");
+                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:right; background: #FEFE7C;margin-bottom:1%'><b>" + data.user + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg + "</li>");
+                      $("#messages").animate({'scrollTop':$("#messages")[0].scrollHeight}, 200);
                     }
                     else {
-                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:left; background: #FEFEFE;'><b>" + data.user + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg + "</li>");
+                      $('#messages').append("<li class='actual_msg' style='text-align:left; float:left; background: #FEFEFE;margin-bottom:1%'><b>" + data.user + "</b><br/><label>"+msg_date+"</label><hr/>" + data.msg + "</li>");
+                      $("#messages").animate({'scrollTop':$("#messages")[0].scrollHeight}, 200);
                     }
 
 
@@ -327,14 +347,15 @@
 
     <% include ./sm_top_navigator %>
 
+    <br />
         <div id="mydiv">
           <ul id="messages" style="height:71vh;"></ul>
         </div>
+
         <form action="">
           <div>
           <div id="input">
-                <input name="name" id="text" placeholder="내용을 입력해주세요." style="width:72%;">
-                <button class="btn btn-warning" id="text_button_After" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 확인</button>
+                <input name="name" id="text" placeholder="내용을 입력해주세요." style="width:72%; border: 1px solid #ccc; border-radius: 4px;">
                 <button type="submit" class="btn btn-warning" id="text_button">확인</button>
           </div>
           <div id="input2">
@@ -345,6 +366,7 @@
           </div>
         </div>
         </form>
+
   </div>
 
 </body>

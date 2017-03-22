@@ -131,6 +131,13 @@
                 </tr>
           <% } %>
         <% } %>
+
+        <% if(`${rows.length}` == 0 ){ %>
+          <tr>
+            <td colspan="2" style="text-align:center;">알림이 없습니다.</td>
+          </tr>
+        <% } %>
+
         </tbody>
     </table>
 
