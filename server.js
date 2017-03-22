@@ -1392,8 +1392,13 @@ app.get('/sm_request/:id/:isUrgent', function(request, response) {
             isUrgent = request.params.isUrgent;
             var findTradeWaySql = 'SELECT product_way FROM ProductInfo WHERE product_id=?';
             client.query(findTradeWaySql, [product_id], function(err, result) {
+              if(result[0] == undefined){
+                response.redirect('/');
+                callback(null);
+              } else {
                 product_way = result[0].product_way;
                 callback(null, product_way);
+              }
             });
         },
 
@@ -1465,15 +1470,16 @@ app.post('/sm_request/:id/:isUrgent', function(request, response) {
             isUrgent = request.params.isUrgent;
             SqlQuery = 'SELECT product_seller, product_way, product_name, product_price FROM ProductInfo WHERE product_id=?';
             client.query(SqlQuery, [product_id], function(err, result) {
-                if (err) {
-                    console.log(err);
-                    throw err;
-                }
+              if(result[0] == undefined){
+                response.redirect('/');
+                callback(null);
+              } else {
                 seller = result[0].product_seller;
                 trade_way = result[0].product_way;
                 product_name = result[0].product_name;
                 product_price = result[0].product_price;
                 callback(null);
+              }
             });
         },
 
@@ -5278,7 +5284,7 @@ app.get('/sm_reserve_list', function(request, response) {
                     throw err;
                 }
                 reserve_result = result;
-                console.log('0', reserve_result);
+                //console.log('0', reserve_result);
                 callback(null);
             });
         },
