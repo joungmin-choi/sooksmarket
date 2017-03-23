@@ -183,7 +183,8 @@
             location.href=link;
           }
         }
-      <% } else if(confirmRejection == 0){ %>
+      <% }
+      if(confirmRejection == 0){ %>
         var str = '거래 취소 확인 버튼을 누르지 않으신 곳이 있습니다.\n지금 바로 해당 채팅방에서 해주세요!';
         alert(str);
         link = '/sm_chat/'+`<%=rejectProduct_id %>`;

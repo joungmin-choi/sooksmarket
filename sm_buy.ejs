@@ -209,19 +209,22 @@
           <table class="table table-hover table-striped">
             <thead class="text-center">
               <tr style="border-bottom:1px solid black;">
-                <td style="width:15%;"><strong>No.</strong></td>
-                <td style="width:25%;"><strong>등록자</strong></td>
-                <td style="width:30%;"><strong>상품명</strong></td>
-                <td style="width:30%;"><strong>남은 시간</strong></td>
+                <td style=""><strong>No.</strong></td>
+                <!-- <td style=""><strong>등록자</strong></td> -->
+                <td style=""><strong>상품명</strong></td>
+                <td style=""><strong>남은 시간</strong></td>
               </tr>
             </thead>
             <tbody class="text-center">
               <% for (i=`${rows.length}`-1; i>=0; i--) { %>
                 <tr>
-                  <td><%= i+1 %></td>
-                  <td style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;"><%= rows[i].product_seller %></td>
-                  <td style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;"><a onclick="itemDetail(<%= i %>)" href="/sm_buy_itemDetail/<%= rows[i].product_id %>" id="Detail<%= i %>" onclick="itemDetail(<%= i %>)"><%= rows[i].product_name %></a></td>
-                  <td>
+                  <td style=""><%= i+1 %></td>
+                  <!-- <td style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;"><%= rows[i].product_seller %></td> -->
+                  <td style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
+                    <a onclick="itemDetail(<%= i %>)" href="/sm_buy_itemDetail/<%= rows[i].product_id %>" id="Detail<%= i %>" onclick="itemDetail(<%= i %>)"><%= rows[i].product_name %></a>
+                    <br/><small style="font-size:10px;"><%= rows[i].product_seller %></small>
+                  </td>
+                  <td style="">
                     <div id="remainTimeDiv<%=i%>" class="remainTimeDiv"></div>
                   </td>
                 </tr>
