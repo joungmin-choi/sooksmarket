@@ -6342,6 +6342,7 @@ app.get('/sm_buy', function(req, res) {
     var allowDate; //신고가 풀리는 날
     var email;
     var applyRejection, confirmRejection, changeSql;
+    var rejectProduct_id;
 
     async.series([
             function(callback) {
