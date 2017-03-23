@@ -501,6 +501,7 @@ app.post('/sm_main/:id', function(req, res) {
     var seller = [];
     var p_id = [];
     var category = [];
+    var price;
 
     var sql;
 
@@ -514,14 +515,15 @@ app.post('/sm_main/:id', function(req, res) {
                         seller = result[0].product_seller;
                         p_id = result[0].product_id;
                         category = result[0].product_category;
+                        price = result[0].product_price;
                         callback(null);
                     });
                 }
             ],
             function(err) {
                 var date = getTimeStamp();
-                var sql = 'INSERT INTO ScrapInfo (user, scrap_name, scrap_photo, scrap_seller, product_id, order_num, category) VALUES (?,?,?,?,?,?,?)';
-                client.query(sql, [loginId[1], scrapName, photo, seller, p_id, date, category], function() {
+                var sql = 'INSERT INTO ScrapInfo (user, scrap_name, scrap_photo, scrap_seller, product_id, order_num, category, scrap_price) VALUES (?,?,?,?,?,?,?,?)';
+                client.query(sql, [loginId[1], scrapName, photo, seller, p_id, date, category, price], function() {
                     res.redirect('/');
                 });
 
@@ -2761,8 +2763,8 @@ app.post('/sm_changeDetail/:id', multipartMiddleware, function(request, response
             },
 
             function(callback) {
-                var sql = 'UPDATE ScrapInfo SET scrap_name=?, scrap_photo=?, category=? where product_id=?';
-                client.query(sql, [body.name, outputPath[0], category, request.params.id], function(err, result) {
+                var sql = 'UPDATE ScrapInfo SET scrap_name=?, scrap_photo=?, category=?, scrap_price=? where product_id=?';
+                client.query(sql, [body.name, outputPath[0], category, request.params.id, body.price], function(err, result) {
                     callback(null);
                 });
             }
@@ -4844,6 +4846,7 @@ app.post('/category/:id', function(req, res) {
     var photo = [];
     var seller = [];
     var p_id = [];
+    var price;
 
     //console.log(req.params.id);
     if (scrapImg === "★") {
@@ -4853,13 +4856,14 @@ app.post('/category/:id', function(req, res) {
                         photo = result[0].photo1;
                         seller = result[0].product_seller;
                         p_id = result[0].product_id;
+                        price = result[0].product_price;
                         callback(null);
                     });
                 }
             ],
             function(err) {
-                var sql = 'INSERT INTO ScrapInfo (user, scrap_name, scrap_photo, scrap_seller, product_id, order_num) VALUES (?,?,?,?,?,?)';
-                client.query(sql, [loginId[1], scrapName, photo, seller, p_id, req.params.id], function() {
+                var sql = 'INSERT INTO ScrapInfo (user, scrap_name, scrap_photo, scrap_seller, product_id, order_num, scrap_price) VALUES (?,?,?,?,?,?,?)';
+                client.query(sql, [loginId[1], scrapName, photo, seller, p_id, req.params.id, price], function() {
                     res.redirect('/');
                 });
             });
