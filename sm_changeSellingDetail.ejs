@@ -81,7 +81,7 @@
     cancelAfter.style.display="";
     cancelBefore.style.display="none";
 
-    location.href='/sm_buy_itemDetail/<%= id %>/<%= num %>';
+    location.href='/sm_buy_itemDetail/<%= id %>';
   }
   </script>
 
@@ -137,7 +137,7 @@
       <div class="row">
 
       <div class="col-xs-12 col-md-12 col-md-offset-1">
-        <form action='/buy_itemDetail/<%= child_id %>/<%= id %>/<%= num %>/change' class="form-horizontal" role="form" id="form" name="form" method = "post"  enctype="multipart/form-data" onsubmit="return submitCheck()" >
+        <form action='/buy_itemDetail/<%= child_id %>/<%= id %>/change' class="form-horizontal" role="form" id="form" name="form" method = "post"  enctype="multipart/form-data" onsubmit="return submitCheck()" >
 
           <div class="form-group">
             <div class="col-sm-3 control-label">

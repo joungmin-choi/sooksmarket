@@ -4847,8 +4847,10 @@ app.post('/category/:id', function(req, res) {
     var seller = [];
     var p_id = [];
     var price;
+    var category;
+    var link;
 
-    //console.log(req.params.id);
+
     if (scrapImg === "★") {
         async.series([
                 function(callback) {
@@ -4857,20 +4859,23 @@ app.post('/category/:id', function(req, res) {
                         seller = result[0].product_seller;
                         p_id = result[0].product_id;
                         price = result[0].product_price;
+                        category = result[0].product_category;
                         callback(null);
                     });
                 }
             ],
             function(err) {
-                var sql = 'INSERT INTO ScrapInfo (user, scrap_name, scrap_photo, scrap_seller, product_id, order_num, scrap_price) VALUES (?,?,?,?,?,?,?)';
-                client.query(sql, [loginId[1], scrapName, photo, seller, p_id, req.params.id, price], function() {
-                    res.redirect('/');
+                var sql = 'INSERT INTO ScrapInfo (user, scrap_name, scrap_photo, scrap_seller, product_id, order_num, category, scrap_price) VALUES (?,?,?,?,?,?,?,?)';
+                client.query(sql, [loginId[1], scrapName, photo, seller, p_id, req.params.id, category, price], function() {
+                  link = '/category/'+i;
+                  res.redirect(link);
                 });
             });
 
     } else if (scrapImg === "☆") {
         client.query('DELETE FROM ScrapInfo WHERE user=? AND scrap_name=?', [loginId[1], scrapName], function() {
-            res.redirect('/');
+            link = '/category/'+i;
+            res.redirect(link);
         });
     }
 });
@@ -7022,7 +7027,7 @@ app.get('/buy_itemDetail/:id/delete', function(req, res) { //삭제
 
     async.series([
         function(callback) {
-            sellAlarmDate[id].cancel();
+            //sellAlarmDate[id].cancel();
             sql = 'DELETE FROM ProductInfo WHERE product_id=? OR parent_id=?';
             client.query(sql, [id, id], function() {
                 callback(null);
