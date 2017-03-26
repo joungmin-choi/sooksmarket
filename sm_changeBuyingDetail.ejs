@@ -60,7 +60,7 @@
     cancelAfter.style.display="";
     cancelBefore.style.display="none";
 
-    location.href='/sm_buy_itemDetail/<%= id %>/<%= num %>';
+    location.href='/sm_buy_itemDetail/<%= id %>';
   }
 
   </script>
@@ -115,7 +115,7 @@
       <hr />
       <div class="row">
       <div class="col-xs-12 col-md-12 col-md-offset-1">
-        <form action='/buy_itemDetail/<%= id %>/<%= num %>/change' class="form-horizontal" role="form" id="form" name="form" method = "post" onsubmit="return submitCheck()" >
+        <form action='/buy_itemDetail/<%= id %>/change' class="form-horizontal" role="form" id="form" name="form" method = "post" onsubmit="return submitCheck()" >
           <div class="form-group"> <!--has-success has-feedback-->
             <label for="" class="col-sm-3 control-label">사고싶은 하는 물건 :</label>
             <div class="col-sm-5">
