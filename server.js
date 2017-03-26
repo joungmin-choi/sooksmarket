@@ -4034,6 +4034,7 @@ app.get('/sm_scrap', function(req, res) {
     var on = 0;
     var allowDate; //신고가 풀리는 날
     var email;
+    var isDoneResults;
 
     var tasks = [
       function(callback) {
