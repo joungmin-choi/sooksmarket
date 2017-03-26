@@ -4678,6 +4678,7 @@ app.get('/category/:id', function(req, res) {
     var photo = [];
     var sql;
     var results, applyRejection, confirmRejection, changeSql;
+    var rejectProduct_id;
 
     if (flag !== undefined) {
         async.series([
