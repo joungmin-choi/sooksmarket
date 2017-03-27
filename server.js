@@ -1,5 +1,5 @@
 var cors = require('cors');
-var fs = require('fs');``
+var fs = require('fs');
 var ejs = require('ejs');
 var mysql = require('mysql');
 var express = require('express');
