@@ -5475,6 +5475,14 @@ app.post('/sm_unsign', function(req, res) {
                 });
             },
 
+            // 탈퇴 예약자 -1
+            // function(callback){
+            //   sql='UPDATE product_reserve SET session_id=? WHERE session_id=?';
+            //   client.query(sql,['delete',login_id], function(err, result){
+            //     callback(null);
+            //   });
+            // },
+
             function(callback) {
                 if (flag === 1) {
                     sql = 'DELETE FROM UrgencyHistory WHERE username=?';
