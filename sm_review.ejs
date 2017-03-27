@@ -145,9 +145,15 @@
                       case 5: %> <label class="star">★★★★★</label>
                               <% break;
                     } %>
-                    <br/>
+                    <br/><br/>
+                    <label style="font-weight:normal; font-size:13px; margin-bottom:7px;">
+                      상품 : <%= `${results[i].product_name}` %>
+                    </label><br/>
+
                     <% if(results[i].review != null){ %>
-                      <%= `${results[i].review}` %><br/>
+
+                      <%= `${results[i].review}` %>
+                    <br/>
                     <% } %>
                     <small style="color:grey;"><%= `${results[i].date}` %></small><br/>
                     <label style="float:right;font-weight:normal;">
@@ -176,6 +182,5 @@
 <!-- Footer -->
 
 <div style="display:none" id="loadPageFooter">
-  <% include ./sm_footer %>
 </div>
 </html>

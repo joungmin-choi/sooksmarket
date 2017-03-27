@@ -161,7 +161,7 @@
       }
 
 
-      $.post("/sm_category/"+i, {scrapName: scrapName, scrapImg: scrapImg});
+      $.post("/category/"+i, {scrapName: scrapName, scrapImg: scrapImg});
 
     };
 
@@ -262,11 +262,15 @@
                 </p>
 
                 <a onclick="itemDetail(<%= i %>)" id="Detail<%= i %>" href="/sm_itemDetail/<%= rows[i].product_id  %>">
-                  <% if(rows[i].photo1 != ""){ %>
-                    <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
-                  <% } else{ %>
-                    <img class="img-responsive img-center" src="/사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
-                    <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
+                  <% if(rows[i].isDone == 0){ %>
+                    <% if(rows[i].photo1 != ""){ %>
+                      <img class="img-responsive img-center" src="<%= photo[i] %>" alt="x" style="height:30vh; width: 38vh; margin-top:2%"/>
+                    <% } else{ %>
+                      <img class="img-responsive img-center" src="/사진없음.JPG" alt="x" style="height:30vh; width: 38vh; margin-top:2%"/>
+                        <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
+                    <% } %>
+                  <% }else{ %>
+                    <img class="img-responsive img-center" src="/soldout2.JPG" alt="x" style="height:30vh; width: 38vh; margin-top:2%"/>
                   <% } %>
 
                   <h3 id="name<%= i %>" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">

@@ -502,7 +502,7 @@
                                                 <h5>댓글을 남겨주세요:)</h5>
                                                 <!-- <form action='/sm_itemDetail/<%= id %>/comment/<%= rows[i].parent_id %>/reply' method='post' role="form"> -->
                                                 <div class="form-group">
-                                                    <textarea class="form-control" rows="3" name="each_comment_detail" id="each_comment_detail"></textarea>
+                                                    <textarea class="form-control" rows="3" name="each_comment_detail" id="each_comment_detail" onchange="textChange2()"></textarea>
                                                 </div>
 
                                                 <button id="send_After" type="button" class="btn btn-default btn-sm" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 보내기</button>
@@ -518,7 +518,7 @@
                                             document.onmousedown = textChange;
 
 
-                                            function textChange(){
+                                            function textChange2(){
 
                                               if (document.getElementById("each_comment_detail").value == '') {
                                                 //alert(document.getElementById("comment_detail").value);
