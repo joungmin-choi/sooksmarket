@@ -130,6 +130,7 @@
                       $('#button_delete').attr("disabled", true);
                       $('#button_change').attr("disabled", true);
                       $('#button_buy').attr("disabled", true);
+                      $('#button_reserve_Before').attr("disabled", false);
                   }
               } else {
                   if (next !== null) {
@@ -408,7 +409,7 @@
                               <h1>거래가 진행중입니다.</h1>
                             <% } else { %>
                               <button id="button_reserve_After" type="button"class="btn btn-primary" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약하기/현재 대기자수 <%= reserve_ordernumber %>명</button>
-                              <button id="button_reserve_Before" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber %>명</button>
+                              <button id="button_reserve_Before" type="button" class="btn btn-primary" onclick="reserve();"disabled>예약하기/현재 대기자수 <%= reserve_ordernumber %>명</button>
                               <button id="button_reserve_no_After" type="button"class="btn btn-primary" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약취소</button>
                               <button id="button_reserve_no_Before" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
                             <% } %>
@@ -423,7 +424,7 @@
                                 <button id="button_buy_after" class="btn btn-primary" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 구매하기</button>
                                 <button id="button_buy" type="button" class="btn btn-primary" onclick="buy();">구매하기</button>
                                 <button id="button_reserve_After" class="btn btn-primary" style="display:none" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
-                                <button id="button_reserve_Before" type="button" class="btn btn-primary" onclick="reserve();">예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
+                                <button id="button_reserve_Before" type="button" class="btn btn-primary" onclick="reserve();" disabled>예약하기/현재 대기자수 <%= reserve_ordernumber-1 %>명</button>
                                 <button id="button_reserve_no_After" type="button"class="btn btn-primary" style="display:none;" disabled><i class="fa fa-circle-o-notch fa-spin"></i> 예약취소</button>
                                 <button id="button_reserve_no_Before" type="button" class="btn btn-primary" onclick="reserve_no();">예약취소</button>
                               <% } %>

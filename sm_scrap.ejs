@@ -173,12 +173,13 @@
                       </a>
                     </p>
                     <a href="/sm_itemDetail/<%= result[i].product_id %>" id="Detail<%= i %>" onclick="itemDetail(<%= i %>)">
-                      <% if(result[i].scrap_photo != ""){ %>
-                        <img class="img-responsive img-center" src="<%= result[i].scrap_photo %>" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
-                      <% } else{ %>
-                        <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:170px; width: 300px; margin-top:2%"/>
+                        <% if(result[i].scrap_photo != ""){ %>
+                          <img class="img-responsive img-center" src="<%= result[i].scrap_photo %>" alt="x" style="height:30vh; width: 38vh; margin-top:2%"/>
+                        <% } else{ %>
+                          <img class="img-responsive img-center" src="./사진없음.JPG" alt="x" style="height:30vh; width: 38vh; margin-top:2%"/>
                         <!-- 사진없음 이미지 긁어온 곳 : http://www.taekwangsnc.com/new/shop/list.php?ca_id=5010 -->
-                      <% } %>
+                        <% } %>
+
 
                       <h3 id="name<%= i %>" name="name" style="text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">
                         <%= result[i].scrap_name %>

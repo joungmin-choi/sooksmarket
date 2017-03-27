@@ -1,5 +1,5 @@
 var cors = require('cors');
-var fs = require('fs');``
+var fs = require('fs');
 var ejs = require('ejs');
 var mysql = require('mysql');
 var express = require('express');
@@ -1081,7 +1081,7 @@ app.get('/sm_itemDetail/:id', function(request, response) {
                 },
 
                 function(callback) {
-                    sqlQuery = 'SELECT AVG(starScore) AS avgStar FROM TradeReview WHERE trader=?';
+                    sqlQuery = 'SELECT avgStar FROM avgStar WHERE username=?';
                     client.query(sqlQuery, [detail_seller], function(err, result) {
                         if (err) {
                             throw err;
@@ -2222,6 +2222,17 @@ app.get('/sm_chat/:id/reject', function(request, response) {
             });
         },
 
+        function(callback){
+          sqlQuery = 'DELETE FROM notifyMessage WHERE product_id=?';
+          client.query(sqlQuery, [product_id], function(err, result) {
+              if (err) {
+                  console.log(err);
+                  throw err;
+              }
+              callback(null, 6);
+          });
+        },
+
         //세진
         function(callback) {
             // 예약자가 있는지 예약자 수 확인하기
@@ -2423,118 +2434,6 @@ app.get('/sm_chat/:id/reject', function(request, response) {
                 callback(null, 5);
             });
         },
-
-        //
-        // function(callback) {
-        //             var scheduleDate = msg_date;
-        //             var s_date = new Array();
-        //             var s_time = new Array();
-        //
-        //             s_date[0] = parseInt(scheduleDate.substring(0, 4));
-        //             s_date[1] = parseInt(scheduleDate.substring(5, 7)) - 1;
-        //             s_date[2] = parseInt(scheduleDate.substring(8, 10));
-        //
-        //             s_time[0] = parseInt(scheduleDate.substring(11, 13));
-        //             s_time[1] = parseInt(scheduleDate.substring(14, 16));
-        //             s_time[2] = parseInt(scheduleDate.substring(17, 19));
-        //
-        //             var dueTime = new Date(s_date[0], s_date[1], s_date[2], s_time[0], s_time[1], s_time[2] + 1);
-        //             reservationAlarmDate[product_id] = schedule.scheduleJob(dueTime, function() {
-        //                 console.log("1");
-        //
-        //                 sql = 'DELETE FROM product_reserve WHERE product_id=? AND reserve_count=1';
-        //                 client.query(sql, [product_id], function(err, result) {
-        //                     if (err) {
-        //                         console.log(err);
-        //                     }
-        //                     console.log("2");
-        //                     sql2 = 'SELECT MAX(reserve_count) FROM product_reserve WHERE product_id=?';
-        //                     client.query(sql2, [product_id], function(err, result) {
-        //                         if (err) {
-        //                             console.log(err);
-        //                         } else {
-        //                             reserve_count = `${result[0]['MAX(reserve_count)']+1}`;
-        //                             console.log("3");
-        //                             if (reserve_count == 1) {
-        //                                 state = 1;
-        //                                 sql3 = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
-        //                                 client.query(sql3, [null, product_id], function(err, result) {
-        //                                     if (err) {
-        //                                         console.log(err);
-        //                                     }
-        //                                     console.log("4");
-        //                                 });
-        //                             } else {
-        //                                 state = 0;
-        //                                 console.log("4");
-        //                             }
-        //
-        //                             if (state === 0) {
-        //                                 for (var i = 2; i < reserve_count; i++) {
-        //                                     sql4 = 'UPDATE product_reserve SET reserve_count=? WHERE product_id=? AND reserve_count=?';
-        //                                     client.query(sql4, [i - 1, product_id, i], function(err, result) {
-        //                                         if (err) {
-        //                                             console.log(err);
-        //                                         } else {
-        //                                           console.log("5");
-        //                                         }
-        //                                     });
-        //                                 }
-        //                             }else{
-        //                               console.log("5");
-        //                             }
-        //                             sql5 = 'SELECT * FROM product_reserve WHERE product_id=? AND reserve_count=1';
-        //                             client.query(sq5l, [product_id], function(err, result) {
-        //                                 if (err) {
-        //                                     console.log(err);
-        //                                     throw err;
-        //                                 }
-        //                                 temp = result[0].session_id;
-        //                                 console.log("6");
-        //                                 sql6 = 'SELECT * FROM ProductInfo WHERE product_id=?';
-        //                                 client.query(sql6, [product_id], function(err, result) {
-        //                                     if (err) {
-        //                                         console.log(err);
-        //                                     }
-        //                                     product_name = result[0].product_name;
-        //                                     console.log("7");
-        //                                     var m = moment();
-        //                                     msg_date = m.format("YYYY-MM-DD HH:mm:ss");
-        //                                     content = '예약하신 ' + product_name + ' 상품이 도착하였습니다.';
-        //                                     var reserveAlarm = {
-        //                                         category: 3,
-        //                                         product_id: product_id,
-        //                                         detail: content,
-        //                                         date: msg_date,
-        //                                         flag: 0,
-        //                                         link: '/sm_itemDetail/' + product_id,
-        //                                         arrow: temp,
-        //                                         id: null
-        //                                     };
-        //                                     sql8 = 'INSERT INTO notifyMessage SET ?';
-        //                                     client.query(sql8, reserveAlarm, function(err, result) {
-        //                                         if (err) {
-        //                                             console.log(err);
-        //                                         }
-        //                                         console.log("8");
-        //                                         sql9 = 'UPDATE reserveAlarmState SET customer=? WHERE pid=?';
-        //                                         client.query(sql9, [temp, product_id], function(err, result) {
-        //                                             if (err) {
-        //                                                 console.log(err);
-        //                                             }
-        //                                             console.log("9");
-        //                                         });
-        //                                     });
-        //                                 });
-        //                             });
-        //                         }
-        //                     });
-        //                 });
-        //
-        //             callback(null);
-        //         });
-        //       },
-              //
 
         function(callback) {
             response.redirect('/sm_main');
@@ -4021,6 +3920,17 @@ app.post('/sm_completeTrade/:id/:num', function(request, response) {
             });
         },
 
+        function(callback){
+          sqlQuery = 'DELETE FROM notifyMessage WHERE product_id=? AND arrow=?';
+          client.query(sqlQuery, [product_id, username], function(err, result) {
+              if (err) {
+                  console.log(err);
+                  throw err;
+              }
+              callback(null, 6);
+          });
+        },
+
         function(callback) {
             sqlQuery = 'SELECT username FROM TradeReview WHERE product_id=?';
             client.query(sqlQuery, [product_id], function(err, result) {
@@ -4124,6 +4034,7 @@ app.get('/sm_scrap', function(req, res) {
     var on = 0;
     var allowDate; //신고가 풀리는 날
     var email;
+    var isDoneResults;
 
     var tasks = [
       function(callback) {
@@ -4678,6 +4589,7 @@ app.get('/category/:id', function(req, res) {
     var photo = [];
     var sql;
     var results, applyRejection, confirmRejection, changeSql;
+    var rejectProduct_id;
 
     if (flag !== undefined) {
         async.series([
@@ -5035,7 +4947,7 @@ app.get('/sm_review', function(request, response) {
 
     var tasks = [
         function(callback) {
-            sqlQuery = 'SELECT trader, starScore, review, username, date FROM TradeReview ORDER BY id DESC';
+            sqlQuery = 'SELECT product_name, trader, starScore, review, username, date FROM TradeReview ORDER BY id DESC';
             client.query(sqlQuery, function(err, result) {
                 if (err) {
                     throw err;
@@ -5563,6 +5475,14 @@ app.post('/sm_unsign', function(req, res) {
                 });
             },
 
+            // 탈퇴 예약자 -1
+            // function(callback){
+            //   sql='UPDATE product_reserve SET session_id=? WHERE session_id=?';
+            //   client.query(sql,['delete',login_id], function(err, result){
+            //     callback(null);
+            //   });
+            // },
+
             function(callback) {
                 if (flag === 1) {
                     sql = 'DELETE FROM UrgencyHistory WHERE username=?';
@@ -5773,6 +5693,17 @@ app.post('/sm_reportRejector/:id', function(request, response) {
                 }
                 callback(null, 5);
             });
+        },
+
+        function(callback){
+          sqlQuery = 'DELETE FROM notifyMessage WHERE product_id=?';
+          client.query(sqlQuery, [product_id], function(err, result) {
+              if (err) {
+                  console.log(err);
+                  throw err;
+              }
+              callback(null, 6);
+          });
         },
         //세진--
         function(callback) {
